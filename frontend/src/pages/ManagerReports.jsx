@@ -178,10 +178,92 @@ function ManagerReports() {
     };
   };
 
-  const downloadReport = (format) => {
-    // Implementation for downloading reports in different formats
-    console.log(`Downloading ${reportType} report in ${format} format`);
-    // This would typically trigger a file download
+  const downloadReport = async (format) => {
+    try {
+      const token = authService.getAccessToken();
+      if (!token) {
+        console.error('No authentication token');
+        return;
+      }
+
+      // Calculate date range based on current selection
+      const today = new Date();
+      let startDate, endDate;
+      
+      switch (dateRange) {
+        case 'this_week':
+          startDate = new Date(today.setDate(today.getDate() - today.getDay()));
+          endDate = new Date();
+          break;
+        case 'this_month':
+          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+          endDate = new Date();
+          break;
+        case 'last_month':
+          startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+          endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+          break;
+        case 'last_3_months':
+          startDate = new Date(today.getFullYear(), today.getMonth() - 3, 1);
+          endDate = new Date();
+          break;
+        case 'this_year':
+          startDate = new Date(today.getFullYear(), 0, 1);
+          endDate = new Date();
+          break;
+        default:
+          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+          endDate = new Date();
+      }
+
+      const startDateStr = startDate.toISOString().split('T')[0];
+      const endDateStr = endDate.toISOString().split('T')[0];
+
+      // Build the API endpoint based on report type
+      let endpoint = '';
+      let filename = '';
+
+      if (reportType === 'attendance') {
+        endpoint = `/api/manager/reports/attendance/download?start_date=${startDateStr}&end_date=${endDateStr}&format=${format}`;
+        filename = `attendance_report_${startDateStr}_to_${endDateStr}.${format === 'excel' ? 'xlsx' : format}`;
+      } else if (reportType === 'leaves') {
+        endpoint = `/api/manager/reports/leaves/download?start_date=${startDateStr}&end_date=${endDateStr}&format=${format}`;
+        filename = `leaves_report_${startDateStr}_to_${endDateStr}.${format === 'excel' ? 'xlsx' : format}`;
+      } else {
+        console.log(`Download for ${reportType} not yet implemented`);
+        return;
+      }
+
+      // Fetch the report file
+      const response = await fetch(endpoint, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to download report: ${response.statusText}`);
+      }
+
+      // Get the blob from response
+      const blob = await response.blob();
+
+      // Create a temporary download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      console.log(`Downloaded ${reportType} report in ${format} format`);
+    } catch (error) {
+      console.error('Error downloading report:', error);
+      alert(`Failed to download report: ${error.message}`);
+    }
   };
 
   const ReportCard = ({ icon: Icon, title, value, subtitle, color = "blue" }) => (

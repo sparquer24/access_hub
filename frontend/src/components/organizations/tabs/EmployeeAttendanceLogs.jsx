@@ -299,7 +299,19 @@ const EmployeeAttendanceLogs = ({ employees = [], onEmployeeClick, organizationI
                     />
                     <RangePicker
                         value={dateRange}
-                        onChange={setDateRange}
+                        onChange={(dates) => {
+                            if (!dates || !dates[0] || !dates[1]) {
+                                // Clear the date range if dates are cleared
+                                setDateRange(null);
+                                return;
+                            }
+                            // Validate that start date is before or equal to end date
+                            if (dates[0].isAfter(dates[1])) {
+                                showError('Start date must be before or equal to end date');
+                                return;
+                            }
+                            setDateRange(dates);
+                        }}
                         size="small"
                         className="w-64"
                     />

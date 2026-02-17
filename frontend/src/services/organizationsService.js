@@ -561,6 +561,41 @@ export const employeesService = {
       throw error;
     }
   },
+
+  /**
+   * Download employee directory as PDF or Excel
+   * 
+   * @param {string} organizationId - Organization UUID
+   * @param {Object} options - Download options
+   * @param {string} [options.format='pdf'] - File format (pdf or excel)
+   * @param {string} [options.status_filter='all'] - Filter by status (all, active, inactive)
+   * @param {string} [options.department_id] - Optional department filter
+   * @returns {Promise<Blob>} File blob for download
+   */
+  downloadDirectory: async (organizationId, options = {}) => {
+    try {
+      const { format = 'pdf', status_filter = 'all', department_id = null } = options;
+      
+      const params = {
+        format,
+        status_filter
+      };
+      
+      if (department_id) {
+        params.department_id = department_id;
+      }
+      
+      const response = await api.get(`/api/v2/organizations/${organizationId}/employees/download`, {
+        params,
+        responseType: 'blob'
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error(`Error downloading employee directory:`, error);
+      throw error;
+    }
+  },
 };
 
 /**

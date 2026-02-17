@@ -29,6 +29,13 @@ const LeaveRequestForm = ({ isOpen, onClose, onSuccess }) => {
     ];
 
     const handleDateChange = (dates) => {
+        if (dates && dates[0] && dates[1]) {
+            // Validate that start date is before or equal to end date
+            if (dates[0].isAfter(dates[1])) {
+                showError('Start date must be before or equal to end date');
+                return;
+            }
+        }
         setDateRange(dates);
         calculateTotalDays(dates, durationType);
     };

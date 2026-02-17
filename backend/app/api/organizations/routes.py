@@ -633,6 +633,21 @@ def get_employees_attendance_summary(org_id):
             Employee.deleted_at.is_(None)
         )
         
+        # Apply department filter if provided
+        department_filter = request.args.get('department_id')
+        if department_filter:
+            employees_query = employees_query.filter(Employee.department_id == department_filter)
+        
+        # Apply search filter if provided
+        search = request.args.get('search')
+        if search:
+            employees_query = employees_query.filter(
+                db.or_(
+                    Employee.full_name.ilike(f'%{search}%'),
+                    Employee.employee_code.ilike(f'%{search}%')
+                )
+            )
+        
         total = employees_query.count()
         employees = employees_query.offset((page - 1) * per_page).limit(per_page).all()
         
@@ -658,17 +673,24 @@ def get_employees_attendance_summary(org_id):
             
             attendance_pct = round((present_days / total_days * 100), 1) if total_days > 0 else 0
             
-            # Get department name
-            department = ''
+            # Get department info
+            department_info = None
             if emp.department_id:
                 dept = db.session.query(Department).filter_by(id=emp.department_id).first()
-                department = dept.name if dept else ''
+                if dept:
+                    department_info = {
+                        'id': dept.id,
+                        'name': dept.name
+                    }
             
             items.append({
                 'employee_id': emp.id,
-                'full_name': emp.full_name,
-                'employee_code': emp.employee_code,
-                'department': department,
+                'employee': {
+                    'id': emp.id,
+                    'full_name': emp.full_name,
+                    'employee_code': emp.employee_code,
+                    'department': department_info
+                },
                 'present_days': present_days,
                 'absent_days': absent_days,
                 'leave_count': 0,  # TODO: Calculate from leave requests
@@ -875,3 +897,205 @@ def get_top_performers(org_id):
         print(f"[get_top_performers] Error: {e}")
         print(f"[get_top_performers] Traceback: {traceback.format_exc()}")
         return error_response(f'Failed to retrieve top performers: {str(e)}', 500)
+
+
+@bp.route('/<string:org_id>/employees/download', methods=['GET', 'POST'])
+@jwt_required()
+@require_permission('organizations:read')
+def download_employees(org_id):
+    """
+    Download employee directory in PDF or Excel format
+    
+    Supports both GET (format as query param) and POST (format in body)
+    ---
+    tags:
+      - Organizations
+      - Employees
+    security:
+      - Bearer: []
+    parameters:
+      - name: org_id
+        in: path
+        type: string
+        required: true
+        description: Organization ID
+      - name: format
+        in: query
+        type: string
+        enum: ['pdf', 'excel']
+        default: 'pdf'
+        description: Export format (pdf or excel) - for GET requests
+    requestBody:
+      description: Download request with optional filters (for POST requests)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              format:
+                type: string
+                enum: ['pdf', 'excel']
+                default: 'pdf'
+              status_filter:
+                type: string
+                enum: ['all', 'active', 'inactive']
+                default: 'all'
+              department_id:
+                type: string
+                description: Optional department filter
+    responses:
+      200:
+        description: Employee directory file
+      400:
+        description: Invalid format specified
+      404:
+        $ref: '#/responses/NotFoundError'
+      401:
+        $ref: '#/responses/UnauthorizedError'
+      403:
+        $ref: '#/responses/ForbiddenError'
+    """
+    try:
+        from ...models import Employee
+        from ...extensions import db
+        from ...utils.export import DataExporter
+        
+        # Get format from either query params (GET) or request body (POST)
+        try:
+            if request.method == 'POST':
+                # For POST, safely get JSON body
+                try:
+                    data = request.get_json(force=True, silent=True) or {}
+                except Exception as json_err:
+                    print("[download_employees] JSON parse error: {}".format(json_err))
+                    data = {}
+                
+                format = data.get('format', 'pdf').lower()
+                status_filter = data.get('status_filter', 'all')
+                department_id = data.get('department_id')
+            else:
+                # For GET, use query params
+                format = request.args.get('format', 'pdf').lower()
+                status_filter = request.args.get('status_filter', 'all')
+                department_id = request.args.get('department_id')
+            
+            # Validate format
+            if format not in ['pdf', 'excel']:
+                return error_response('Invalid format. Use "pdf" or "excel"', 400)
+            
+            # Validate status_filter
+            if status_filter not in ['all', 'active', 'inactive']:
+                status_filter = 'all'
+        
+        except Exception as e:
+            print("[download_employees] Request parsing error: {}".format(str(e)))
+            return error_response('Invalid request format', 400)
+        
+        # Build query
+        try:
+            employees_query = db.session.query(Employee).filter(
+                Employee.organization_id == org_id,
+                Employee.deleted_at.is_(None)
+            )
+            
+            # Apply status filter
+            if status_filter == 'active':
+                employees_query = employees_query.filter(Employee.is_active.is_(True))
+            elif status_filter == 'inactive':
+                employees_query = employees_query.filter(Employee.is_active.is_(False))
+            
+            # Apply department filter if provided
+            if department_id:
+                employees_query = employees_query.filter(Employee.department_id == department_id)
+            
+            employees = employees_query.all()
+            
+        except Exception as db_err:
+            print("[download_employees] Database query error: {}".format(str(db_err)))
+            import traceback
+            print(traceback.format_exc())
+            return error_response('Failed to fetch employees: {}'.format(str(db_err)), 500)
+        
+        if not employees:
+            # Return empty file
+            if format == 'pdf':
+                return DataExporter.to_pdf([], filename=f'employees_{org_id}', title='Employee Directory')
+            else:
+                return DataExporter.to_excel([], filename=f'employees_{org_id}', sheet_name='Employees')
+        
+        # Prepare data for export
+        try:
+            employee_data = []
+            for emp in employees:
+                try:
+                    # Get department name if exists
+                    dept_name = 'N/A'
+                    if emp.department:
+                        dept_name = emp.department.name if emp.department.name else 'N/A'
+                    
+                    employee_data.append({
+                        'Name': emp.full_name or 'N/A',
+                        'Phone': emp.phone_number or 'N/A',
+                        'Department': dept_name,
+                        'Designation': emp.designation or 'N/A',
+                        'Employment Type': emp.employment_type or 'N/A',
+                        'Status': 'Active' if emp.is_active else 'Inactive'
+                    })
+                except Exception as emp_err:
+                    print("[download_employees] Error processing employee {}: {}".format(emp.id if emp else 'unknown', str(emp_err)))
+                    continue  # Skip this employee and continue with next
+            
+        except Exception as prep_err:
+            print("[download_employees] Data preparation error: {}".format(str(prep_err)))
+            import traceback
+            print(traceback.format_exc())
+            return error_response('Failed to prepare employee data: {}'.format(str(prep_err)), 500)
+        
+        # Export based on format
+        try:
+            columns = ['Name', 'Phone', 'Department', 'Designation', 'Employment Type', 'Status']
+            
+            if format == 'pdf':
+                response = DataExporter.to_pdf(
+                    employee_data,
+                    filename='employees_{}.pdf'.format(org_id),
+                    title='Employee Directory',
+                    columns=columns
+                )
+            else:
+                response = DataExporter.to_excel(
+                    employee_data,
+                    filename='employees_{}.xlsx'.format(org_id),
+                    sheet_name='Employees',
+                    columns=columns
+                )
+            
+            if not response:
+                return error_response('Failed to generate {}'.format(format.upper()), 500)
+            
+            return response
+            
+        except Exception as export_err:
+            print("[download_employees] Export error: {}".format(str(export_err)))
+            import traceback
+            print(traceback.format_exc())
+            return error_response('Failed to export to {}: {}'.format(format.upper(), str(export_err)), 500)
+    
+    except Exception as e:
+        import traceback
+        error_msg = str(e)
+        tb = traceback.format_exc()
+        print("\n[download_employees] UNHANDLED ERROR")
+        print("[download_employees] Message: {}".format(error_msg))
+        print("[download_employees] Traceback:\n{}".format(tb))
+        print("[download_employees] Organization ID: {}".format(org_id))
+        print("[download_employees] Method: {}".format(request.method))
+        if request.method == 'POST':
+            try:
+                print("[download_employees] Body: {}".format(request.get_json()))
+            except:
+                pass
+        else:
+            print("[download_employees] Query String: {}".format(request.query_string.decode()))
+        
+        return error_response('Internal server error: {}'.format(error_msg), 500)
