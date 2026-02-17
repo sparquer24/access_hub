@@ -294,7 +294,7 @@ const OrganizationInfo = ({ organization, onUpdate }) => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px] w-full bg-slate-50/50 backdrop-blur-sm rounded-xl border border-slate-100 shadow-inner">
-        <Loader size="large" text="Loading organization statistics..." />
+        <Loader type="ai" size="large" text="Analyzing Organization Data..." />
       </div>
     );
   }
@@ -319,59 +319,93 @@ const OrganizationInfo = ({ organization, onUpdate }) => {
 
       {/* AI Smart Summary Section */}
       <div className="px-2 mb-6">
-        <div className="bg-gradient-to-r from-teal-900 via-teal-800 to-cyan-900 rounded-2xl p-6 shadow-2xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
-            <Sparkles className="h-48 w-48 text-white" />
+        <div className="bg-gradient-to-r from-teal-900 via-cyan-900 to-slate-900 rounded-2xl p-6 shadow-2xl relative overflow-hidden group border border-teal-500/30">
+          <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-30 transition-opacity duration-1000 pointer-events-none">
+            <Sparkles className="h-64 w-64 text-cyan-400 animate-pulse" />
           </div>
+          {/* Animated Background Elements */}
+          <div className="absolute -top-24 -left-24 w-64 h-64 bg-teal-600/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-cyan-600/20 rounded-full blur-3xl animate-pulse delay-700"></div>
+
           <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-white/10 p-2 rounded-lg backdrop-blur-md border border-white/20">
-                <Sparkles className="h-5 w-5 text-teal-300" />
+            <div className="flex items-center gap-3 mb-6">
+              <div className="bg-white/10 p-2.5 rounded-xl backdrop-blur-md border border-white/20 shadow-[0_0_15px_rgba(45,212,191,0.5)]">
+                <Loader type="ai" size="small" />
               </div>
-              <h2 className="text-xl font-bold text-white tracking-tight">AI Organization Intelligence</h2>
-              <div className="flex gap-2">
-                <span className="text-[10px] bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full border border-green-500/30 font-bold uppercase tracking-widest">Active Insight</span>
-                <span className="text-[10px] bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded-full border border-teal-500/30 font-bold uppercase tracking-widest">Predictive</span>
+              <div>
+                <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-200 to-teal-200 tracking-tight">
+                  AI Organization Intelligence
+                </h2>
+                <p className="text-teal-200/80 text-xs font-medium tracking-wider uppercase">Live Organizational Neural Network</p>
+              </div>
+
+              <div className="flex gap-2 ml-auto">
+                <span className="flex items-center gap-1.5 text-[10px] bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full border border-emerald-500/30 font-bold uppercase tracking-widest shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></div>
+                  Active Analysis
+                </span>
+                <span className="flex items-center gap-1.5 text-[10px] bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full border border-cyan-500/30 font-bold uppercase tracking-widest shadow-[0_0_10px_rgba(34,211,238,0.2)]">
+                  <Sparkles className="w-3 h-3" />
+                  Predictive Model v2.4
+                </span>
               </div>
             </div>
 
             {aiInsights.isCollecting ? (
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8 text-center">
-                <div className="flex justify-center mb-4">
-                  <div className="bg-teal-500/20 p-3 rounded-full animate-pulse">
-                    <Clock className="w-8 h-8 text-teal-300" />
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-8 text-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
+                <div className="flex justify-center mb-6">
+                  <div className="bg-teal-500/20 p-4 rounded-full animate-pulse ring-4 ring-teal-500/10">
+                    <Loader type="ai" size="medium" />
                   </div>
                 </div>
-                <h3 className="text-white font-bold text-lg mb-2">Initial Data Collection in Progress</h3>
-                <p className="text-teal-100 text-sm max-w-2xl mx-auto leading-relaxed">
+                <h3 className="text-white font-bold text-xl mb-2 tracking-tight">Initializing Neural Collection</h3>
+                <p className="text-teal-200 text-sm max-w-2xl mx-auto leading-relaxed">
                   {aiInsights.message}
                 </p>
-                <div className="mt-6 flex justify-center gap-2">
+                <div className="mt-8 flex justify-center gap-3">
                   {[1, 2, 3, 4, 5, 6, 7].map((i) => (
                     <div
                       key={i}
-                      className={`h-1.5 w-8 rounded-full ${i <= getDaysActive() ? 'bg-teal-400' : 'bg-white/10'}`}
+                      className={`h-2 w-10 rounded-full transition-all duration-500 ${i <= getDaysActive() ? 'bg-gradient-to-r from-teal-500 to-cyan-500 shadow-[0_0_8px_rgba(45,212,191,0.6)]' : 'bg-white/10'}`}
                     ></div>
                   ))}
                 </div>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <p className="text-teal-400 text-[10px] font-black uppercase tracking-widest">Workforce Health</p>
-                  <p className="text-teal-50 text-sm leading-relaxed">
+                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5 hover:bg-white/10 transition-colors group/card">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="p-1.5 rounded bg-teal-500/20 text-teal-300 group-hover/card:scale-110 transition-transform">
+                      <Users className="w-4 h-4" />
+                    </div>
+                    <p className="text-teal-300 text-[10px] font-black uppercase tracking-widest">Workforce Health</p>
+                  </div>
+                  <p className="text-slate-200 text-sm leading-relaxed border-l-2 border-teal-500/50 pl-3">
                     {aiInsights.workforce}
                   </p>
                 </div>
-                <div className="space-y-2">
-                  <p className="text-teal-400 text-[10px] font-black uppercase tracking-widest">Security Posture</p>
-                  <p className="text-teal-50 text-sm leading-relaxed">
+
+                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5 hover:bg-white/10 transition-colors group/card">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="p-1.5 rounded bg-rose-500/20 text-rose-300 group-hover/card:scale-110 transition-transform">
+                      <Shield className="w-4 h-4" />
+                    </div>
+                    <p className="text-rose-300 text-[10px] font-black uppercase tracking-widest">Security Posture</p>
+                  </div>
+                  <p className="text-slate-200 text-sm leading-relaxed border-l-2 border-rose-500/50 pl-3">
                     {aiInsights.security}
                   </p>
                 </div>
-                <div className="space-y-2">
-                  <p className="text-teal-400 text-[10px] font-black uppercase tracking-widest">Predictive Growth</p>
-                  <p className="text-teal-50 text-sm leading-relaxed">
+
+                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5 hover:bg-white/10 transition-colors group/card">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="p-1.5 rounded bg-violet-500/20 text-violet-300 group-hover/card:scale-110 transition-transform">
+                      <TrendingUp className="w-4 h-4" />
+                    </div>
+                    <p className="text-violet-300 text-[10px] font-black uppercase tracking-widest">Predictive Growth</p>
+                  </div>
+                  <p className="text-slate-200 text-sm leading-relaxed border-l-2 border-violet-500/50 pl-3">
                     {aiInsights.growth}
                   </p>
                 </div>

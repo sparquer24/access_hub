@@ -1,7 +1,7 @@
 import React from 'react';
 import ModernLoader from './ModernLoader';
 
-const Loader = ({ type = 'spinner', size = 'medium', color = 'teal', className = '' }) => {
+const Loader = ({ type = 'ai', size = 'medium', color = 'teal', className = '', text = '' }) => {
     // Map existing sizes to ModernLoader sizes
     const sizeMap = {
         small: 'sm',
@@ -23,6 +23,7 @@ const Loader = ({ type = 'spinner', size = 'medium', color = 'teal', className =
             type={type === 'dots' ? 'pulse' : type}
             size={sizeMap[size] || 'md'}
             color={colorMap[color] || 'teal'}
+            text={text}
             className={className}
         />
     );

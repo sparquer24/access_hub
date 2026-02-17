@@ -117,7 +117,7 @@ const OrgAdminDashboard = () => {
 
         {loading ? (
           <div className="flex flex-col items-center justify-center h-80 bg-white/40 backdrop-blur-md rounded-3xl border border-white/50 shadow-xl mx-auto max-w-lg">
-            <Loader size="large" type="spinner" text="Syncing dashboard data..." />
+            <Loader size="large" text="Syncing dashboard data..." />
           </div>
         ) : (
           <>

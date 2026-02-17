@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import Loader from '../common/Loader';
 
 /**
  * PublicRoute - For routes that should only be accessible when NOT authenticated
@@ -12,9 +13,8 @@ const PublicRoute = ({ children }) => {
   // Show loading while authentication state is being determined
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="spinner-large"></div>
-        <p>Loading...</p>
+      <div className="flex flex-col items-center justify-center h-screen bg-slate-50">
+        <Loader size="large" text="Authenticating..." />
       </div>
     );
   }
