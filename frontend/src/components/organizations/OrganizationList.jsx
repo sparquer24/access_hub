@@ -76,10 +76,10 @@ const OrganizationList = ({ showCreateButton = true, basePath = '/super-admin/or
     <div className="bg-gradient-to-br from-slate-50 via-teal-50 to-teal-50 min-h-full">
       {/* Page Header */}
       <div className="bg-teal-50/90 backdrop-blur-sm border-b border-slate-200/60 sticky top-0 z-30 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto lg:px-8 p-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-teal-600 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-teal-600 bg-clip-text text-transparent">
                 Organizations
               </h1>
               <p className="text-slate-600 mt-1">Manage all organizations in the system</p>
@@ -100,7 +100,7 @@ const OrganizationList = ({ showCreateButton = true, basePath = '/super-admin/or
       </div>
 
       {/* Quick Actions Bar */}
-      <div className="bg-teal-50/95 border-b border-gray-200 sticky top-20 z-20 shadow-sm">
+      {/* <div className="bg-teal-50/95 border-b border-gray-200 sticky top-20 z-20 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap gap-3 py-4 items-center justify-between">
             <p className="text-gray-600 font-medium">Total Organizations: {organizations.length}</p>
@@ -109,13 +109,13 @@ const OrganizationList = ({ showCreateButton = true, basePath = '/super-admin/or
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Filters Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 ">
           {/* Search Box */}
-          <div className="md:col-span-2">
+          <div className="md:col-span-2 justify-end">
             <input
               type="text"
               placeholder="🔍 Search by name or code..."
@@ -126,7 +126,7 @@ const OrganizationList = ({ showCreateButton = true, basePath = '/super-admin/or
           </div>
 
           {/* Filter Tabs */}
-          <div className="md:col-span-2 flex gap-3 flex-wrap">
+          <div className="md:col-span-2 flex gap-3 flex-wrap justify-end">
             <button
               className={`px-6 py-3 rounded-xl font-bold transition-all duration-300 ${filterStatus === 'all'
                 ? 'bg-gradient-to-r from-teal-600 to-teal-600 text-white shadow-lg'
@@ -177,61 +177,74 @@ const OrganizationList = ({ showCreateButton = true, basePath = '/super-admin/or
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredOrganizations.map((org) => (
-              <div
-                key={org.id}
-                className="bg-teal-50/95 rounded-2xl border border-slate-200 shadow-lg hover:shadow-2xl transition-all duration-500 hover:translate-y-[-8px] overflow-hidden group"
-              >
-                {/* Card Header */}
-                <div className="bg-gradient-to-r from-teal-500/10 to-teal-500/10 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
-                  <div className="text-4xl">🏢</div>
-                  <span className={`px-4 py-2 rounded-full font-bold text-sm ${org.is_active
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-orange-100 text-orange-700'
-                    }`}>
-                    {org.is_active ? '✓ Active' : '⊘ Inactive'}
-                  </span>
-                </div>
-
-                {/* Card Body */}
-                <div className="px-6 py-6">
-                  <h3 className="text-2xl font-bold text-slate-900 mb-2">{org.name}</h3>
-                  <p className="text-sm text-slate-600 mb-4 font-medium">Code: <span className="text-teal-600 font-bold">{org.code || 'N/A'}</span></p>
-                  {org.description && (
-                    <p className="text-slate-600 text-sm mb-6 line-clamp-2">{org.description}</p>
-                  )}
-
-                  {/* Stats */}
-                  <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-slate-50 rounded-xl">
-                    <div className="text-center">
-                      <p className="text-2xl font-black text-teal-600">{org.cameras_count || 0}</p>
-                      <p className="text-xs text-slate-600 font-semibold mt-1">Cameras</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-black text-blue-600">{org.locations_count || 0}</p>
-                      <p className="text-xs text-slate-600 font-semibold mt-1">Locations</p>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-3">
-                    <button
-                      className="flex-1 px-4 py-2 bg-gradient-to-r from-teal-600 to-teal-600 text-white font-bold rounded-lg hover:shadow-lg transition-all duration-300 text-sm"
-                      onClick={() => handleViewOrganization(org.id)}
-                    >
-                      View Details →
-                    </button>
-                    <button
-                      className="flex-1 px-4 py-2 bg-red-50 text-red-600 font-bold rounded-lg border-2 border-red-200 hover:bg-red-100 hover:border-red-300 transition-all duration-300 text-sm"
-                      onClick={() => handleDeleteOrganization(org.id, org.name)}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-200">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Company Name</th>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Code</th>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                    <th scope="col" className="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Cameras</th>
+                    <th scope="col" className="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Locations</th>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-slate-200">
+                  {filteredOrganizations.map((org) => (
+                    <tr key={org.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10 bg-teal-100 rounded-full flex items-center justify-center text-teal-600 font-bold text-lg">
+                            {org.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-bold text-slate-900">{org.name}</div>
+                            {org.description && <div className="text-xs text-slate-500 max-w-[200px] truncate">{org.description}</div>}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-mono font-bold">
+                          {org.code || 'N/A'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${org.is_active
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-orange-100 text-orange-700'
+                          }`}>
+                          {org.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold text-slate-600">
+                        {org.cameras_count || 0}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold text-slate-600">
+                        {org.locations_count || 0}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center space-x-3">
+                          <button
+                            onClick={() => handleViewOrganization(org.id)}
+                            className="text-teal-600 hover:text-teal-900 font-semibold hover:underline"
+                          >
+                            View
+                          </button>
+                          <span className="text-slate-300">|</span>
+                          <button
+                            onClick={() => handleDeleteOrganization(org.id, org.name)}
+                            className="text-red-600 hover:text-red-900 font-semibold hover:underline"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
