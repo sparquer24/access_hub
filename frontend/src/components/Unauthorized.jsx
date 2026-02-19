@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/Unauthorized.css';
@@ -6,6 +6,7 @@ import '../styles/Unauthorized.css';
 const Unauthorized = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [redirectCountdown, setRedirectCountdown] = useState(5);
 
   const handleGoBack = () => {
     navigate(-1);
@@ -14,11 +15,7 @@ const Unauthorized = () => {
   const handleGoHome = () => {
     // Get role name from different possible structures - prioritize ID
     let roleName = '';
-    if (typeof user?.role === 'string') {
-      roleName = user.role;
-    } else if (user?.role?.id) {
-      roleName = user.role.id;
-    } else if (user?.role?.name) {
+   if (user?.role?.name) {
       roleName = user.role.name;
     }
     
@@ -44,6 +41,29 @@ const Unauthorized = () => {
         navigate('/');
     }
   };
+
+  // Auto-redirect after 5 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleGoHome();
+    }, 5000);
+
+    // Countdown timer for display
+    const countdownTimer = setInterval(() => {
+      setRedirectCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(countdownTimer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(countdownTimer);
+    };
+  }, [user]);
 
   const handleLogout = async () => {
     await logout();
@@ -72,6 +92,17 @@ const Unauthorized = () => {
             Org ID: {user?.organization_id || 'None'}
           </p>
         </div>
+
+        {/* Auto-redirect countdown */}
+        <div className="bg-teal-50 border-2 border-teal-400 rounded-xl p-4 mb-6">
+          <div className="flex items-center justify-center gap-2">
+            <div className="animate-pulse h-3 w-3 bg-teal-600 rounded-full"></div>
+            <p className="text-sm font-semibold text-teal-700">
+              Redirecting to dashboard in <span className="text-lg font-bold text-teal-600">{redirectCountdown}s</span>...
+            </p>
+          </div>
+        </div>
+
         <div className="flex flex-col gap-3">
           <button 
             onClick={handleGoBack} 

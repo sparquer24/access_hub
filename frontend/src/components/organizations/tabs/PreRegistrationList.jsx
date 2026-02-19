@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { visitorService } from '../../../services/visitorService';
+import { useToast } from '../../../contexts/ToastContext';
+import Loader from '../../common/Loader';
 
 const PreRegistrationList = ({ organizationId }) => {
+    const { success, error: showError } = useToast();
     const [preRegistrations, setPreRegistrations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
@@ -58,11 +61,11 @@ const PreRegistrationList = ({ organizationId }) => {
                     host_name: '',
                     visitor_type: 'guest'
                 });
-                alert("Pre-registration created successfully. QR code sent to email.");
+                success("Pre-registration created successfully. QR code sent to email.");
             }
         } catch (error) {
             console.error("Failed to create pre-registration", error);
-            alert("Error: " + (error.response?.data?.message || error.message));
+            showError("Error: " + (error.response?.data?.message || error.message));
         }
     };
 
@@ -71,7 +74,7 @@ const PreRegistrationList = ({ organizationId }) => {
             await visitorService.approvePreRegistration(organizationId, id);
             fetchPreRegistrations();
         } catch (error) {
-            alert("Failed to approve request");
+            showError("Failed to approve request");
         }
     };
 
@@ -82,7 +85,7 @@ const PreRegistrationList = ({ organizationId }) => {
             await visitorService.rejectPreRegistration(organizationId, id, reason);
             fetchPreRegistrations();
         } catch (error) {
-            alert("Failed to reject request");
+            showError("Failed to reject request");
         }
     };
 
@@ -226,7 +229,10 @@ const PreRegistrationList = ({ organizationId }) => {
                         {loading ? (
                             <tr>
                                 <td colSpan="5" className="px-6 py-8 text-center text-slate-500">
-                                    Loading requests...
+                                    <div className="flex justify-center">
+                                        <Loader size="medium" />
+                                    </div>
+                                    <p className="mt-2">Loading requests...</p>
                                 </td>
                             </tr>
                         ) : preRegistrations.length === 0 ? (

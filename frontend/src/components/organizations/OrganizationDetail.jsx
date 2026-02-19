@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { message } from 'antd';
 import { organizationsService } from '../../services/organizationsService';
 import OrganizationInfo from './tabs/OrganizationInfo';
+import Loader from '../common/Loader';
 import OrganizationEmployees from './tabs/OrganizationEmployees';
 import OrganizationCameras from './tabs/OrganizationCameras';
 import OrganizationLocations from './tabs/OrganizationLocations';
@@ -13,8 +14,6 @@ import OrganizationStatistics from './tabs/OrganizationStatistics';
 
 import OrganizationVisitors from './tabs/OrganizationVisitors';
 import OrganizationLPR from './tabs/OrganizationLPR';
-import SubscriptionModal from '../subscription/SubscriptionModal';
-import FeatureGate from '../subscription/FeatureGate';
 import { useSubscription } from '../../contexts/SubscriptionContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { ArrowLeft, Edit2, Ban, CheckCircle, Building2 } from 'lucide-react';
@@ -28,8 +27,7 @@ const OrganizationDetail = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const [organization, setOrganization] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-  const { hasFeature, subscriptionStatus } = useSubscription();
+  const { hasFeature } = useSubscription();
   const { user } = useAuth();
 
   // Verify user has access to this organization
@@ -81,7 +79,7 @@ const OrganizationDetail = ({
   // Define available tabs based on enabled features
   const getAvailableTabs = () => {
     const tabs = [
-      { id: 'info', name: '▤ Organization Info', component: 'info', alwaysShow: true }
+      { id: 'info', name: '◐ Organization Overview', component: 'info', alwaysShow: true }
     ];
 
     if (enabledFeatures.employee_attendance) {
@@ -107,17 +105,17 @@ const OrganizationDetail = ({
       tabs.push({ id: 'locations', name: '◈ Locations', component: 'locations' });
     }
 
-    if (enabledFeatures.advanced_analytics) {
-      tabs.push({ id: 'statistics', name: '◐ Analytics', component: 'statistics' });
-    }
+    // if (enabledFeatures.advanced_analytics) {
+    //   tabs.push({ id: 'statistics', name: '◐ Analytics', component: 'statistics' });
+    // }
 
 
 
-    // Always show alerts and rules
-    tabs.push(
-      { id: 'alerts', name: '⚠ Alerts', component: 'alerts', alwaysShow: true },
-      { id: 'rules', name: '≡ Rules', component: 'rules', alwaysShow: true }
-    );
+    // // Always show alerts and rules
+    // tabs.push(
+    //   { id: 'alerts', name: '⚠ Alerts', component: 'alerts', alwaysShow: true },
+    //   { id: 'rules', name: '≡ Rules', component: 'rules', alwaysShow: true }
+    // );
 
     return tabs;
   };
@@ -177,15 +175,10 @@ const OrganizationDetail = ({
     }
   };
 
-  const handleBack = () => {
-    navigate(backPath);
-  };
-
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <div className="w-12 h-12 border-4 border-gray-200 border-t-teal-600 rounded-full animate-spin"></div>
-        <p className="text-gray-600">Loading organization details...</p>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-cyan-50">
+        <Loader size="large" text="Loading organization details..." />
       </div>
     );
   }
@@ -239,8 +232,8 @@ const OrganizationDetail = ({
               </button>
               <button
                 className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-md flex items-center gap-2 text-sm ${organization.is_active
-                    ? 'bg-red-500 hover:bg-red-600 text-white'
-                    : 'bg-green-500 hover:bg-green-600 text-white'
+                  ? 'bg-red-500 hover:bg-red-600 text-white'
+                  : 'bg-green-500 hover:bg-green-600 text-white'
                   }`}
                 onClick={handleDisable}
               >
@@ -258,7 +251,7 @@ const OrganizationDetail = ({
 
 
       {/* Tabs */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-4 lg:px-4 py-6">
+      <div className="max-w-7xl mx-auto px-1 sm:px-4 lg:px-1 py-2">
         <div className="bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           {/* Tab Navigation */}
           <div className="flex bg-teal-50 border-b border-gray-200 overflow-x-auto">
@@ -266,8 +259,8 @@ const OrganizationDetail = ({
               <button
                 key={tab.id}
                 className={`px-3 py-2 font-medium text-xs whitespace-nowrap flex items-center gap-1 transition-all duration-300 relative border-b-2 ${activeTab === tab.id
-                    ? 'text-teal-600 bg-teal-50/95 border-teal-600'
-                    : 'text-gray-600 hover:text-teal-600 hover:bg-teal-100 border-transparent'
+                  ? 'text-teal-600 bg-teal-50/95 border-teal-600'
+                  : 'text-gray-600 hover:text-teal-600 hover:bg-teal-100 border-transparent'
                   }`}
                 onClick={() => setActiveTab(tab.id)}
               >
@@ -277,7 +270,7 @@ const OrganizationDetail = ({
           </div>
 
           {/* Tab Content */}
-          <div className="p-8">
+          <div className="p-4">
             {activeTab === 'info' && (
               <OrganizationInfo
                 organization={organization}
@@ -335,12 +328,6 @@ const OrganizationDetail = ({
         </div>
       </div>
 
-      {/* Subscription Modal */}
-      <SubscriptionModal
-        isOpen={showSubscriptionModal}
-        onClose={() => setShowSubscriptionModal(false)}
-        organizationId={organization?.id}
-      />
     </div>
   );
 };

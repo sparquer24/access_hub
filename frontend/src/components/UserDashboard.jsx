@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { statsAPI } from "../services/api";
 import AlertFeed from "../features/alerts/AlertFeed";
 import { AlertsProvider, AlertsContext } from "../features/alerts/alerts.context";
+import Loader from './common/Loader';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ const UserDashboard = () => {
         const resp = await statsAPI.visitorCount();
         const val = resp.data?.count ?? resp.data?.total ?? 0;
         setVisitorCount(val);
-      } catch {}
+      } catch { }
       timer = setTimeout(tick, 5000);
     };
     tick();
@@ -52,40 +53,40 @@ const UserDashboard = () => {
 
   return (
     <AlertsProvider>
-    <div className="visitor-user-dashboard">
-      <div className="dashboard-container">
-        <div className="stats-row">
-          <AlertsContext.Consumer>
-            {({ alerts }) => (
-              <div className="stat-card alert-card">
-                <h3 className="stat-title">Active Security Alerts</h3>
-                <div className="stat-number">{alerts.length}</div>
-              </div>
-            )}
-          </AlertsContext.Consumer>
+      <div className="visitor-user-dashboard">
+        <div className="dashboard-container">
+          <div className="stats-row">
+            <AlertsContext.Consumer>
+              {({ alerts }) => (
+                <div className="stat-card alert-card">
+                  <h3 className="stat-title">Active Security Alerts</h3>
+                  <div className="stat-number">{alerts.length}</div>
+                </div>
+              )}
+            </AlertsContext.Consumer>
 
-          <div className="stat-card visitor-card">
-            <h3 className="stat-title">Total Registered Visitors</h3>
-            <div className="stat-number">{loadingVisitors ? "—" : visitorCount}</div>
-          </div>
-        </div>
-
-        <div className="content-row">
-          <div className="quick-actions-panel">
-            <h2 className="panel-title">Quick Actions</h2>
-            <button className="register-btn" onClick={handleRegisterClick}>
-              <span className="btn-icon">👤</span>
-              Register New Visitor
-            </button>
-
+            <div className="stat-card visitor-card">
+              <h3 className="stat-title">Total Registered Visitors</h3>
+              <div className="stat-number">{loadingVisitors ? <Loader size="small" type="pulse" /> : visitorCount}</div>
+            </div>
           </div>
 
-          <div className="security-alert-panel">
-            <AlertFeed />
+          <div className="content-row">
+            <div className="quick-actions-panel">
+              <h2 className="panel-title">Quick Actions</h2>
+              <button className="register-btn" onClick={handleRegisterClick}>
+                <span className="btn-icon">👤</span>
+                Register New Visitor
+              </button>
+
+            </div>
+
+            <div className="security-alert-panel">
+              <AlertFeed />
+            </div>
           </div>
         </div>
       </div>
-    </div>
     </AlertsProvider>
   );
 };

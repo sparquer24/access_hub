@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { message, Form, Input, Select, InputNumber, TimePicker, Checkbox, Switch } from 'antd';
+import { Form, Input, Select, InputNumber, TimePicker, Checkbox, Switch } from 'antd';
 import { organizationsService } from '../../../services/organizationsService';
+import { useToast } from '../../../contexts/ToastContext';
 import moment from 'moment';
 
 const { Option } = Select;
 const { TextArea } = Input;
 
 const OrganizationRules = ({ organizationId, organization, onUpdate }) => {
+  const { success, error: showError } = useToast();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -71,14 +73,14 @@ const OrganizationRules = ({ organizationId, organization, onUpdate }) => {
         settings,
       });
 
-      message.success('Organization rules updated successfully!');
+      success('Organization rules updated successfully!');
       setIsEditing(false);
       if (onUpdate) {
         onUpdate();
       }
     } catch (error) {
       console.error('Error updating organization rules:', error);
-      message.error(error.response?.data?.message || 'Failed to update organization rules');
+      showError(error.response?.data?.message || 'Failed to update organization rules');
     } finally {
       setLoading(false);
     }

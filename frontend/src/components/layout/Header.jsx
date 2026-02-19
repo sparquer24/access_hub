@@ -18,10 +18,10 @@ const Header = () => {
     if (!user) return '';
     if (typeof user.role === 'string') {
       return user.role;
-    } else if (user.role?.id) {
-      return user.role.id;  // Prioritize ID over name
     } else if (user.role?.name) {
-      return user.role.name;
+      return user.role.name;  // Prioritize name over ID for consistent matching
+    } else if (user.role?.id) {
+      return user.role.id;
     }
     return '';
   };
@@ -32,8 +32,10 @@ const Header = () => {
 
   const getNavigationItems = () => {
     const role = getUserRole();
+    // Normalize role name for consistent matching
+    const normalizedRole = (role || '').toLowerCase().replace(/\s+/g, '_');
 
-    switch (role) {
+    switch (normalizedRole) {
       case 'super_admin':
         return [
           { name: 'Dashboard', href: '/super-admin/dashboard' },
@@ -133,7 +135,12 @@ const Header = () => {
                       <p className="text-sm font-semibold text-slate-900">
                         {user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.email}
                       </p>
-                      <p className="text-xs text-slate-500 capitalize">{user.role && typeof user.role === 'string' ? user.role.replace('_', ' ') : 'User'}</p>
+                      <p className="text-xs text-slate-500 capitalize">
+                        {typeof user.role === 'string' 
+                          ? user.role.replace('_', ' ') 
+                          : user.role?.name?.replace('_', ' ') || user.role?.id?.replace('_', ' ') || 'User'
+                        }
+                      </p>
                     </div>
                     <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-teal-600" />
                   </button>

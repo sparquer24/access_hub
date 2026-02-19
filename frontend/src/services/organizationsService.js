@@ -300,12 +300,77 @@ export const organizationsService = {
    *   limit: 10
    * });
    */
+  /**
+   * Get top performers - employees with perfect attendance and minimal leaves
+   * 
+   * @param {string} orgId - Organization UUID
+   * @param {Object} params - Query parameters
+   * @param {string} [params.month] - Month in YYYY-MM format (defaults to current month)
+   * @param {number} [params.limit] - Maximum number of performers to return (default: 10)
+   * @returns {Promise} Response with top performers data
+   * 
+   * @example
+   * const response = await organizationsService.getTopPerformers('uuid-here', {
+   *   month: '2026-01',
+   *   limit: 10
+   * });
+   */
   getTopPerformers: async (orgId, params = {}) => {
     try {
       const response = await api.get(`/api/v2/organizations/${orgId}/employees/top-performers`, { params });
       return response.data;
     } catch (error) {
       console.error(`Error getting top performers ${orgId}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get organization attendance statistics
+   * 
+   * @param {string} orgId - Organization UUID
+   * @param {Object} params - Query parameters
+   * @returns {Promise} Response with attendance stats
+   */
+  getAttendanceStats: async (orgId, params = {}) => {
+    try {
+      const response = await api.get(`/api/v2/organizations/${orgId}/attendance/stats`, { params });
+      return response.data;
+    } catch (error) {
+      console.error(`Error getting attendance stats ${orgId}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get organization visitor statistics
+   * 
+   * @param {string} orgId - Organization UUID
+   * @param {Object} params - Query parameters
+   * @returns {Promise} Response with visitor stats
+   */
+  getVisitorStats: async (orgId, params = {}) => {
+    try {
+      const response = await api.get(`/api/v2/organizations/${orgId}/visitors/stats`, { params });
+      return response.data;
+    } catch (error) {
+      console.error(`Error getting visitor stats ${orgId}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get department attendance breakdown
+   * 
+   * @param {string} orgId - Organization UUID
+   * @returns {Promise} Response with department attendance data
+   */
+  getDepartmentAttendance: async (orgId) => {
+    try {
+      const response = await api.get(`/api/v2/organizations/${orgId}/departments/attendance`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error getting department attendance ${orgId}:`, error);
       throw error;
     }
   },
@@ -493,6 +558,41 @@ export const employeesService = {
       return response.data;
     } catch (error) {
       console.error(`Error getting employee attendance ${employeeId}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Download employee directory as PDF or Excel
+   * 
+   * @param {string} organizationId - Organization UUID
+   * @param {Object} options - Download options
+   * @param {string} [options.format='pdf'] - File format (pdf or excel)
+   * @param {string} [options.status_filter='all'] - Filter by status (all, active, inactive)
+   * @param {string} [options.department_id] - Optional department filter
+   * @returns {Promise<Blob>} File blob for download
+   */
+  downloadDirectory: async (organizationId, options = {}) => {
+    try {
+      const { format = 'pdf', status_filter = 'all', department_id = null } = options;
+      
+      const params = {
+        format,
+        status_filter
+      };
+      
+      if (department_id) {
+        params.department_id = department_id;
+      }
+      
+      const response = await api.get(`/api/v2/organizations/${organizationId}/employees/download`, {
+        params,
+        responseType: 'blob'
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error(`Error downloading employee directory:`, error);
       throw error;
     }
   },

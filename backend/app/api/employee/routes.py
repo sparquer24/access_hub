@@ -565,10 +565,10 @@ def get_employee_stats_summary():
                 'remaining_annual_leave': max(0, 21 - total_leave_days_used)  # Assuming 21 days annual leave
             },
             'profile': {
-                'employee_id': employee.employee_id,
-                'position': employee.position,
+                'employee_code': employee.employee_code,
+                'designation': employee.designation,
                 'department': employee.department.name if employee.department else 'N/A',
-                'hire_date': employee.hire_date.isoformat() if employee.hire_date else None
+                'joining_date': employee.joining_date.isoformat() if employee.joining_date else None
             }
         }
         
