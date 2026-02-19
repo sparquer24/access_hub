@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { message } from 'antd';
 import { statsAPI } from '../../services/api';
+import Loader from '../common/Loader';
+import { useToast } from '../../contexts/ToastContext';
 import '../../styles/Dashboard.css';
 
 import OrganizationStatistics from '../organizations/tabs/OrganizationStatistics';
@@ -12,6 +13,7 @@ import StatCard from '../common/dashboard/StatCard';
 const SuperAdminDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { success, error: showError } = useToast();
 
   // State for dashboard data
   const [loading, setLoading] = useState(true);
@@ -31,12 +33,14 @@ const SuperAdminDashboard = () => {
       setError(null);
 
       if (showRefreshMessage) {
-        message.success('Dashboard data refreshed successfully');
+        success('Dashboard data refreshed successfully');
       }
     } catch (err) {
       console.error('Error fetching dashboard stats:', err);
       setError(err.response?.data?.message || 'Failed to fetch dashboard statistics');
-      message.error('Failed to load dashboard data. Please try again.');
+      console.error('Error fetching dashboard stats:', err);
+      setError(err.response?.data?.message || 'Failed to fetch dashboard statistics');
+      showError('Failed to load dashboard data. Please try again.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -68,11 +72,7 @@ const SuperAdminDashboard = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-6">
-          <div className="w-20 h-20 rounded-full border-4 border-teal-200 border-t-teal-600 animate-spin"></div>
-          <p className="text-2xl font-bold text-slate-600">Loading dashboard...</p>
-          <div className="h-1 w-48 bg-gradient-to-r from-teal-500 to-teal-500 rounded-full animate-pulse"></div>
-        </div>
+        <Loader size="large" text="Initializing Super Admin Panel..." />
       </div>
     );
   }

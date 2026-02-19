@@ -152,12 +152,13 @@ const EmployeeLeaves = () => {
   ];
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold mb-1">My Leave Requests</h1>
-          <p className="text-gray-500">Manage and track your leave applications</p>
-        </div>
+    <div className="min-h-screen bg-white">
+      <div className="max-w-7xl mx-auto px-5 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-2xl font-bold mb-1">My Leave Requests</h1>
+            <p className="text-gray-500">Manage and track your leave applications</p>
+          </div>
         <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)} size="large">
           Apply for Leave
         </Button>
@@ -165,28 +166,28 @@ const EmployeeLeaves = () => {
 
       <Row gutter={16} className="mb-6">
         <Col xs={24} sm={12} md={6}>
-          <Card bordered={false} className="shadow-sm">
+          <Card bordered={false} className="shadow-sm bg-teal-50 border border-teal-200">
             <Statistic
               title="Annual Leave"
               value={summary.annual_leave.remaining}
               suffix={`/ ${summary.annual_leave.total}`}
-              valueStyle={{ color: '#3f8600' }}
+              valueStyle={{ color: '#14b8a6' }}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card bordered={false} className="shadow-sm">
+          <Card bordered={false} className="shadow-sm bg-teal-50 border border-teal-200">
             <Statistic
               title="Sick Leave"
               value={summary.sick_leave.remaining}
               suffix={`/ ${summary.sick_leave.total}`}
-              valueStyle={{ color: '#cf1322' }}
+              valueStyle={{ color: '#14b8a6' }}
             />
           </Card>
         </Col>
       </Row>
 
-      <Card bordered={false} className="shadow-md">
+      <Card bordered={false} className="shadow-md bg-teal-50 border border-teal-200">
         <div className="flex justify-end mb-4 gap-4">
           <Input
             placeholder="Search..."
@@ -223,6 +224,7 @@ const EmployeeLeaves = () => {
         onClose={() => setIsModalVisible(false)}
         onSuccess={() => fetchLeaves(1)}
       />
+      </div>
     </div>
   );
 };

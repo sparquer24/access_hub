@@ -7,7 +7,8 @@ and 2 months of detailed attendance logs for testing and analytics.
 from datetime import datetime, date, time, timedelta
 from ..extensions import db, bcrypt
 from ..models import (
-    Role, Organization, Department, Employee, User, Shift, AttendanceRecord
+    Role, Organization, Department, Employee, User, Shift, AttendanceRecord,
+    Location, Camera, LeaveRequest
 )
 import uuid
 
@@ -285,6 +286,51 @@ def create_shifts(organizations):
             created_shifts.append(shift)
     
     return created_shifts
+
+
+def create_super_admin_user(roles):
+    """Create super admin user with system-wide access"""
+    
+    print("\n--- Creating Super Admin User ---")
+    
+    super_admin_data = {
+        "email": "superadmin@accesshub.com",
+        "username": "superadmin",
+        "full_name": "Super Administrator",
+        "organization_id": None,  # Super admin doesn't belong to specific org
+    }
+    
+    # Check if super admin already exists
+    existing_super_admin = User.query.filter_by(email=super_admin_data["email"]).first()
+    
+    if existing_super_admin:
+        print(f"  [INFO] Super admin already exists: {super_admin_data['email']}")
+        return existing_super_admin
+    
+    # Get super_admin role
+    super_admin_role = roles.get("super_admin")
+    if not super_admin_role:
+        print("  [ERROR] super_admin role not found!")
+        return None
+    
+    # Create super admin user
+    super_admin_user = User(
+        email=super_admin_data["email"],
+        username=super_admin_data["username"],
+        password_hash=bcrypt.generate_password_hash("SuperAdmin@123").decode('utf-8'),
+        role_id=super_admin_role.id,
+        organization_id=super_admin_data["organization_id"],
+        is_active=True
+    )
+    db.session.add(super_admin_user)
+    db.session.flush()
+    
+    print(f"  [SUCCESS] Created super admin user: {super_admin_data['email']}")
+    print(f"    - Username: {super_admin_data['username']}")
+    print(f"    - Password: SuperAdmin@123")
+    print(f"    - Full Name: {super_admin_data['full_name']}")
+    
+    return super_admin_user
 
 
 def create_users_and_employees(organizations, departments, roles, shifts):
@@ -603,6 +649,262 @@ def create_attendance_records(employees):
     print(f"\n  [SUCCESS] Total Attendance Records Created: {total_records_created}")
 
 
+def create_locations(organizations):
+    """Create physical locations/entry points for organizations"""
+    
+    print("\n--- Creating Locations ---")
+    
+    locations_data = [
+        {
+            "name": "Main Gate",
+            "location_type": "BOTH",
+            "description": "Main entrance/exit point",
+            "building": "Main Building",
+            "floor": "Ground Floor",
+            "area": "Reception Area",
+            "latitude": 17.3850,
+            "longitude": 78.4867,
+        },
+        {
+            "name": "Tower A Entry",
+            "location_type": "ENTRY",
+            "description": "Tower A entrance for employees",
+            "building": "Tower A",
+            "floor": "Ground Floor",
+            "area": "North Side",
+            "latitude": 17.3851,
+            "longitude": 78.4868,
+        },
+        {
+            "name": "Tower A Exit",
+            "location_type": "EXIT",
+            "description": "Tower A exit point",
+            "building": "Tower A",
+            "floor": "Ground Floor",
+            "area": "North Side",
+            "latitude": 17.3852,
+            "longitude": 78.4869,
+        },
+        {
+            "name": "Tower B Entry",
+            "location_type": "ENTRY",
+            "description": "Tower B entrance",
+            "building": "Tower B",
+            "floor": "Ground Floor",
+            "area": "East Side",
+            "latitude": 17.3853,
+            "longitude": 78.4870,
+        },
+        {
+            "name": "Back Exit",
+            "location_type": "EXIT",
+            "description": "Emergency/back exit",
+            "building": "Main Building",
+            "floor": "Ground Floor",
+            "area": "South Side",
+            "latitude": 17.3849,
+            "longitude": 78.4866,
+        },
+        {
+            "name": "Parking Entry",
+            "location_type": "ENTRY",
+            "description": "Vehicle parking entrance",
+            "building": "Parking",
+            "floor": "Level 1",
+            "area": "Basement",
+            "latitude": 17.3848,
+            "longitude": 78.4865,
+        },
+    ]
+    
+    created_locations = []
+    org = organizations[0]
+    
+    for loc_data in locations_data:
+        existing_loc = Location.query.filter_by(
+            organization_id=org.id,
+            name=loc_data["name"]
+        ).first()
+        
+        if existing_loc:
+            print(f"  [INFO] Location already exists: {loc_data['name']}")
+            created_locations.append(existing_loc)
+        else:
+            location = Location(
+                organization_id=org.id,
+                name=loc_data["name"],
+                location_type=loc_data["location_type"],
+                description=loc_data["description"],
+                building=loc_data["building"],
+                floor=loc_data["floor"],
+                area=loc_data["area"],
+                latitude=loc_data["latitude"],
+                longitude=loc_data["longitude"],
+                is_active=True
+            )
+            db.session.add(location)
+            db.session.flush()
+            print(f"  [SUCCESS] Created location: {loc_data['name']}")
+            created_locations.append(location)
+    
+    return created_locations
+
+
+def create_cameras(organizations, locations):
+    """Create camera configurations for locations"""
+    
+    print("\n--- Creating Cameras ---")
+    
+    if not locations:
+        print("  [WARNING] No locations found to associate cameras")
+        return []
+    
+    cameras_config = [
+        {
+            "location_name": "Main Gate",
+            "cameras": [
+                {
+                    "name": "Main Gate Check-In Cam",
+                    "camera_type": "CHECK_IN",
+                    "source_type": "IP_CAMERA",
+                    "source_url": "192.168.1.100",
+                },
+                {
+                    "name": "Main Gate Check-Out Cam",
+                    "camera_type": "CHECK_OUT",
+                    "source_type": "IP_CAMERA",
+                    "source_url": "192.168.1.101",
+                },
+            ]
+        },
+        {
+            "location_name": "Tower A Entry",
+            "cameras": [
+                {
+                    "name": "Tower A Entry Cam",
+                    "camera_type": "CHECK_IN",
+                    "source_type": "IP_CAMERA",
+                    "source_url": "192.168.1.102",
+                },
+            ]
+        },
+        {
+            "location_name": "Tower B Entry",
+            "cameras": [
+                {
+                    "name": "Tower B Entry Cam",
+                    "camera_type": "CHECK_IN",
+                    "source_type": "IP_CAMERA",
+                    "source_url": "192.168.1.103",
+                },
+            ]
+        },
+    ]
+    
+    created_cameras = []
+    org = organizations[0]
+    
+    for config in cameras_config:
+        # Find location
+        location = next((l for l in locations if l.name == config["location_name"]), None)
+        if not location:
+            print(f"  [WARNING] Location not found: {config['location_name']}")
+            continue
+        
+        for cam_data in config["cameras"]:
+            existing_cam = Camera.query.filter_by(
+                organization_id=org.id,
+                location_id=location.id,
+                name=cam_data["name"]
+            ).first()
+            
+            if existing_cam:
+                print(f"  [INFO] Camera already exists: {cam_data['name']}")
+                created_cameras.append(existing_cam)
+            else:
+                camera = Camera(
+                    organization_id=org.id,
+                    location_id=location.id,
+                    name=cam_data["name"],
+                    camera_type=cam_data["camera_type"],
+                    source_type=cam_data["source_type"],
+                    source_url=cam_data["source_url"],
+                    is_active=True
+                )
+                db.session.add(camera)
+                db.session.flush()
+                print(f"  [SUCCESS] Created camera: {cam_data['name']} at {config['location_name']}")
+                created_cameras.append(camera)
+    
+    return created_cameras
+
+
+def create_leave_requests(users, employees):
+    """Create sample leave requests for testing"""
+    
+    print("\n--- Creating Sample Leave Requests ---")
+    
+    leave_types = ["casual", "sick", "earned", "unpaid"]
+    today = date.today()
+    
+    # Create leave requests for managers only (they can approve leaves)
+    managers = [emp for emp in employees if emp.user and emp.user.role and "manager" in emp.user.role.name.lower()]
+    
+    sample_leaves = []
+    for idx, employee in enumerate(employees[:10], 1):  # Create leaves for first 10 employees
+        # Random leave type
+        import random
+        leave_type = random.choice(leave_types[:3])  # casual, sick, earned
+        
+        # Future leave dates (next 2 months)
+        start_offset = random.randint(5, 20)
+        duration = random.randint(1, 5)
+        
+        start_date = today + timedelta(days=start_offset)
+        end_date = start_date + timedelta(days=duration)
+        
+        # Skip weekends
+        while start_date.weekday() >= 5:
+            start_date += timedelta(days=1)
+        
+        end_date = start_date + timedelta(days=duration)
+        
+        # Find a manager to approve
+        approver = random.choice(managers) if managers else None
+        status = random.choice(["pending", "approved", "rejected"])
+        
+        existing_leave = LeaveRequest.query.filter_by(
+            employee_id=employee.id,
+            start_date=start_date,
+            end_date=end_date
+        ).first()
+        
+        if existing_leave:
+            continue
+        
+        leave_request = LeaveRequest(
+            employee_id=employee.id,
+            organization_id=employee.organization_id,
+            leave_type=leave_type,
+            duration_type="full_day",
+            start_date=start_date,
+            end_date=end_date,
+            total_days=float(duration),
+            reason=f"Sample {leave_type.replace('_', ' ').title()} Leave Request",
+            status=status,
+            approved_by=approver.user_id if approver and approver.user else None,
+            approval_notes="Sample leave request created during seeding" if status != "pending" else None
+        )
+        db.session.add(leave_request)
+        sample_leaves.append(leave_request)
+    
+    db.session.flush()
+    print(f"  [SUCCESS] Created {len(sample_leaves)} sample leave requests")
+    
+    return sample_leaves
+
+
+
 def seed_all_master_data():
     """Main function to seed all master data for primary organization"""
     
@@ -613,6 +915,10 @@ def seed_all_master_data():
     try:
         # Create roles
         roles = create_roles()
+        db.session.commit()
+        
+        # Create super admin user
+        super_admin_user = create_super_admin_user(roles)
         db.session.commit()
         
         # Create primary organization
@@ -631,8 +937,20 @@ def seed_all_master_data():
         users, employees = create_users_and_employees(organizations, departments, roles, shifts)
         db.session.commit()
         
+        # Create locations
+        locations = create_locations(organizations)
+        db.session.commit()
+        
+        # Create cameras
+        cameras = create_cameras(organizations, locations)
+        db.session.commit()
+        
         # Create 2 months of attendance records
         create_attendance_records(employees)
+        db.session.commit()
+        
+        # Create sample leave requests
+        leave_requests = create_leave_requests(users, employees)
         db.session.commit()
         
         print("\n" + "="*60)
@@ -643,18 +961,35 @@ def seed_all_master_data():
         print(f"  • Organizations: {len(organizations)}")
         print(f"  • Departments: {len(departments)}")
         print(f"  • Shifts: {len(shifts)}")
-        print(f"  • Users: {len(users)}")
+        print(f"  • Super Admin Users: 1")
+        print(f"  • Organization Users: {len(users)}")
         print(f"  • Employees: {len(employees)}")
+        print(f"  • Locations: {len(locations)}")
+        print(f"  • Cameras: {len(cameras)}")
+        print(f"  • Leave Requests: {len(leave_requests)}")
         print(f"  • Attendance Records: ~{len(employees) * 42} (60 days - weekends, per employee)")
+        print("\n" + "-"*60)
+        print("SUPER ADMIN CREDENTIALS:")
+        print("-"*60)
+        print("  Email: superadmin@accesshub.com")
+        print("  Username: superadmin")
+        print("  Password: SuperAdmin@123")
+        print("  Role: Super Administrator (Full System Access)")
         print("\nOrganization: India IT Park (IIT)")
         print("  • Address: 789 IT Boulevard, Hyderabad, India")
         print("  • Timezone: Asia/Kolkata")
         print("  • Subscription Tier: Premium")
-        print("\nTest Credentials (Sample Users):")
+        print("\nTest User Credentials (Organization Users):")
         print("  • priya.sharma@indiaittpark.com (Manager)")
         print("  • rajesh.kumar@indiaittpark.com (Team Lead)")
         print("  • neha.gupta@indiaittpark.com (Org Admin)")
-        print("  • Password: Test@123 (for all test users)")
+        print("  • Password: Test@123 (for all organization users)")
+        print("\nLocations Setup:")
+        print("  • Main Gate (Entry & Exit)")
+        print("  • Tower A Entry/Exit Points")
+        print("  • Tower B Entry Point")
+        print("  • Back Emergency Exit")
+        print("  • Parking Entry")
         print("\nAttendance Data: Last 60 days (2 months)")
         print("  • Includes realistic patterns: 75% present, 15% half-day, 10% absent")
         print("  • Working days only (Monday-Friday)")

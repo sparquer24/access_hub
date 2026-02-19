@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { message, Modal, Form, Input, TimePicker, Switch } from 'antd';
+import { Modal, Form, Input, TimePicker, Switch } from 'antd';
 import moment from 'moment';
 import { shiftsService } from '../../../services/organizationsService';
+import Loader from '../../common/Loader';
+import { useToast } from '../../../contexts/ToastContext';
 
 const OrganizationShifts = ({ organizationId, organization }) => {
   const [shifts, setShifts] = useState([]);
@@ -9,6 +11,7 @@ const OrganizationShifts = ({ organizationId, organization }) => {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form] = Form.useForm();
+  const { success, error: showError } = useToast();
 
   useEffect(() => {
     fetchShifts();
@@ -21,7 +24,7 @@ const OrganizationShifts = ({ organizationId, organization }) => {
       setShifts(resp.data?.items || resp.data || []);
     } catch (err) {
       console.error('Error fetching shifts:', err);
-      message.error(err.response?.data?.message || 'Failed to load shifts');
+      showError(err.response?.data?.message || 'Failed to load shifts');
     } finally {
       setLoading(false);
     }
@@ -49,11 +52,11 @@ const OrganizationShifts = ({ organizationId, organization }) => {
     if (!window.confirm(`Delete shift "${s.name}"?`)) return;
     try {
       await shiftsService.delete(s.id, false);
-      message.success('Shift deleted successfully!');
+      success('Shift deleted successfully!');
       fetchShifts();
     } catch (err) {
       console.error(err);
-      message.error(err.response?.data?.message || 'Failed to delete shift');
+      showError(err.response?.data?.message || 'Failed to delete shift');
     }
   };
 
@@ -68,7 +71,7 @@ const OrganizationShifts = ({ organizationId, organization }) => {
           is_active: values.is_active,
         };
         await shiftsService.update(editing.id, payload);
-        message.success('Shift updated successfully!');
+        success('Shift updated successfully!');
       } else {
         const payload = {
           organization_id: organizationId,
@@ -78,25 +81,25 @@ const OrganizationShifts = ({ organizationId, organization }) => {
           grace_period_minutes: values.grace_period_minutes,
         };
         await shiftsService.create(payload);
-        message.success('Shift created successfully!');
+        success('Shift created successfully!');
       }
       setShowModal(false);
       form.resetFields();
       fetchShifts();
     } catch (err) {
       console.error(err);
-      message.error(err.response?.data?.message || 'Failed to save shift');
+      showError(err.response?.data?.message || 'Failed to save shift');
     }
   };
 
   const toggleStatus = async (s) => {
     try {
       await shiftsService.update(s.id, { is_active: !s.is_active });
-      message.success(s.is_active ? 'Shift disabled successfully' : 'Shift enabled successfully');
+      success(s.is_active ? 'Shift disabled successfully' : 'Shift enabled successfully');
       fetchShifts();
     } catch (err) {
       console.error(err);
-      message.error(err.response?.data?.message || 'Failed to update status');
+      showError(err.response?.data?.message || 'Failed to update status');
     }
   };
 

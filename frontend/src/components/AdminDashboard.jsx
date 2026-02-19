@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/authService';
 import "../styles/AdminDashboard.css";
 import RegisterVisitorPopup from "./common/RegisterVisitorPopup";
+import Loader from './common/Loader';
 import AlertFeed from "../features/alerts/AlertFeed";
 import { AlertsProvider, AlertsContext } from "../features/alerts/alerts.context";
 import { statsAPI } from "../services/api";
@@ -129,7 +130,7 @@ const AdminDashboard = () => {
             <div className="stat-card visitor-card">
               <h3 className="stat-title">Total Registered Visitors</h3>
               <div className="stat-number">
-                {loadingVisitors ? "—" : visitorCount}
+                {loadingVisitors ? <Loader size="small" type="pulse" /> : visitorCount}
               </div>
             </div>
           </div>

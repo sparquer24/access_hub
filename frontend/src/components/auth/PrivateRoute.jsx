@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import Loader from '../common/Loader';
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -8,9 +9,8 @@ const PrivateRoute = ({ children }) => {
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="spinner-large"></div>
-        <p>Loading...</p>
+      <div className="flex flex-col items-center justify-center h-screen bg-slate-50">
+        <Loader size="large" text="Verifying session..." />
       </div>
     );
   }

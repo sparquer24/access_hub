@@ -1,6 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
+import {
+  User,
+  Eye,
+  EyeOff,
+  AlertCircle
+} from 'lucide-react';
+import {
+  Lock,
+  Users,
+  Zap,
+  Sparkles,
+  AIIcon
+} from '../icons/Icons';
+import Loader from '../common/Loader';
 import logoImage from '../../images/Group.png';
 import '../../styles/LoginV2.css';
 
@@ -13,6 +28,7 @@ const LoginV2 = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isAuthenticated, user } = useAuth();
+  const { success, error: showError } = useToast();
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -55,7 +71,7 @@ const LoginV2 = () => {
     e.preventDefault();
 
     if (!formData.username || !formData.password) {
-      setError('Please enter both username and password');
+      showError('Please enter both username and password');
       return;
     }
 
@@ -65,13 +81,21 @@ const LoginV2 = () => {
     try {
       const response = await login(formData.username, formData.password);
 
+      success('Login successful! Redirecting...');
+
       // Navigate based on role (use role.id or role.name)
       const roleIdentifier = response.user?.role?.id || response.user?.role?.name;
       console.log('Login successful, redirecting...', { roleIdentifier });
       const from = location.state?.from?.pathname || getDefaultRoute(roleIdentifier);
-      navigate(from, { replace: true });
+
+      // Small delay to let the toast be seen and smooth transition
+      setTimeout(() => {
+        navigate(from, { replace: true });
+      }, 500);
 
     } catch (err) {
+      showError(err.message || 'Login failed. Please check your credentials.');
+      // Keep error state for inline display if preferred, or remove it if toast is enough
       setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setIsLoading(false);
@@ -92,11 +116,18 @@ const LoginV2 = () => {
       {/* Left Section - Brand & Features */}
       <div className="hidden lg:flex flex-1 flex-col justify-center items-center px-8 py-8 text-white relative z-10">
         <div className="text-center mb-8 animate-fadeInUp">
-          <img src={logoImage} alt="AccessHub Logo" className="w-24 h-24 mx-auto mb-4 drop-shadow-2xl hover:scale-110 transition-transform duration-300" />
+          <div className="relative inline-block mb-4">
+            <img src={logoImage} alt="AccessHub Logo" className="w-24 h-24 mx-auto drop-shadow-2xl hover:scale-110 transition-transform duration-300" />
+            <div className="absolute -right-2 -top-2 bg-white/20 backdrop-blur-md p-1.5 rounded-lg border border-white/30 shadow-xl animate-float">
+              <AIIcon className="w-6 h-6" />
+            </div>
+          </div>
           <h1 className="text-4xl font-black mb-3 drop-shadow-lg bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">
             AccessHub
           </h1>
-          <p className="text-lg font-bold text-white mb-1">Enterprise Access Management</p>
+          <p className="text-lg font-bold text-white mb-1 flex items-center justify-center gap-2">
+            AI-Powered Security <span className="bg-white/20 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider">v2.0</span>
+          </p>
           <p className="text-sm opacity-90 max-w-md mx-auto leading-relaxed text-gray-100">
             Secure & Scalable Multi-Tenant Solution
           </p>
@@ -106,10 +137,14 @@ const LoginV2 = () => {
           {/* Feature 1 */}
           <div className="bg-white/15 backdrop-blur-xl p-4 rounded-xl border border-white/30 hover:bg-white/25 hover:border-white/50 hover:translate-y-[-2px] hover:shadow-xl transition-all duration-300 group cursor-pointer shadow-lg">
             <div className="flex items-center gap-3">
-              <div className="text-2xl group-hover:scale-110 transition-transform duration-300">🔒</div>
+              <div className="text-2xl group-hover:scale-110 transition-transform duration-300">
+                <Lock className="w-8 h-8" />
+              </div>
               <div className="flex-1">
-                <h3 className="text-sm font-bold mb-1">Enterprise Security</h3>
-                <p className="text-gray-100 text-xs leading-relaxed">JWT authentication with secure access</p>
+                <h3 className="text-sm font-bold mb-1 flex items-center gap-2">
+                  Enterprise AI Security <span className="text-[10px] bg-teal-400/30 px-1.5 py-0.5 rounded uppercase">Smart</span>
+                </h3>
+                <p className="text-gray-100 text-xs leading-relaxed">AI-enhanced JWT authentication for secure access</p>
               </div>
             </div>
           </div>
@@ -117,7 +152,9 @@ const LoginV2 = () => {
           {/* Feature 2 */}
           <div className="bg-white/15 backdrop-blur-xl p-4 rounded-xl border border-white/30 hover:bg-white/25 hover:border-white/50 hover:translate-y-[-2px] hover:shadow-xl transition-all duration-300 group cursor-pointer shadow-lg">
             <div className="flex items-center gap-3">
-              <div className="text-2xl group-hover:scale-110 transition-transform duration-300">👥</div>
+              <div className="text-2xl group-hover:scale-110 transition-transform duration-300">
+                <Users className="w-8 h-8" />
+              </div>
               <div className="flex-1">
                 <h3 className="text-sm font-bold mb-1">Multi-Tenant Ready</h3>
                 <p className="text-gray-100 text-xs leading-relaxed">Unlimited organizations with isolated data</p>
@@ -128,7 +165,9 @@ const LoginV2 = () => {
           {/* Feature 3 */}
           <div className="bg-white/15 backdrop-blur-xl p-4 rounded-xl border border-white/30 hover:bg-white/25 hover:border-white/50 hover:translate-y-[-2px] hover:shadow-xl transition-all duration-300 group cursor-pointer shadow-lg">
             <div className="flex items-center gap-3">
-              <div className="text-2xl group-hover:scale-110 transition-transform duration-300">⚡</div>
+              <div className="text-2xl group-hover:scale-110 transition-transform duration-300">
+                <Zap className="w-8 h-8" />
+              </div>
               <div className="flex-1">
                 <h3 className="text-sm font-bold mb-1">Lightning Performance</h3>
                 <p className="text-gray-100 text-xs leading-relaxed">Real-time updates with fast response</p>
@@ -142,13 +181,15 @@ const LoginV2 = () => {
       <div className="flex flex-1 items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-white to-teal-50/30 backdrop-blur-sm relative z-10">
         <div className="w-full max-w-sm">
           <div className="mb-6 animate-fadeInUp">
-            <h2 className="text-3xl font-black text-gray-900 mb-2">Welcome</h2>
-            <p className="text-base text-gray-600">Sign in to your account</p>
+            <h2 className="text-3xl font-black text-gray-900 mb-2 flex items-center gap-3">
+              Welcome <Sparkles className="w-8 h-8 animate-pulse" />
+            </h2>
+            <p className="text-base text-gray-600">Sign in to your AI-protected workspace</p>
           </div>
 
           {error && (
             <div className="bg-red-50 border border-red-300 rounded-lg p-4 mb-6 flex items-center gap-2 text-red-800 text-sm">
-              <span>⚠️</span>
+              <AlertCircle className="w-5 h-5" />
               {error}
             </div>
           )}
@@ -171,7 +212,9 @@ const LoginV2 = () => {
                   disabled={isLoading}
                   autoComplete="username"
                 />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-lg">👤</div>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-lg">
+                  <User className="w-5 h-5 text-gray-400" />
+                </div>
               </div>
             </div>
 
@@ -199,7 +242,7 @@ const LoginV2 = () => {
                   tabIndex="-1"
                   disabled={isLoading}
                 >
-                  {showPassword ? '👁️‍🗨️' : '👁️'}
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
@@ -225,14 +268,20 @@ const LoginV2 = () => {
             >
               {isLoading ? (
                 <>
-                  <span className="spinner"></span>
-                  Logging in...
+                  <Loader size="small" color="white" />
+                  <span>Logging in...</span>
                 </>
               ) : (
                 'Login'
               )}
             </button>
           </form>
+        </div>
+
+        {/* AccessHub AI Signature */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 opacity-30 hover:opacity-60 transition-opacity cursor-default pointer-events-none select-none">
+          <AIIcon className="w-5 h-5" />
+          <span className="text-xs font-black tracking-[0.2em] uppercase text-teal-900">AccessHub AI</span>
         </div>
       </div>
     </div>

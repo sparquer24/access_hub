@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { message } from 'antd';
+import { useToast } from '../../../contexts/ToastContext';
 import { visitorService } from '../../../services/visitorService';
 import { faceService } from '../../../services/faceService';
 import WebcamCapture from '../../common/WebcamCapture.jsx';
 
 const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => {
+  const { success, error: showError } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     mobile_number: '',
@@ -122,7 +123,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
 
     if (!base64Image) {
       console.error('❌ No base64 image data received!');
-      message.error('Failed to capture image. Please try again.');
+      showError('Failed to capture image. Please try again.');
       return;
     }
 
@@ -203,14 +204,14 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
 
     // Validate form
     if (!validateForm()) {
-      message.error('Please fix the errors below and try again');
+      showError('Please fix the errors below and try again');
       scrollToFirstError();
       setIsSubmitting(false);
       return;
     }
 
     if (!organizationId) {
-      message.error('Organization ID is missing. Please refresh and try again.');
+      showError('Organization ID is missing. Please refresh and try again.');
       setIsSubmitting(false);
       return;
     }
@@ -227,7 +228,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
 
       const response = await visitorService.createVisitor(organizationId, sanitizedData);
 
-      message.success('Visitor check-in successful! Generating visitor pass...');
+      success('Visitor check-in successful!');
 
       // Enroll visitor face using unified /api/v1/face/enroll endpoint
       try {
@@ -282,7 +283,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
         errorMessage = error.message;
       }
 
-      message.error(`Check-in failed: ${errorMessage}`);
+      showError(`Check-in failed: ${errorMessage}`);
     } finally {
       setLoading(false);
       setIsSubmitting(false);

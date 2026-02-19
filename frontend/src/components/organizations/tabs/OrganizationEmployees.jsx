@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { message, Modal, Form, Input, Select, DatePicker, Switch } from 'antd';
+import { Modal, Form, Input, Select, DatePicker, Switch } from 'antd';
 import { employeesService, EMPLOYMENT_TYPES, GENDER_OPTIONS, departmentsService, shiftsService, organizationsService } from '../../../services/organizationsService';
 import api from '../../../services/api';
 import moment from 'moment';
 import WebcamCapture from '../../common/WebcamCapture.jsx';
+import Loader from '../../common/Loader';
+import { useToast } from '../../../contexts/ToastContext';
 import EmployeeAnalytics from './EmployeeAnalytics';
 import EmployeeAttendanceLogs from './EmployeeAttendanceLogs';
 import EmployeeAttendanceCalendar from './EmployeeAttendanceCalendar';
 import OrganizationDepartments from './OrganizationDepartments';
 import OrganizationShifts from './OrganizationShifts';
-import { Users, BarChart3, ClipboardList, Calendar as CalendarIcon, Building2, Clock, FileText } from 'lucide-react';
+import { authService } from '../../../services/authService';
+import { Users, BarChart3, ClipboardList, Calendar as CalendarIcon, Building2, Clock, FileText, Download } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -28,9 +32,16 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
   const [showWebcam, setShowWebcam] = useState(false);
   const [activeTab, setActiveTab] = useState('list');
   const [attendanceRecords, setAttendanceRecords] = useState([]);
+  const [attendanceLogs, setAttendanceLogs] = useState([]);
   const [loadingAttendance, setLoadingAttendance] = useState(false);
   const [selectedCalendarEmployee, setSelectedCalendarEmployee] = useState(null);
+  const [recordsSearchText, setRecordsSearchText] = useState('');
+  const [recordsDepartmentFilter, setRecordsDepartmentFilter] = useState('all');
+  const [recordsDateRange, setRecordsDateRange] = useState([moment(), moment()]);
+  const [allAttendanceRecords, setAllAttendanceRecords] = useState([]);
   const calendarRef = React.useRef(null);
+  const analyticsRef = React.useRef(null);
+  const { success, error: showError } = useToast();
 
   useEffect(() => {
     fetchEmployees();
@@ -50,7 +61,7 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
       setEmployees(response.data?.items || []);
     } catch (error) {
       console.error('Error fetching employees:', error);
-      message.error(error.response?.data?.message || 'Failed to load employees');
+      showError(error.response?.data?.message || 'Failed to load employees');
     } finally {
       setLoading(false);
     }
@@ -73,18 +84,516 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
   const fetchAttendanceRecords = async () => {
     try {
       setLoadingAttendance(true);
-      const response = await organizationsService.getEmployeeAttendanceSummary(organizationId, {
-        per_page: 100,
-      });
-      setAttendanceRecords(response.data?.items || []);
+      console.log('Fetching attendance records with filters...');
+      
+      const params = {
+        per_page: 500,
+      };
+      
+      // Add search parameter
+      if (recordsSearchText && recordsSearchText.trim()) {
+        params.search = recordsSearchText.trim();
+      }
+      
+      // Add department filter parameter
+      if (recordsDepartmentFilter && recordsDepartmentFilter !== 'all') {
+        params.department_id = recordsDepartmentFilter;
+      }
+      
+      // Add date range parameters
+      if (recordsDateRange && recordsDateRange[0] && recordsDateRange[1]) {
+        params.start_date = recordsDateRange[0].format('YYYY-MM-DD');
+        params.end_date = recordsDateRange[1].format('YYYY-MM-DD');
+      }
+      
+      console.log('Filter params:', params);
+      
+      const response = await organizationsService.getEmployeeAttendanceSummary(organizationId, params);
+      const allRecords = response.data?.items || [];
+      console.log('Fetched records:', allRecords);
+      setAllAttendanceRecords(allRecords);
+      setAttendanceRecords(allRecords);
     } catch (error) {
       console.error('Error fetching attendance records:', error);
-      message.error(error.response?.data?.message || 'Failed to load attendance records');
+      showError(error.response?.data?.message || 'Failed to load attendance records');
     } finally {
       setLoadingAttendance(false);
     }
   };
 
+  // Apply filters when filter values change
+  useEffect(() => {
+    if (activeTab === 'records') {
+      fetchAttendanceRecords();
+    }
+  }, [recordsSearchText, recordsDepartmentFilter, recordsDateRange, activeTab]);
+
+  // Fetch logs when logs tab is active
+  useEffect(() => {
+    if (activeTab === 'logs') {
+      fetchAttendanceLogs();
+    }
+  }, [activeTab]);
+
+  const fetchAttendanceLogs = async () => {
+    try {
+      setLoadingAttendance(true);
+      const response = await api.get('/api/v2/attendance', {
+        params: {
+          organization_id: organizationId,
+          per_page: 500,
+          page: 1,
+        }
+      });
+      const logs = response.data?.data?.items || response.data?.items || [];
+      setAttendanceLogs(logs);
+    } catch (error) {
+      console.error('Error fetching attendance logs:', error);
+      // Try alternative endpoint
+      try {
+        const response2 = await organizationsService.getEmployeeAttendanceSummary(organizationId, {
+          per_page: 500,
+        });
+        setAttendanceLogs(response2.data?.items || []);
+      } catch (err) {
+        console.error('Error fetching alternative logs:', err);
+      }
+    } finally {
+      setLoadingAttendance(false);
+    }
+  };
+
+  const generatePDFContent = (title, data) => {
+    // Get user info from localStorage
+    let userName = 'Unknown User';
+    try {
+      const userDataStr = localStorage.getItem('accesshub_use_data');
+      if (userDataStr) {
+        const userData = JSON.parse(userDataStr);
+        userName = userData.full_name || userData.name || userData.username || 'Unknown User';
+      }
+    } catch (err) {
+      console.warn('Could not retrieve user data from localStorage');
+    }
+
+    const now = new Date();
+
+    let html = `
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
+            h1 { color: #0d9488; border-bottom: 2px solid #0d9488; padding-bottom: 10px; }
+            h3 { color: #0d9488; margin-top: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th { background-color: #0d9488; color: white; padding: 10px; text-align: left; font-weight: bold; }
+            td { border: 1px solid #ddd; padding: 8px; }
+            tr:nth-child(even) { background-color: #f3f4f6; }
+            .meta { color: #666; font-size: 12px; margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px; }
+            .download-info { 
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              background-color: #f0fdf4; 
+              border-left: 4px solid #0d9488; 
+              padding: 12px; 
+              margin: 15px 0; 
+              font-size: 13px; 
+              color: #374151;
+            }
+          </style>
+        </head>
+        <body>
+          <h1>${title}</h1>
+          
+          ${data}
+          <div class="meta">
+            <p>This is an automatically generated report from Access Hub</p>
+          </div>
+        </body>
+      </html>
+    `;
+    return html;
+  };
+
+  const getUserInfo = () => {
+    let userName = 'Unknown User';
+    try {
+      const userDataStr = localStorage.getItem('accesshub_use_data');
+      if (userDataStr) {
+        const userData = JSON.parse(userDataStr);
+        userName = userData.full_name || userData.name || 'Unknown User';
+      }
+    } catch (err) {
+      console.warn('Could not retrieve user data from localStorage');
+    }
+    return userName;
+  };
+
+  const downloadPDF = (htmlContent, filename) => {
+    const element = document.createElement('div');
+    element.innerHTML = htmlContent;
+    
+    const options = {
+      margin: 10,
+      filename: filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+    };
+    
+    html2pdf().set(options).from(element).save();
+  };
+
+  const downloadEmployees = async (format = 'pdf') => {
+    try {
+      if (!organizationId) {
+        showError('Organization ID is missing');
+        return;
+      }
+
+      const fileBlob = await employeesService.downloadDirectory(organizationId, {
+        format,
+        status_filter: filterStatus
+      });
+
+      // Create and trigger download
+      const url = window.URL.createObjectURL(fileBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      const timestamp = new Date().toISOString().split('T')[0];
+      const extension = format === 'excel' ? 'xlsx' : 'pdf';
+      link.setAttribute('download', `employees_directory_${timestamp}.${extension}`);
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      success(`Employee directory downloaded as ${format.toUpperCase()}`);
+    } catch (error) {
+      console.error('Error downloading employees:', error);
+      showError(`Failed to download employees: ${error.message}`);
+    }
+  };
+
+  const downloadAnalytics = () => {
+    try {
+      if (!employees || employees.length === 0) {
+        showError('No employee data available');
+        return;
+      }
+
+      // Check if the analytics container has content
+      if (!analyticsRef.current) {
+        showError('Analytics content not loaded yet. Please wait a moment and try again.');
+        return;
+      }
+
+      // Get user info
+      const userName = getUserInfo();
+      const now = new Date();
+
+      // Create an HTML string with proper structure for PDF
+      const headerHTML = `
+        <h1 style="
+          color: #0d9488;
+          border-bottom: 2px solid #0d9488;
+          padding-bottom: 10px;
+          margin: 0 0 20px 0;
+          font-family: Arial, sans-serif;
+        ">Employee Analytics Overview</h1>
+      `;
+
+      // Get the analytics element HTML
+      let analyticsHTML = analyticsRef.current.innerHTML;
+
+      // Remove buttons and interactive elements from the HTML string
+      let cleanedHTML = analyticsHTML.replace(/<button[^>]*>.*?<\/button>/g, '');
+      cleanedHTML = cleanedHTML.replace(/<select[^>]*>.*?<\/select>/g, '');
+      cleanedHTML = cleanedHTML.replace(/<input[^>]*>/g, '');
+      
+      // Force single column layout by replacing grid-cols-2, md:grid-cols-2, lg:grid-cols-2, lg:grid-cols-3, etc with grid-cols-1
+      cleanedHTML = cleanedHTML.replace(/grid-cols-[0-9]|md:grid-cols-[0-9]|lg:grid-cols-[0-9]/g, 'grid-cols-1');
+
+      // Combine header + cleaned analytics + footer
+      const footerHTML = `
+        <div style="
+          color: #666;
+          font-size: 12px;
+          margin-top: 30px;
+          border-top: 1px solid #ddd;
+          padding-top: 15px;
+          font-family: Arial, sans-serif;
+        ">
+          <p>This is an automatically generated report from Access Hub</p>
+        </div>
+      `;
+
+      const completeHTML = `
+        <div style="
+          font-family: Arial, sans-serif;
+          color: #333;
+          padding: 20px;
+        ">
+          ${headerHTML}
+          ${cleanedHTML}
+          ${footerHTML}
+        </div>
+      `;
+
+      // Create element for HTML2PDF
+      const element = document.createElement('div');
+      element.innerHTML = completeHTML;
+
+      const options = {
+        margin: 10,
+        filename: `analytics_report_${new Date().toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: { scale: 2, useCORS: true, allowTaint: true },
+        jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' },
+        pagebreak: { mode: ['css', 'avoid-all'] }
+      };
+      
+      html2pdf().set(options).from(element).save().then(() => {
+        success('Full analytics report downloaded as PDF');
+      }).catch(err => {
+        console.error('PDF generation error:', err);
+        showError('Failed to generate PDF. The report may be too large.');
+      });
+    } catch (error) {
+      console.error('Error downloading analytics report:', error);
+      showError('Failed to download analytics report');
+    }
+  };
+
+  const downloadAttendanceLogs = () => {
+    try {
+      let logsToDownload = attendanceLogs;
+      
+      if (logsToDownload.length === 0) {
+        showError('Loading attendance logs... Please try again in a moment');
+        fetchAttendanceLogs();
+        return;
+      }
+      
+      const tableHtml = `
+        <table>
+          <tr>
+            <th>Employee Name</th>
+            <th>Employee Code</th>
+            <th>Date</th>
+            <th>Check In</th>
+            <th>Check Out</th>
+            <th>Status</th>
+          </tr>
+          ${logsToDownload.map(log => `
+            <tr>
+              <td>${log.employee?.full_name || log.full_name || 'N/A'}</td>
+              <td>${log.employee?.employee_code || log.employee_code || 'N/A'}</td>
+              <td>${log.date ? new Date(log.date).toLocaleDateString() : 'N/A'}</td>
+              <td>${log.check_in_time ? new Date(log.check_in_time).toLocaleTimeString() : '-'}</td>
+              <td>${log.check_out_time ? new Date(log.check_out_time).toLocaleTimeString() : 'Active'}</td>
+              <td>${log.status ? log.status.toUpperCase() : 'PRESENT'}</td>
+            </tr>
+          `).join('')}
+        </table>
+      `;
+
+      const html = generatePDFContent('Attendance Logs Report', tableHtml);
+      downloadPDF(html, `attendance_logs_${new Date().toISOString().split('T')[0]}.pdf`);
+      success('Attendance logs downloaded as PDF');
+    } catch (error) {
+      console.error('Error downloading attendance logs:', error);
+      showError('Failed to download attendance logs');
+    }
+  };
+
+  const downloadAttendanceRecords = () => {
+    try {
+      if (attendanceRecords.length === 0) {
+        showError('Loading attendance data... Please try again in a moment');
+        fetchAttendanceRecords();
+        return;
+      }
+      
+      const tableHtml = `
+        <table>
+          <tr>
+            <th>Employee</th>
+            <th>Code</th>
+            <th>Department</th>
+            <th>Present</th>
+            <th>Absent</th>
+            <th>Leave</th>
+            <th>Avg Hours</th>
+            <th>Attendance %</th>
+          </tr>
+          ${attendanceRecords.map(record => `
+            <tr>
+              <td>${record.employee?.full_name || 'N/A'}</td>
+              <td>${record.employee?.employee_code || 'N/A'}</td>
+              <td>${record.employee?.department?.name || 'N/A'}</td>
+              <td>${record.present_days}</td>
+              <td>${record.absent_days}</td>
+              <td>${record.leave_count}</td>
+              <td>${record.avg_hours_per_day}</td>
+              <td>${record.attendance_percentage}%</td>
+            </tr>
+          `).join('')}
+        </table>
+      `;
+
+      const html = generatePDFContent('Attendance Records', tableHtml);
+      downloadPDF(html, `attendance_records_${new Date().toISOString().split('T')[0]}.pdf`);
+      success('Attendance records downloaded as PDF');
+    } catch (error) {
+      console.error('Error downloading attendance records:', error);
+      showError('Failed to download attendance records');
+    }
+  };
+
+  const downloadDepartments = () => {
+    try {
+      if (departments.length === 0) {
+        showError('Loading departments... Please try again in a moment');
+        return;
+      }
+      
+      const tableHtml = `
+        <table>
+          <tr>
+            <th>Department</th>
+            <th>Code</th>
+            <th>Employee Count</th>
+          </tr>
+          ${departments.map(dept => {
+            const count = employees.filter(e => e.department_id === dept.id).length;
+            return `
+            <tr>
+              <td>${dept.name || dept.department_name}</td>
+              <td>${dept.code || 'N/A'}</td>
+              <td>${count}</td>
+            </tr>
+          `}).join('')}
+        </table>
+      `;
+
+      const html = generatePDFContent('Departments List', tableHtml);
+      downloadPDF(html, `departments_${new Date().toISOString().split('T')[0]}.pdf`);
+      success('Departments downloaded as PDF');
+    } catch (error) {
+      console.error('Error downloading departments:', error);
+      showError('Failed to download departments');
+    }
+  };
+
+  const downloadShifts = () => {
+    try {
+      if (shifts.length === 0) {
+        showError('Loading shifts... Please try again in a moment');
+        return;
+      }
+      
+      const tableHtml = `
+        <table>
+          <tr>
+            <th>Shift Name</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Employee Count</th>
+          </tr>
+          ${shifts.map(shift => {
+            const count = employees.filter(e => e.shift_id === shift.id).length;
+            return `
+            <tr>
+              <td>${shift.shift_name || shift.name}</td>
+              <td>${shift.start_time || 'N/A'}</td>
+              <td>${shift.end_time || 'N/A'}</td>
+              <td>${count}</td>
+            </tr>
+          `}).join('')}
+        </table>
+      `;
+
+      const html = generatePDFContent('Shifts List', tableHtml);
+      downloadPDF(html, `shifts_${new Date().toISOString().split('T')[0]}.pdf`);
+      success('Shifts downloaded as PDF');
+    } catch (error) {
+      console.error('Error downloading shifts:', error);
+      showError('Failed to download shifts');
+    }
+  };
+
+  const downloadCalendar = () => {
+    try {
+      if (!calendarRef.current) {
+        showError('Calendar content not loaded yet. Please wait a moment and try again.');
+        return;
+      }
+
+      // Get user info
+      const userName = getUserInfo();
+      const now = new Date();
+
+      // Create a clone of the calendar element
+      const element = calendarRef.current.cloneNode(true);
+      
+      // Create a header with user info and timestamp
+      
+      // Remove any interactive elements
+      const buttons = element.querySelectorAll('button, input, select');
+      buttons.forEach(btn => btn.remove());
+
+      const options = {
+        margin: 10,
+        filename: `attendance_calendar_${new Date().toISOString().split('T')[0]}.pdf`,
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: { scale: 2, useCORS: true, allowTaint: true },
+        jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+      
+      html2pdf().set(options).from(element).save().then(() => {
+        success('Attendance calendar downloaded as PDF');
+      }).catch(err => {
+        console.error('PDF generation error:', err);
+        showError('Failed to generate PDF');
+      });
+    } catch (error) {
+      console.error('Error downloading calendar:', error);
+      showError('Failed to download calendar');
+    }
+  };
+
+  const handleDownloadClick = () => {
+    switch(activeTab) {
+      case 'list':
+        downloadEmployees('pdf');
+        break;
+      case 'analytics':
+        downloadAnalytics();
+        break;
+      case 'logs':
+        downloadAttendanceLogs();
+        break;
+      case 'records':
+        downloadAttendanceRecords();
+        break;
+      case 'calendar':
+        downloadCalendar();
+        break;
+      case 'departments':
+        downloadDepartments();
+        break;
+      case 'shifts':
+        downloadShifts();
+        break;
+      default:
+        downloadEmployees('pdf');
+    }
+  };
 
   const handleCreateEmployee = () => {
     setEditingEmployee(null);
@@ -113,11 +622,11 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
 
     try {
       await employeesService.delete(employeeId, false);
-      message.success('Employee deleted successfully!');
+      success('Employee deleted successfully!');
       fetchEmployees();
     } catch (error) {
       console.error('Error deleting employee:', error);
-      message.error(error.response?.data?.message || 'Failed to delete employee');
+      showError(error.response?.data?.message || 'Failed to delete employee');
     }
   };
 
@@ -126,11 +635,11 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
       await employeesService.update(employee.id, {
         is_active: !employee.is_active,
       });
-      message.success(employee.is_active ? 'Successfully disabled' : 'Successfully enabled');
+      success(employee.is_active ? 'Successfully disabled' : 'Successfully enabled');
       fetchEmployees();
     } catch (error) {
       console.error('Error updating employee status:', error);
-      message.error(error.response?.data?.message || 'Failed to update employee status');
+      showError(error.response?.data?.message || 'Failed to update employee status');
     }
   };
 
@@ -152,7 +661,7 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
           photo_base64: employeePhoto || undefined,
         };
         await employeesService.update(editingEmployee.id, payload);
-        message.success('Successfully updated');
+        success('Successfully updated');
       } else {
         const generateUUID = () => {
           return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -215,7 +724,7 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
       fetchEmployees();
     } catch (error) {
       console.error('Error saving employee:', error);
-      message.error(error.response?.data?.message || 'Failed to save employee');
+      showError(error.response?.data?.message || 'Failed to save employee');
     }
   };
 
@@ -233,8 +742,8 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
+      <div className="flex flex-col items-center justify-center min-h-[400px] bg-white/50 backdrop-blur-sm rounded-xl border border-gray-100 shadow-inner">
+        <Loader size="large" text="Fetching employee records..." />
       </div>
     );
   }
@@ -255,21 +764,42 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
             <p className="text-xs text-gray-500 mt-0.5">Manage workforce & attendance</p>
           </div>
 
-          {/* Right: Add button + Tabs */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleCreateEmployee}
-              className="px-3 py-1.5 bg-teal-600 text-white text-sm font-medium rounded hover:bg-teal-700 transition-colors shadow-sm flex items-center gap-1.5"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-              Add Employee
-            </button>
+          {/* Right: Action buttons + Tabs */}
+          <div className="flex items-center gap-3">
+            {/* Action Buttons Group */}
+            <div className="flex gap-2 bg-white rounded-lg shadow-sm border border-gray-200 p-1">
+              <button
+                onClick={handleCreateEmployee}
+                className="px-4 py-1.5 bg-teal-600 text-white text-sm font-medium rounded hover:bg-teal-700 transition-colors flex items-center gap-1.5"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                Add Employee
+              </button>
+              
+              {(
+                (activeTab === 'list' && employees.length > 0) ||
+                (activeTab === 'analytics' && employees.length > 0) ||
+                (activeTab === 'logs') ||
+                (activeTab === 'records') ||
+                (activeTab === 'calendar' && employees.length > 0) ||
+                (activeTab === 'departments') ||
+                (activeTab === 'shifts')
+              ) && (
+                <button
+                  onClick={handleDownloadClick}
+                  className="px-4 py-1.5 bg-teal-500 text-white text-sm font-medium rounded hover:bg-teal-600 transition-colors flex items-center gap-1.5"
+                >
+                  <Download className="w-4 h-4" />
+                  Download
+                </button>
+              )}
+            </div>
 
             <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
               <button onClick={() => setActiveTab('list')} className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${activeTab === 'list' ? 'bg-teal-600 text-white shadow-sm' : 'text-gray-600 hover:text-teal-600 hover:bg-gray-200'}`}><Users className="w-3.5 h-3.5" />List</button>
               <button onClick={() => setActiveTab('analytics')} className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${activeTab === 'analytics' ? 'bg-teal-600 text-white shadow-sm' : 'text-gray-600 hover:text-teal-600 hover:bg-gray-200'}`}><BarChart3 className="w-3.5 h-3.5" />Overview</button>
               <button onClick={() => setActiveTab('logs')} className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${activeTab === 'logs' ? 'bg-teal-600 text-white shadow-sm' : 'text-gray-600 hover:text-teal-600 hover:bg-gray-200'}`}><ClipboardList className="w-3.5 h-3.5" />Logs</button>
-              <button onClick={() => { setActiveTab('records'); if (activeTab !== 'records') { fetchAttendanceRecords(); } }} className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${activeTab === 'records' ? 'bg-teal-600 text-white shadow-sm' : 'text-gray-600 hover:text-teal-600 hover:bg-gray-200'}`}><FileText className="w-3.5 h-3.5" />Records</button>
+              <button onClick={() => setActiveTab('records')} className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${activeTab === 'records' ? 'bg-teal-600 text-white shadow-sm' : 'text-gray-600 hover:text-teal-600 hover:bg-gray-200'}`}><FileText className="w-3.5 h-3.5" />Records</button>
               <button onClick={() => setActiveTab('calendar')} className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${activeTab === 'calendar' ? 'bg-teal-600 text-white shadow-sm' : 'text-gray-600 hover:text-teal-600 hover:bg-gray-200'}`}><CalendarIcon className="w-3.5 h-3.5" />calendar</button>
               <button onClick={() => setActiveTab('departments')} className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${activeTab === 'departments' ? 'bg-teal-600 text-white shadow-sm' : 'text-gray-600 hover:text-teal-600 hover:bg-gray-200'}`}><Building2 className="w-3.5 h-3.5" />Dept</button>
               <button onClick={() => setActiveTab('shifts')} className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${activeTab === 'shifts' ? 'bg-teal-600 text-white shadow-sm' : 'text-gray-600 hover:text-teal-600 hover:bg-gray-200'}`}><Clock className="w-3.5 h-3.5" />Shifts</button>
@@ -279,10 +809,12 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
       </div>
 
       {activeTab === 'analytics' && (
-        <EmployeeAnalytics
-          employees={employees}
-          organizationId={organizationId}
-        />
+        <div ref={analyticsRef}>
+          <EmployeeAnalytics
+            employees={employees}
+            organizationId={organizationId}
+          />
+        </div>
       )}
 
       {activeTab === 'logs' && (
@@ -307,9 +839,56 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
               <p className="text-gray-600 text-sm mt-1">View attendance statistics for all employees</p>
             </div>
 
+            {/* Filters */}
+            <div className="bg-teal-50/95 p-3 border-b border-gray-200 flex flex-wrap gap-3 items-center justify-between">
+              <div className="flex gap-3 flex-1 min-w-[300px]">
+                <Input
+                  prefix={<span>🔍</span>}
+                  placeholder="Search by name or code..."
+                  value={recordsSearchText}
+                  onChange={e => setRecordsSearchText(e.target.value)}
+                  className="max-w-xs text-sm"
+                  size="small"
+                />
+                <DatePicker.RangePicker
+                  value={recordsDateRange}
+                  onChange={(dates) => {
+                    if (dates && dates[0] && dates[1]) {
+                      // Validate that start date is before or equal to end date
+                      if (dates[0].isAfter(dates[1])) {
+                        showError('Start date must be before or equal to end date');
+                        return;
+                      }
+                      setRecordsDateRange(dates);
+                    }
+                  }}
+                  size="small"
+                  className="w-64"
+                />
+                <Select
+                  placeholder="Select Department"
+                  value={recordsDepartmentFilter}
+                  onSelect={setRecordsDepartmentFilter}
+                  className="min-w-[150px]"
+                  size="small"
+                >
+                  <Select.Option value="all">All Departments</Select.Option>
+                  {departments.map(dept => (
+                    <Select.Option key={dept.id} value={dept.id}>{dept.name}</Select.Option>
+                  ))}
+                </Select>
+              </div>
+              <button
+                onClick={fetchAttendanceRecords}
+                className="text-teal-600 hover:text-teal-800 font-medium text-xs flex items-center gap-1"
+              >
+                🔄 Refresh
+              </button>
+            </div>
+
             {loadingAttendance ? (
               <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
+                <Loader />
               </div>
             ) : attendanceRecords.length === 0 ? (
               <div className="text-center py-12 bg-teal-50">
@@ -359,16 +938,16 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold">
-                              {record.full_name?.charAt(0).toUpperCase()}
+                              {record.employee?.full_name?.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <div className="font-semibold text-gray-900">{record.full_name}</div>
-                              <div className="text-xs text-gray-500">{record.employee_code}</div>
+                              <div className="font-semibold text-gray-900">{record.employee?.full_name || 'N/A'}</div>
+                              <div className="text-xs text-gray-500">{record.employee?.employee_code || 'N/A'}</div>
                             </div>
                           </div>
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-700">
-                          {record.department || 'N/A'}
+                          {record.employee?.department?.name || 'N/A'}
                         </td>
                         <td className="px-4 py-3 text-center">
                           <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold">
@@ -651,7 +1230,7 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
                         onImageCapture={(base64) => {
                           setEmployeePhoto(base64);
                           setShowWebcam(false);
-                          message.success('Employee photo captured successfully!');
+                          success('Employee photo captured successfully!');
                         }}
                         onBack={() => setShowWebcam(false)}
                       />
@@ -727,7 +1306,7 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
       )}
 
       {activeTab === 'calendar' && (
-        <div className="bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 p-4">
+        <div ref={calendarRef} className="bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 p-4">
           <EmployeeAttendanceCalendar
             employees={employees}
             selectedEmployeeId={selectedCalendarEmployee}

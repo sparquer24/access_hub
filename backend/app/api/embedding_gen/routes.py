@@ -1,11 +1,18 @@
-# app/api/routes/face_enroll.py
-from flask import Blueprint, request, jsonify
-from app.utils import face_enrollment_background
+                                                                                                                                                                        
+import threading
+
+from flask import Blueprint, request, jsonify                                                                                                                                                             
+
 from app.utils.face_enrollment_background import process_face_enrollment_background
+
+
 
 face_enroll_bp = Blueprint("face_enroll_bp", __name__, url_prefix="/api/v1")
 
+
+
 @face_enroll_bp.route("/face/enroll", methods=["POST"])
+
 def face_enroll():
     """
     Enroll face for recognition (Employee or Visitor)
@@ -71,7 +78,3 @@ def face_enroll():
     # Runs the heavy pipeline in-request (will block)
     process_face_enrollment_background(employee_id=entity_id, img_b64=img_b64)
 
-    return jsonify({
-        "ok": True,
-        "message": "Enrollment processed"
-    }), 200

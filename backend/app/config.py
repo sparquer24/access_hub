@@ -4,6 +4,31 @@ from pydantic import Field, field_validator
 from typing import Optional
 import os
 
+
+def _build_db_url() -> str:
+    """
+    Build database URL from environment variables.
+    This function is used by database.py to get the synchronous database URL
+    before the Flask app initializes completely.
+    """
+    # Try to get DATABASE_URL from environment
+    db_url = os.environ.get('DATABASE_URL')
+    if db_url and db_url.strip():
+        return db_url
+    
+    # If not set, try to load from settings  (loaded after this function is defined)
+    try:
+        from app.config import settings
+        return settings.db_url
+    except (ImportError, AttributeError):
+        pass
+    
+    # Final fallback: return a URL pointing to localhost for local development
+    # This prevents "could not translate host name 'postgres'" errors when
+    # running locally without Docker
+    return 'postgresql+psycopg2://postgres:pg1234@127.0.0.1:5432/access_hub'
+
+
 class Settings(BaseSettings):
     # Database
     db_url: str = Field(..., validation_alias="DATABASE_URL")
@@ -107,8 +132,8 @@ class Config:
     UPLOAD_FOLDER = settings.upload_folder
     
     # Model path for YOLO detector
-    MODEL_PATH = settings.model_path
-    
+    # MODEL_PATH = settings.model_path
+    MODEL_PATH = settings.model_path or os.environ.get("MODEL_PATH") or "C:\\Users\\durga\\access_hub\\backend\\app\\detector\\face_detector.pt"  # Default to a common face detection model if not set
     # Redis (optional)
     REDIS_URL = settings.redis_url
 

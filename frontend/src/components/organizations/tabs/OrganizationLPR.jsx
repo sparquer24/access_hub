@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { message } from 'antd';
 import { lprService } from '../../../services/lprService';
 import WebcamCapture from '../../common/WebcamCapture.jsx';
+import Loader from '../../common/Loader';
+import { useToast } from '../../../contexts/ToastContext';
 
 const OrganizationLPR = ({ organization }) => {
+    const { success, error: showError, info: showInfo } = useToast();
     const features = organization?.enabled_features || {};
     const [activeSubTab, setActiveSubTab] = useState('overview'); // overview, hotlist, whitelist, register
 
@@ -134,9 +136,10 @@ const OrganizationLPR = ({ organization }) => {
             setShowHotlistModal(false);
             setHotlistForm({ vehicle_number: '', reason: '', fir_number: '', reporting_officer: '', severity: 'warning' });
             fetchData(); // Refresh list
-            message.success('Vehicle added to Hotlist');
+            fetchData(); // Refresh list
+            success('Vehicle added to Hotlist');
         } catch (err) {
-            message.error('Failed to add to hotlist. Please check inputs.');
+            showError('Failed to add to hotlist. Please check inputs.');
         }
     };
 
@@ -147,9 +150,10 @@ const OrganizationLPR = ({ organization }) => {
             setShowWhitelistModal(false);
             setWhitelistForm({ vehicle_number: '', owner_name: '', designation: '', department: '', priority: 'medium', access_zones: 'All Gates' });
             fetchData(); // Refresh list
-            message.success('Vehicle authorized for VIP access');
+            fetchData(); // Refresh list
+            success('Vehicle authorized for VIP access');
         } catch (err) {
-            message.error('Failed to authorize vehicle. Please check inputs.');
+            showError('Failed to authorize vehicle. Please check inputs.');
         }
     };
 
@@ -195,13 +199,9 @@ const OrganizationLPR = ({ organization }) => {
             // Check for Hotlist Alert
             if (res.data?.hotlist_alert) {
                 // Show Critical Alert (Using standard alert for now, ideally a modal)
-                message.error({
-                    content: '🚨 CRITICAL WARNING: This vehicle is upon the HOTLIST! Take immediate action.',
-                    duration: 10,
-                    style: { marginTop: '10vh', fontSize: '1.2em' }
-                });
+                showError('🚨 CRITICAL WARNING: This vehicle is upon the HOTLIST! Take immediate action.');
             } else {
-                message.success('Vehicle Entry Logged Successfully');
+                success('Vehicle Entry Logged Successfully');
             }
 
             // Show Pass
@@ -211,7 +211,7 @@ const OrganizationLPR = ({ organization }) => {
             }
         } catch (err) {
             console.error(err);
-            message.error('Failed to log entry.');
+            showError('Failed to log entry.');
         }
     };
 
@@ -353,10 +353,10 @@ const OrganizationLPR = ({ organization }) => {
                                     Daily Vehicle Movement Log
                                     {/* Gate Controls Simulation */}
                                     <span className="ml-4 border-l border-slate-300 pl-4 flex gap-2">
-                                        <button onClick={() => message.loading({ content: '🚧 Opening Entry Boom Barrier...', duration: 2 })} className="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded border border-green-200 hover:bg-green-200 font-bold uppercase transition-colors">
+                                        <button onClick={() => showInfo('🚧 Opening Entry Boom Barrier...')} className="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded border border-green-200 hover:bg-green-200 font-bold uppercase transition-colors">
                                             Open Entry Gate
                                         </button>
-                                        <button onClick={() => message.loading({ content: '🚧 Opening Exit Boom Barrier...', duration: 2 })} className="text-[10px] bg-red-100 text-red-700 px-2 py-1 rounded border border-red-200 hover:bg-red-200 font-bold uppercase transition-colors">
+                                        <button onClick={() => showInfo('🚧 Opening Exit Boom Barrier...')} className="text-[10px] bg-red-100 text-red-700 px-2 py-1 rounded border border-red-200 hover:bg-red-200 font-bold uppercase transition-colors">
                                             Open Exit Gate
                                         </button>
                                     </span>
@@ -409,7 +409,11 @@ const OrganizationLPR = ({ organization }) => {
                             </div>
                         </div>
                     </div>
-                    {loading ? <div className="p-8 text-center">Loading queries...</div> : (
+                    {loading ? (
+                        <div className="flex justify-center p-8">
+                            <Loader />
+                        </div>
+                    ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
                                 <thead className="bg-slate-100 text-slate-600 font-bold uppercase text-xs border-b border-slate-300">
@@ -470,8 +474,8 @@ const OrganizationLPR = ({ organization }) => {
                                                                     // For this step, I will add the button but it will need the service update.
                                                                     await lprService.processExit(organization.id, row.id);
                                                                     fetchData();
-                                                                    message.success('Vehicle processed for exit');
-                                                                } catch (e) { message.error('Failed to process exit'); }
+                                                                    success('Vehicle processed for exit');
+                                                                } catch (e) { showError('Failed to process exit'); }
                                                             }}
                                                             className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded border border-slate-300 transition-colors"
                                                         >
@@ -509,530 +513,550 @@ const OrganizationLPR = ({ organization }) => {
                         </div>
                     )}
                 </div>
-            )}
+            )
+            }
 
             {/* HOTLIST TAB */}
-            {activeSubTab === 'hotlist' && (
-                <div className="bg-teal-50/95 border border-red-200 rounded-lg shadow-sm overflow-hidden">
-                    <div className="px-6 py-4 border-b border-red-100 bg-red-50 flex justify-between items-center">
-                        <div>
-                            <h3 className="font-bold text-lg text-red-900">Restricted Vehicle Hotlist</h3>
-                            <p className="text-xs text-red-700 uppercase tracking-widest font-semibold">Security Alert Database</p>
+            {
+                activeSubTab === 'hotlist' && (
+                    <div className="bg-teal-50/95 border border-red-200 rounded-lg shadow-sm overflow-hidden">
+                        <div className="px-6 py-4 border-b border-red-100 bg-red-50 flex justify-between items-center">
+                            <div>
+                                <h3 className="font-bold text-lg text-red-900">Restricted Vehicle Hotlist</h3>
+                                <p className="text-xs text-red-700 uppercase tracking-widest font-semibold">Security Alert Database</p>
+                            </div>
+                            <button
+                                onClick={() => setShowHotlistModal(true)}
+                                className="px-4 py-2 bg-red-600 text-white rounded shadow-sm text-sm font-bold hover:bg-red-700 transition-colors"
+                            >
+                                + Add Vehicle to Hotlist
+                            </button>
                         </div>
-                        <button
-                            onClick={() => setShowHotlistModal(true)}
-                            className="px-4 py-2 bg-red-600 text-white rounded shadow-sm text-sm font-bold hover:bg-red-700 transition-colors"
-                        >
-                            + Add Vehicle to Hotlist
-                        </button>
-                    </div>
-                    {loading ? <div className="p-8 text-center">Loading hotlist...</div> : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm text-left">
-                                <thead className="bg-red-50 text-red-900 font-bold uppercase text-xs border-b border-red-200">
-                                    <tr>
-                                        <th className="px-6 py-3 border-r border-red-100">Vehicle No.</th>
-                                        <th className="px-6 py-3 border-r border-red-100">Reason / Offense</th>
-                                        <th className="px-6 py-3 border-r border-red-100">FIR / Ref No.</th>
-                                        <th className="px-6 py-3 border-r border-red-100">Reported By</th>
-                                        <th className="px-6 py-3 border-r border-red-100">Date</th>
-                                        <th className="px-6 py-3">Severity</th>
-                                        <th className="px-6 py-3">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-red-100">
-                                    {hotlist.length === 0 ? (
-                                        <tr><td colSpan="7" className="p-8 text-center text-slate-500">No vehicles in hotlist.</td></tr>
-                                    ) : hotlist.map((row) => (
-                                        <tr key={row.id} className="hover:bg-red-50">
-                                            <td className="px-6 py-3 border-r border-red-100 font-bold font-mono text-slate-900">{row.vehicle_number}</td>
-                                            <td className="px-6 py-3 border-r border-red-100 text-slate-800">{row.reason}</td>
-                                            <td className="px-6 py-3 border-r border-red-100 font-mono text-slate-600">{row.fir_number || '-'}</td>
-                                            <td className="px-6 py-3 border-r border-red-100 text-slate-600">{row.reporting_officer || '-'}</td>
-                                            <td className="px-6 py-3 border-r border-red-100 text-slate-500">{new Date(row.created_at).toLocaleDateString()}</td>
-                                            <td className="px-6 py-3 border-r border-red-100">
-                                                <span className={`px-2 py-1 rounded text-xs font-bold ${row.severity === 'critical' ? 'bg-red-600 text-white' : 'bg-yellow-100 text-yellow-800'}`}>
-                                                    {row.severity}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-3">
-                                                <button onClick={() => handleRemoveHotlist(row.id)} className="text-red-600 hover:text-red-800 font-bold text-xs">REMOVE</button>
-                                            </td>
+                        {loading ? (
+                            <div className="flex justify-center p-8">
+                                <Loader />
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-red-50 text-red-900 font-bold uppercase text-xs border-b border-red-200">
+                                        <tr>
+                                            <th className="px-6 py-3 border-r border-red-100">Vehicle No.</th>
+                                            <th className="px-6 py-3 border-r border-red-100">Reason / Offense</th>
+                                            <th className="px-6 py-3 border-r border-red-100">FIR / Ref No.</th>
+                                            <th className="px-6 py-3 border-r border-red-100">Reported By</th>
+                                            <th className="px-6 py-3 border-r border-red-100">Date</th>
+                                            <th className="px-6 py-3">Severity</th>
+                                            <th className="px-6 py-3">Action</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </div>
-            )}
+                                    </thead>
+                                    <tbody className="divide-y divide-red-100">
+                                        {hotlist.length === 0 ? (
+                                            <tr><td colSpan="7" className="p-8 text-center text-slate-500">No vehicles in hotlist.</td></tr>
+                                        ) : hotlist.map((row) => (
+                                            <tr key={row.id} className="hover:bg-red-50">
+                                                <td className="px-6 py-3 border-r border-red-100 font-bold font-mono text-slate-900">{row.vehicle_number}</td>
+                                                <td className="px-6 py-3 border-r border-red-100 text-slate-800">{row.reason}</td>
+                                                <td className="px-6 py-3 border-r border-red-100 font-mono text-slate-600">{row.fir_number || '-'}</td>
+                                                <td className="px-6 py-3 border-r border-red-100 text-slate-600">{row.reporting_officer || '-'}</td>
+                                                <td className="px-6 py-3 border-r border-red-100 text-slate-500">{new Date(row.created_at).toLocaleDateString()}</td>
+                                                <td className="px-6 py-3 border-r border-red-100">
+                                                    <span className={`px-2 py-1 rounded text-xs font-bold ${row.severity === 'critical' ? 'bg-red-600 text-white' : 'bg-yellow-100 text-yellow-800'}`}>
+                                                        {row.severity}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-3">
+                                                    <button onClick={() => handleRemoveHotlist(row.id)} className="text-red-600 hover:text-red-800 font-bold text-xs">REMOVE</button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                )
+            }
 
             {/* WHITELIST TAB */}
-            {activeSubTab === 'whitelist' && (
-                <div className="bg-teal-50/95 border border-green-200 rounded-lg shadow-sm overflow-hidden">
-                    <div className="px-6 py-4 border-b border-green-100 bg-green-50 flex justify-between items-center">
-                        <div>
-                            <h3 className="font-bold text-lg text-green-900">Authorized / VIP Vehicles</h3>
-                            <p className="text-xs text-green-700 uppercase tracking-widest font-semibold">Priority Access List</p>
+            {
+                activeSubTab === 'whitelist' && (
+                    <div className="bg-teal-50/95 border border-green-200 rounded-lg shadow-sm overflow-hidden">
+                        <div className="px-6 py-4 border-b border-green-100 bg-green-50 flex justify-between items-center">
+                            <div>
+                                <h3 className="font-bold text-lg text-green-900">Authorized / VIP Vehicles</h3>
+                                <p className="text-xs text-green-700 uppercase tracking-widest font-semibold">Priority Access List</p>
+                            </div>
+                            <button
+                                onClick={() => setShowWhitelistModal(true)}
+                                className="px-4 py-2 bg-green-600 text-white rounded shadow-sm text-sm font-bold hover:bg-green-700 transition-colors"
+                            >
+                                + Authorize New Vehicle
+                            </button>
                         </div>
-                        <button
-                            onClick={() => setShowWhitelistModal(true)}
-                            className="px-4 py-2 bg-green-600 text-white rounded shadow-sm text-sm font-bold hover:bg-green-700 transition-colors"
-                        >
-                            + Authorize New Vehicle
-                        </button>
-                    </div>
-                    {loading ? <div className="p-8 text-center">Loading whitelist...</div> : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm text-left">
-                                <thead className="bg-green-50 text-green-900 font-bold uppercase text-xs border-b border-green-200">
-                                    <tr>
-                                        <th className="px-6 py-3 border-r border-green-100">Vehicle No.</th>
-                                        <th className="px-6 py-3 border-r border-green-100">Official Name</th>
-                                        <th className="px-6 py-3 border-r border-green-100">Designation</th>
-                                        <th className="px-6 py-3 border-r border-green-100">Department</th>
-                                        <th className="px-6 py-3 border-r border-green-100">Access Zones</th>
-                                        <th className="px-6 py-3">Priority</th>
-                                        <th className="px-6 py-3">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-green-100">
-                                    {whitelist.length === 0 ? (
-                                        <tr><td colSpan="7" className="p-8 text-center text-slate-500">No authorized vehicles found.</td></tr>
-                                    ) : whitelist.map((row) => (
-                                        <tr key={row.id} className="hover:bg-green-50">
-                                            <td className="px-6 py-3 border-r border-green-100 font-bold font-mono text-slate-900">{row.vehicle_number}</td>
-                                            <td className="px-6 py-3 border-r border-green-100 text-slate-900 font-medium">{row.owner_name}</td>
-                                            <td className="px-6 py-3 border-r border-green-100 text-slate-600">{row.designation || '-'}</td>
-                                            <td className="px-6 py-3 border-r border-green-100 text-slate-600">{row.department || '-'}</td>
-                                            <td className="px-6 py-3 border-r border-green-100 text-slate-500">{row.access_zones}</td>
-                                            <td className="px-6 py-3 border-r border-green-100">
-                                                <span className={`px-2 py-1 rounded text-xs font-bold ${row.priority === 'high' ? 'bg-green-600 text-white' : 'bg-blue-100 text-blue-800'}`}>
-                                                    {row.priority}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-3">
-                                                <button onClick={() => handleRemoveWhitelist(row.id)} className="text-red-600 hover:text-red-800 font-bold text-xs">REVOKE</button>
-                                            </td>
+                        {loading ? (
+                            <div className="flex justify-center p-8">
+                                <Loader />
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-green-50 text-green-900 font-bold uppercase text-xs border-b border-green-200">
+                                        <tr>
+                                            <th className="px-6 py-3 border-r border-green-100">Vehicle No.</th>
+                                            <th className="px-6 py-3 border-r border-green-100">Official Name</th>
+                                            <th className="px-6 py-3 border-r border-green-100">Designation</th>
+                                            <th className="px-6 py-3 border-r border-green-100">Department</th>
+                                            <th className="px-6 py-3 border-r border-green-100">Access Zones</th>
+                                            <th className="px-6 py-3">Priority</th>
+                                            <th className="px-6 py-3">Action</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </div>
-            )}
+                                    </thead>
+                                    <tbody className="divide-y divide-green-100">
+                                        {whitelist.length === 0 ? (
+                                            <tr><td colSpan="7" className="p-8 text-center text-slate-500">No authorized vehicles found.</td></tr>
+                                        ) : whitelist.map((row) => (
+                                            <tr key={row.id} className="hover:bg-green-50">
+                                                <td className="px-6 py-3 border-r border-green-100 font-bold font-mono text-slate-900">{row.vehicle_number}</td>
+                                                <td className="px-6 py-3 border-r border-green-100 text-slate-900 font-medium">{row.owner_name}</td>
+                                                <td className="px-6 py-3 border-r border-green-100 text-slate-600">{row.designation || '-'}</td>
+                                                <td className="px-6 py-3 border-r border-green-100 text-slate-600">{row.department || '-'}</td>
+                                                <td className="px-6 py-3 border-r border-green-100 text-slate-500">{row.access_zones}</td>
+                                                <td className="px-6 py-3 border-r border-green-100">
+                                                    <span className={`px-2 py-1 rounded text-xs font-bold ${row.priority === 'high' ? 'bg-green-600 text-white' : 'bg-blue-100 text-blue-800'}`}>
+                                                        {row.priority}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-3">
+                                                    <button onClick={() => handleRemoveWhitelist(row.id)} className="text-red-600 hover:text-red-800 font-bold text-xs">REVOKE</button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                )
+            }
 
             {/* --- MODALS --- */}
 
             {/* HOTLIST MODAL */}
-            {showHotlistModal && (
-                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 shadow-2xl">
-                    <div className="bg-teal-50/95 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
-                        <div className="bg-red-600 px-6 py-4 flex justify-between items-center text-white">
-                            <h3 className="font-bold text-lg flex items-center gap-2">
-                                🚫 Add to Hotlist
-                            </h3>
-                            <button onClick={() => setShowHotlistModal(false)} className="hover:bg-red-700 p-1 rounded">✕</button>
-                        </div>
-                        <form onSubmit={handleAddHotlist} className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-1">Vehicle Registration Number *</label>
-                                <input
-                                    type="text"
-                                    value={hotlistForm.vehicle_number}
-                                    onChange={e => setHotlistForm({ ...hotlistForm, vehicle_number: e.target.value.toUpperCase() })}
-                                    placeholder="e.g. DL 01 AB 1234"
-                                    className="w-full border border-slate-300 rounded px-3 py-2 font-mono uppercase focus:ring-2 focus:ring-red-500 outline-none"
-                                    required
-                                />
+            {
+                showHotlistModal && (
+                    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 shadow-2xl">
+                        <div className="bg-teal-50/95 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
+                            <div className="bg-red-600 px-6 py-4 flex justify-between items-center text-white">
+                                <h3 className="font-bold text-lg flex items-center gap-2">
+                                    🚫 Add to Hotlist
+                                </h3>
+                                <button onClick={() => setShowHotlistModal(false)} className="hover:bg-red-700 p-1 rounded">✕</button>
                             </div>
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-1">Reason / Offense *</label>
-                                <input
-                                    type="text"
-                                    value={hotlistForm.reason}
-                                    onChange={e => setHotlistForm({ ...hotlistForm, reason: e.target.value })}
-                                    placeholder="e.g. Stolen Vehicle, Wanted in FIR..."
-                                    className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-red-500 outline-none"
-                                    required
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
+                            <form onSubmit={handleAddHotlist} className="p-6 space-y-4">
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">FIR / Reference No.</label>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1">Vehicle Registration Number *</label>
                                     <input
                                         type="text"
-                                        value={hotlistForm.fir_number}
-                                        onChange={e => setHotlistForm({ ...hotlistForm, fir_number: e.target.value })}
-                                        className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-red-500 outline-none"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">Reporting Officer</label>
-                                    <input
-                                        type="text"
-                                        value={hotlistForm.reporting_officer}
-                                        onChange={e => setHotlistForm({ ...hotlistForm, reporting_officer: e.target.value })}
-                                        className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-red-500 outline-none"
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-1">Severity Level</label>
-                                <select
-                                    value={hotlistForm.severity}
-                                    onChange={e => setHotlistForm({ ...hotlistForm, severity: e.target.value })}
-                                    className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-red-500 outline-none"
-                                >
-                                    <option value="warning">Warning (Alert Only)</option>
-                                    <option value="critical">Critical (Stop Vehicle)</option>
-                                    <option value="info">Info (Monitor)</option>
-                                </select>
-                            </div>
-                            <div className="pt-4 flex justify-end gap-2">
-                                <button type="button" onClick={() => setShowHotlistModal(false)} className="px-4 py-2 text-slate-600 font-semibold hover:bg-slate-100 rounded">Cancel</button>
-                                <button type="submit" className="px-6 py-2 bg-red-600 text-white font-bold rounded shadow-md hover:bg-red-700 transition">Add to Hotlist</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* WHITELIST MODAL */}
-            {showWhitelistModal && (
-                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 shadow-2xl">
-                    <div className="bg-teal-50/95 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
-                        <div className="bg-green-600 px-6 py-4 flex justify-between items-center text-white">
-                            <h3 className="font-bold text-lg flex items-center gap-2">
-                                ✅ Authorize Vehicle
-                            </h3>
-                            <button onClick={() => setShowWhitelistModal(false)} className="hover:bg-green-700 p-1 rounded">✕</button>
-                        </div>
-                        <form onSubmit={handleAddWhitelist} className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-1">Vehicle Registration Number *</label>
-                                <input
-                                    type="text"
-                                    value={whitelistForm.vehicle_number}
-                                    onChange={e => setWhitelistForm({ ...whitelistForm, vehicle_number: e.target.value.toUpperCase() })}
-                                    placeholder="e.g. DL 01 AB 1234"
-                                    className="w-full border border-slate-300 rounded px-3 py-2 font-mono uppercase focus:ring-2 focus:ring-green-500 outline-none"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-1">Official Name *</label>
-                                <input
-                                    type="text"
-                                    value={whitelistForm.owner_name}
-                                    onChange={e => setWhitelistForm({ ...whitelistForm, owner_name: e.target.value })}
-                                    placeholder="e.g. Dr. John Doe"
-                                    className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-green-500 outline-none"
-                                    required
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">Designation</label>
-                                    <input
-                                        type="text"
-                                        value={whitelistForm.designation}
-                                        onChange={e => setWhitelistForm({ ...whitelistForm, designation: e.target.value })}
-                                        placeholder="e.g. Director"
-                                        className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-green-500 outline-none"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">Department</label>
-                                    <input
-                                        type="text"
-                                        value={whitelistForm.department}
-                                        onChange={e => setWhitelistForm({ ...whitelistForm, department: e.target.value })}
-                                        className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-green-500 outline-none"
-                                    />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">Priority Level</label>
-                                    <select
-                                        value={whitelistForm.priority}
-                                        onChange={e => setWhitelistForm({ ...whitelistForm, priority: e.target.value })}
-                                        className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-green-500 outline-none"
-                                    >
-                                        <option value="medium">Medium (Standard)</option>
-                                        <option value="high">High (Red Beacon)</option>
-                                        <option value="low">Low (Contractor)</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">Access Zones</label>
-                                    <input
-                                        type="text"
-                                        value={whitelistForm.access_zones}
-                                        onChange={e => setWhitelistForm({ ...whitelistForm, access_zones: e.target.value })}
-                                        className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-green-500 outline-none"
-                                    />
-                                </div>
-                            </div>
-                            <div className="pt-4 flex justify-end gap-2">
-                                <button type="button" onClick={() => setShowWhitelistModal(false)} className="px-4 py-2 text-slate-600 font-semibold hover:bg-slate-100 rounded">Cancel</button>
-                                <button type="submit" className="px-6 py-2 bg-green-600 text-white font-bold rounded shadow-md hover:bg-green-700 transition">Authorize</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* MANUAL ENTRY MODAL */}
-            {showManualEntryModal && (
-                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 shadow-2xl overflow-y-auto">
-                    <div className="bg-teal-50/95 rounded-xl shadow-2xl w-full max-w-4xl animate-in fade-in zoom-in duration-200 my-8">
-                        <div className="bg-teal-600 px-6 py-4 flex justify-between items-center text-white rounded-t-xl">
-                            <h3 className="font-bold text-lg flex items-center gap-2">
-                                🚔 Manual Vehicle Entry / Inspection
-                            </h3>
-                            <button onClick={() => setShowManualEntryModal(false)} className="hover:bg-teal-700 p-1 rounded">✕</button>
-                        </div>
-                        <form onSubmit={handleManualEntrySubmit} className="p-6 space-y-6">
-
-                            {/* Basic Info */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">Vehicle Details *</label>
-                                    <input
-                                        type="text"
-                                        value={manualEntryForm.vehicle_number}
-                                        onChange={e => setManualEntryForm({ ...manualEntryForm, vehicle_number: e.target.value.toUpperCase() })}
-                                        placeholder="MH 12 AB 1234"
-                                        className="w-full border border-slate-300 rounded px-3 py-2 font-mono uppercase focus:ring-2 focus:ring-teal-500 outline-none mb-2"
+                                        value={hotlistForm.vehicle_number}
+                                        onChange={e => setHotlistForm({ ...hotlistForm, vehicle_number: e.target.value.toUpperCase() })}
+                                        placeholder="e.g. DL 01 AB 1234"
+                                        className="w-full border border-slate-300 rounded px-3 py-2 font-mono uppercase focus:ring-2 focus:ring-red-500 outline-none"
                                         required
                                     />
-                                    <select
-                                        value={manualEntryForm.vehicle_type}
-                                        onChange={e => setManualEntryForm({ ...manualEntryForm, vehicle_type: e.target.value })}
-                                        className="w-full border border-slate-300 rounded px-3 py-2 focus:outline-none bg-slate-50"
-                                    >
-                                        <option value="car">🚗 Car / SUV</option>
-                                        <option value="bike">🏍️ Two Wheeler</option>
-                                        <option value="truck">🚛 Truck / Lorry</option>
-                                        <option value="van">🚐 Van / Pickup</option>
-                                    </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">Entry Point</label>
-                                    <select
-                                        value={manualEntryForm.gate_name}
-                                        onChange={e => setManualEntryForm({ ...manualEntryForm, gate_name: e.target.value })}
-                                        className="w-full border border-slate-300 rounded px-3 py-2 focus:outline-none"
-                                    >
-                                        <option value="Main Gate">Main Gate</option>
-                                        <option value="Gate 2">Gate 2 (Service)</option>
-                                        <option value="VIP Gate">VIP Gate</option>
-                                    </select>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1">Reason / Offense *</label>
                                     <input
-                                        type="datetime-local"
-                                        value={manualEntryForm.date_time}
-                                        disabled
-                                        className="w-full mt-2 bg-slate-100 text-slate-500 border border-slate-200 rounded px-3 py-2 text-sm"
+                                        type="text"
+                                        value={hotlistForm.reason}
+                                        onChange={e => setHotlistForm({ ...hotlistForm, reason: e.target.value })}
+                                        placeholder="e.g. Stolen Vehicle, Wanted in FIR..."
+                                        className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-red-500 outline-none"
+                                        required
                                     />
                                 </div>
-                                <div className="bg-slate-50 p-3 rounded border border-slate-200">
-                                    {/* Driver Details Section */}
-                                    <div className="bg-slate-50 p-3 rounded border border-slate-200 mb-4">
-                                        <h4 className="text-xs font-bold text-slate-500 uppercase mb-2">Driver Details</h4>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                            <div>
-                                                <label className="block text-xs font-bold text-slate-600 mb-1">Driver Name</label>
-                                                <input
-                                                    type="text"
-                                                    value={manualEntryForm.driver_name}
-                                                    onChange={e => setManualEntryForm({ ...manualEntryForm, driver_name: e.target.value })}
-                                                    className="w-full border border-slate-300 rounded px-2 py-1 text-sm outline-none"
-                                                    placeholder="Name"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-bold text-slate-600 mb-1">Phone Number</label>
-                                                <input
-                                                    type="text"
-                                                    value={manualEntryForm.driver_phone}
-                                                    onChange={e => setManualEntryForm({ ...manualEntryForm, driver_phone: e.target.value })}
-                                                    className="w-full border border-slate-300 rounded px-2 py-1 text-sm outline-none"
-                                                    placeholder="Mobile"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-bold text-slate-600 mb-1">License ID</label>
-                                                <input
-                                                    type="text"
-                                                    value={manualEntryForm.driver_license_id}
-                                                    onChange={e => setManualEntryForm({ ...manualEntryForm, driver_license_id: e.target.value })}
-                                                    className="w-full border border-slate-300 rounded px-2 py-1 text-sm outline-none"
-                                                    placeholder="DL No."
-                                                />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-1">FIR / Reference No.</label>
+                                        <input
+                                            type="text"
+                                            value={hotlistForm.fir_number}
+                                            onChange={e => setHotlistForm({ ...hotlistForm, fir_number: e.target.value })}
+                                            className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-red-500 outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-1">Reporting Officer</label>
+                                        <input
+                                            type="text"
+                                            value={hotlistForm.reporting_officer}
+                                            onChange={e => setHotlistForm({ ...hotlistForm, reporting_officer: e.target.value })}
+                                            className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-red-500 outline-none"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1">Severity Level</label>
+                                    <select
+                                        value={hotlistForm.severity}
+                                        onChange={e => setHotlistForm({ ...hotlistForm, severity: e.target.value })}
+                                        className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-red-500 outline-none"
+                                    >
+                                        <option value="warning">Warning (Alert Only)</option>
+                                        <option value="critical">Critical (Stop Vehicle)</option>
+                                        <option value="info">Info (Monitor)</option>
+                                    </select>
+                                </div>
+                                <div className="pt-4 flex justify-end gap-2">
+                                    <button type="button" onClick={() => setShowHotlistModal(false)} className="px-4 py-2 text-slate-600 font-semibold hover:bg-slate-100 rounded">Cancel</button>
+                                    <button type="submit" className="px-6 py-2 bg-red-600 text-white font-bold rounded shadow-md hover:bg-red-700 transition">Add to Hotlist</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* WHITELIST MODAL */}
+            {
+                showWhitelistModal && (
+                    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 shadow-2xl">
+                        <div className="bg-teal-50/95 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
+                            <div className="bg-green-600 px-6 py-4 flex justify-between items-center text-white">
+                                <h3 className="font-bold text-lg flex items-center gap-2">
+                                    ✅ Authorize Vehicle
+                                </h3>
+                                <button onClick={() => setShowWhitelistModal(false)} className="hover:bg-green-700 p-1 rounded">✕</button>
+                            </div>
+                            <form onSubmit={handleAddWhitelist} className="p-6 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1">Vehicle Registration Number *</label>
+                                    <input
+                                        type="text"
+                                        value={whitelistForm.vehicle_number}
+                                        onChange={e => setWhitelistForm({ ...whitelistForm, vehicle_number: e.target.value.toUpperCase() })}
+                                        placeholder="e.g. DL 01 AB 1234"
+                                        className="w-full border border-slate-300 rounded px-3 py-2 font-mono uppercase focus:ring-2 focus:ring-green-500 outline-none"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1">Official Name *</label>
+                                    <input
+                                        type="text"
+                                        value={whitelistForm.owner_name}
+                                        onChange={e => setWhitelistForm({ ...whitelistForm, owner_name: e.target.value })}
+                                        placeholder="e.g. Dr. John Doe"
+                                        className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-green-500 outline-none"
+                                        required
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-1">Designation</label>
+                                        <input
+                                            type="text"
+                                            value={whitelistForm.designation}
+                                            onChange={e => setWhitelistForm({ ...whitelistForm, designation: e.target.value })}
+                                            placeholder="e.g. Director"
+                                            className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-green-500 outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-1">Department</label>
+                                        <input
+                                            type="text"
+                                            value={whitelistForm.department}
+                                            onChange={e => setWhitelistForm({ ...whitelistForm, department: e.target.value })}
+                                            className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-green-500 outline-none"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-1">Priority Level</label>
+                                        <select
+                                            value={whitelistForm.priority}
+                                            onChange={e => setWhitelistForm({ ...whitelistForm, priority: e.target.value })}
+                                            className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-green-500 outline-none"
+                                        >
+                                            <option value="medium">Medium (Standard)</option>
+                                            <option value="high">High (Red Beacon)</option>
+                                            <option value="low">Low (Contractor)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-1">Access Zones</label>
+                                        <input
+                                            type="text"
+                                            value={whitelistForm.access_zones}
+                                            onChange={e => setWhitelistForm({ ...whitelistForm, access_zones: e.target.value })}
+                                            className="w-full border border-slate-300 rounded px-3 py-2 focus:ring-2 focus:ring-green-500 outline-none"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="pt-4 flex justify-end gap-2">
+                                    <button type="button" onClick={() => setShowWhitelistModal(false)} className="px-4 py-2 text-slate-600 font-semibold hover:bg-slate-100 rounded">Cancel</button>
+                                    <button type="submit" className="px-6 py-2 bg-green-600 text-white font-bold rounded shadow-md hover:bg-green-700 transition">Authorize</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* MANUAL ENTRY MODAL */}
+            {
+                showManualEntryModal && (
+                    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 shadow-2xl overflow-y-auto">
+                        <div className="bg-teal-50/95 rounded-xl shadow-2xl w-full max-w-4xl animate-in fade-in zoom-in duration-200 my-8">
+                            <div className="bg-teal-600 px-6 py-4 flex justify-between items-center text-white rounded-t-xl">
+                                <h3 className="font-bold text-lg flex items-center gap-2">
+                                    🚔 Manual Vehicle Entry / Inspection
+                                </h3>
+                                <button onClick={() => setShowManualEntryModal(false)} className="hover:bg-teal-700 p-1 rounded">✕</button>
+                            </div>
+                            <form onSubmit={handleManualEntrySubmit} className="p-6 space-y-6">
+
+                                {/* Basic Info */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-1">Vehicle Details *</label>
+                                        <input
+                                            type="text"
+                                            value={manualEntryForm.vehicle_number}
+                                            onChange={e => setManualEntryForm({ ...manualEntryForm, vehicle_number: e.target.value.toUpperCase() })}
+                                            placeholder="MH 12 AB 1234"
+                                            className="w-full border border-slate-300 rounded px-3 py-2 font-mono uppercase focus:ring-2 focus:ring-teal-500 outline-none mb-2"
+                                            required
+                                        />
+                                        <select
+                                            value={manualEntryForm.vehicle_type}
+                                            onChange={e => setManualEntryForm({ ...manualEntryForm, vehicle_type: e.target.value })}
+                                            className="w-full border border-slate-300 rounded px-3 py-2 focus:outline-none bg-slate-50"
+                                        >
+                                            <option value="car">🚗 Car / SUV</option>
+                                            <option value="bike">🏍️ Two Wheeler</option>
+                                            <option value="truck">🚛 Truck / Lorry</option>
+                                            <option value="van">🚐 Van / Pickup</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-1">Entry Point</label>
+                                        <select
+                                            value={manualEntryForm.gate_name}
+                                            onChange={e => setManualEntryForm({ ...manualEntryForm, gate_name: e.target.value })}
+                                            className="w-full border border-slate-300 rounded px-3 py-2 focus:outline-none"
+                                        >
+                                            <option value="Main Gate">Main Gate</option>
+                                            <option value="Gate 2">Gate 2 (Service)</option>
+                                            <option value="VIP Gate">VIP Gate</option>
+                                        </select>
+                                        <input
+                                            type="datetime-local"
+                                            value={manualEntryForm.date_time}
+                                            disabled
+                                            className="w-full mt-2 bg-slate-100 text-slate-500 border border-slate-200 rounded px-3 py-2 text-sm"
+                                        />
+                                    </div>
+                                    <div className="bg-slate-50 p-3 rounded border border-slate-200">
+                                        {/* Driver Details Section */}
+                                        <div className="bg-slate-50 p-3 rounded border border-slate-200 mb-4">
+                                            <h4 className="text-xs font-bold text-slate-500 uppercase mb-2">Driver Details</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-600 mb-1">Driver Name</label>
+                                                    <input
+                                                        type="text"
+                                                        value={manualEntryForm.driver_name}
+                                                        onChange={e => setManualEntryForm({ ...manualEntryForm, driver_name: e.target.value })}
+                                                        className="w-full border border-slate-300 rounded px-2 py-1 text-sm outline-none"
+                                                        placeholder="Name"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-600 mb-1">Phone Number</label>
+                                                    <input
+                                                        type="text"
+                                                        value={manualEntryForm.driver_phone}
+                                                        onChange={e => setManualEntryForm({ ...manualEntryForm, driver_phone: e.target.value })}
+                                                        className="w-full border border-slate-300 rounded px-2 py-1 text-sm outline-none"
+                                                        placeholder="Mobile"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-600 mb-1">License ID</label>
+                                                    <input
+                                                        type="text"
+                                                        value={manualEntryForm.driver_license_id}
+                                                        onChange={e => setManualEntryForm({ ...manualEntryForm, driver_license_id: e.target.value })}
+                                                        className="w-full border border-slate-300 rounded px-2 py-1 text-sm outline-none"
+                                                        placeholder="DL No."
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <p className="text-xs font-bold text-slate-500 uppercase mb-2">Security Checklist</p>
-                                    <div className="space-y-2">
-                                        {Object.entries({
-                                            puc_valid: 'Valid PUC',
-                                            insurance_valid: 'Valid Insurance',
-                                            no_prohibited_items: 'No Prohibited Items',
-                                            undercarriage_checked: 'Undercarriage OK'
-                                        }).map(([key, label]) => (
-                                            <label key={key} className="flex items-center gap-2 text-sm cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={manualEntryForm.checklist_status[key]}
-                                                    onChange={e => setManualEntryForm(prev => ({
-                                                        ...prev,
-                                                        checklist_status: { ...prev.checklist_status, [key]: e.target.checked }
-                                                    }))}
-                                                    className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
-                                                />
-                                                <span className={manualEntryForm.checklist_status[key] ? 'text-green-700 font-medium' : 'text-slate-600'}>{label}</span>
-                                            </label>
-                                        ))}
+                                        <p className="text-xs font-bold text-slate-500 uppercase mb-2">Security Checklist</p>
+                                        <div className="space-y-2">
+                                            {Object.entries({
+                                                puc_valid: 'Valid PUC',
+                                                insurance_valid: 'Valid Insurance',
+                                                no_prohibited_items: 'No Prohibited Items',
+                                                undercarriage_checked: 'Undercarriage OK'
+                                            }).map(([key, label]) => (
+                                                <label key={key} className="flex items-center gap-2 text-sm cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={manualEntryForm.checklist_status[key]}
+                                                        onChange={e => setManualEntryForm(prev => ({
+                                                            ...prev,
+                                                            checklist_status: { ...prev.checklist_status, [key]: e.target.checked }
+                                                        }))}
+                                                        className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
+                                                    />
+                                                    <span className={manualEntryForm.checklist_status[key] ? 'text-green-700 font-medium' : 'text-slate-600'}>{label}</span>
+                                                </label>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Photos */}
-                            <div>
-                                <h4 className="font-bold text-slate-700 mb-2 flex items-center gap-2">📸 Vehicle Inspection Photos</h4>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    {['front', 'back', 'side', 'trunk'].map((type) => {
-                                        const existing = manualEntryForm.vehicle_photos.find(p => p.type === type);
-                                        return (
-                                            <div key={type} className="border border-slate-300 rounded-lg p-2 bg-slate-50 text-center relative group">
-                                                <p className="text-xs font-bold text-slate-500 uppercase mb-1">{type}</p>
-                                                {existing ? (
-                                                    <div className="relative">
-                                                        <img src={existing.base64} alt={type} className="w-full h-24 object-cover rounded shadow-sm" />
+                                {/* Photos */}
+                                <div>
+                                    <h4 className="font-bold text-slate-700 mb-2 flex items-center gap-2">📸 Vehicle Inspection Photos</h4>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        {['front', 'back', 'side', 'trunk'].map((type) => {
+                                            const existing = manualEntryForm.vehicle_photos.find(p => p.type === type);
+                                            return (
+                                                <div key={type} className="border border-slate-300 rounded-lg p-2 bg-slate-50 text-center relative group">
+                                                    <p className="text-xs font-bold text-slate-500 uppercase mb-1">{type}</p>
+                                                    {existing ? (
+                                                        <div className="relative">
+                                                            <img src={existing.base64} alt={type} className="w-full h-24 object-cover rounded shadow-sm" />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setManualEntryForm(prev => ({
+                                                                    ...prev,
+                                                                    vehicle_photos: prev.vehicle_photos.filter(p => p.type !== type)
+                                                                }))}
+                                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md hover:bg-red-600"
+                                                            >✕</button>
+                                                        </div>
+                                                    ) : (
                                                         <button
                                                             type="button"
-                                                            onClick={() => setManualEntryForm(prev => ({
-                                                                ...prev,
-                                                                vehicle_photos: prev.vehicle_photos.filter(p => p.type !== type)
-                                                            }))}
-                                                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md hover:bg-red-600"
-                                                        >✕</button>
-                                                    </div>
-                                                ) : (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => { setActivePhotoSlot(type); setShowWebcam(true); }}
-                                                        className="w-full h-24 bg-teal-50/95 rounded border-2 border-dashed border-slate-300 flex flex-col items-center justify-center hover:bg-teal-50 hover:text-teal-600 hover:border-teal-300 transition-all text-slate-400 gap-1"
-                                                    >
-                                                        <span className="text-xl">📷</span>
-                                                        <span className="text-xs font-semibold">Add Photo</span>
-                                                    </button>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
+                                                            onClick={() => { setActivePhotoSlot(type); setShowWebcam(true); }}
+                                                            className="w-full h-24 bg-teal-50/95 rounded border-2 border-dashed border-slate-300 flex flex-col items-center justify-center hover:bg-teal-50 hover:text-teal-600 hover:border-teal-300 transition-all text-slate-400 gap-1"
+                                                        >
+                                                            <span className="text-xl">📷</span>
+                                                            <span className="text-xs font-semibold">Add Photo</span>
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Notes & Material */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">Material Inward Declaration</label>
-                                    <textarea
-                                        value={manualEntryForm.material_declaration}
-                                        onChange={e => setManualEntryForm({ ...manualEntryForm, material_declaration: e.target.value })}
-                                        placeholder="List any major materials/tools..."
-                                        rows="3"
-                                        className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
-                                    />
+                                {/* Notes & Material */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-1">Material Inward Declaration</label>
+                                        <textarea
+                                            value={manualEntryForm.material_declaration}
+                                            onChange={e => setManualEntryForm({ ...manualEntryForm, material_declaration: e.target.value })}
+                                            placeholder="List any major materials/tools..."
+                                            rows="3"
+                                            className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-1">Security / Inspection Notes</label>
+                                        <textarea
+                                            value={manualEntryForm.vehicle_security_check_notes}
+                                            onChange={e => setManualEntryForm({ ...manualEntryForm, vehicle_security_check_notes: e.target.value })}
+                                            placeholder="Observations: Dents, Scratches, etc."
+                                            rows="3"
+                                            className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+                                        />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">Security / Inspection Notes</label>
-                                    <textarea
-                                        value={manualEntryForm.vehicle_security_check_notes}
-                                        onChange={e => setManualEntryForm({ ...manualEntryForm, vehicle_security_check_notes: e.target.value })}
-                                        placeholder="Observations: Dents, Scratches, etc."
-                                        rows="3"
-                                        className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
-                                    />
-                                </div>
-                            </div>
 
-                            <div className="pt-4 flex justify-end gap-3 border-t border-slate-100">
-                                <button type="button" onClick={() => setShowManualEntryModal(false)} className="px-5 py-2 text-slate-600 font-semibold hover:bg-slate-100 rounded-lg transition-colors">Cancel</button>
-                                <button type="submit" className="px-8 py-2 bg-teal-600 text-white font-bold rounded-lg shadow-lg hover:bg-teal-700 hover:shadow-xl transform active:scale-95 transition-all flex items-center gap-2">
-                                    <span>💾 Create Entry & Generate Pass</span>
-                                </button>
-                            </div>
-                        </form>
+                                <div className="pt-4 flex justify-end gap-3 border-t border-slate-100">
+                                    <button type="button" onClick={() => setShowManualEntryModal(false)} className="px-5 py-2 text-slate-600 font-semibold hover:bg-slate-100 rounded-lg transition-colors">Cancel</button>
+                                    <button type="submit" className="px-8 py-2 bg-teal-600 text-white font-bold rounded-lg shadow-lg hover:bg-teal-700 hover:shadow-xl transform active:scale-95 transition-all flex items-center gap-2">
+                                        <span>💾 Create Entry & Generate Pass</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* GATE PASS MODAL */}
-            {showGatePassModal && printedPassEntry && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-                    <div className="bg-teal-50/95 rounded-xl w-full max-w-sm overflow-hidden shadow-2xl">
-                        <div className="bg-slate-900 text-white px-4 py-3 flex justify-between items-center">
-                            <h3 className="font-bold flex items-center gap-2">🎫 Vehicle Gate Pass</h3>
-                            <button onClick={() => setShowGatePassModal(false)} className="text-slate-400 hover:text-white">✕</button>
-                        </div>
-                        <div id="vehicle-gate-pass" className="p-6 bg-white relative">
-                            <div className="text-center border-b-2 border-slate-800 pb-4 mb-4">
-                                <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter">{organization.name || 'ORGANIZATION'}</h2>
-                                <div className="inline-block bg-slate-900 text-white px-3 py-1 rounded-full text-xs font-bold mt-2">VEHICLE PASS</div>
+            {
+                showGatePassModal && printedPassEntry && (
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+                        <div className="bg-teal-50/95 rounded-xl w-full max-w-sm overflow-hidden shadow-2xl">
+                            <div className="bg-slate-900 text-white px-4 py-3 flex justify-between items-center">
+                                <h3 className="font-bold flex items-center gap-2">🎫 Vehicle Gate Pass</h3>
+                                <button onClick={() => setShowGatePassModal(false)} className="text-slate-400 hover:text-white">✕</button>
                             </div>
+                            <div id="vehicle-gate-pass" className="p-6 bg-white relative">
+                                <div className="text-center border-b-2 border-slate-800 pb-4 mb-4">
+                                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter">{organization.name || 'ORGANIZATION'}</h2>
+                                    <div className="inline-block bg-slate-900 text-white px-3 py-1 rounded-full text-xs font-bold mt-2">VEHICLE PASS</div>
+                                </div>
 
-                            <div className="text-center mb-6">
-                                <p className="text-5xl font-black text-slate-900 font-mono tracking-tighter">{printedPassEntry.vehicle_number}</p>
-                                <p className="text-sm font-bold text-slate-500 mt-1 uppercase tracking-widest">{printedPassEntry.category || 'VISITOR'}</p>
-                            </div>
+                                <div className="text-center mb-6">
+                                    <p className="text-5xl font-black text-slate-900 font-mono tracking-tighter">{printedPassEntry.vehicle_number}</p>
+                                    <p className="text-sm font-bold text-slate-500 mt-1 uppercase tracking-widest">{printedPassEntry.category || 'VISITOR'}</p>
+                                </div>
 
-                            <div className="grid grid-cols-2 gap-4 text-xs border-y border-slate-100 py-4 mb-4">
-                                <div>
-                                    <p className="text-slate-400 uppercase font-bold">Entry Time</p>
-                                    <p className="font-mono font-bold text-slate-700">{new Date(printedPassEntry.timestamp).toLocaleTimeString()}</p>
+                                <div className="grid grid-cols-2 gap-4 text-xs border-y border-slate-100 py-4 mb-4">
+                                    <div>
+                                        <p className="text-slate-400 uppercase font-bold">Entry Time</p>
+                                        <p className="font-mono font-bold text-slate-700">{new Date(printedPassEntry.timestamp).toLocaleTimeString()}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-slate-400 uppercase font-bold">Date</p>
+                                        <p className="font-mono font-bold text-slate-700">{new Date(printedPassEntry.timestamp).toLocaleDateString()}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-slate-400 uppercase font-bold">Gate</p>
+                                        <p className="font-bold text-slate-700">{printedPassEntry.gate_name}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-slate-400 uppercase font-bold">Pass ID</p>
+                                        <p className="font-mono font-bold text-slate-700">{printedPassEntry.gate_pass_id}</p>
+                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <p className="text-slate-400 uppercase font-bold">Date</p>
-                                    <p className="font-mono font-bold text-slate-700">{new Date(printedPassEntry.timestamp).toLocaleDateString()}</p>
-                                </div>
-                                <div>
-                                    <p className="text-slate-400 uppercase font-bold">Gate</p>
-                                    <p className="font-bold text-slate-700">{printedPassEntry.gate_name}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-slate-400 uppercase font-bold">Pass ID</p>
-                                    <p className="font-mono font-bold text-slate-700">{printedPassEntry.gate_pass_id}</p>
-                                </div>
-                            </div>
 
-                            <div className="bg-slate-100 rounded-lg p-3 text-center">
-                                <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Security Status</p>
-                                <div className="flex justify-center gap-2">
-                                    {printedPassEntry.checklist_status?.puc_valid && <span className="bg-teal-50/95 border border-slate-200 px-1 rounded text-[10px]">PUC</span>}
-                                    {printedPassEntry.checklist_status?.insurance_valid && <span className="bg-teal-50/95 border border-slate-200 px-1 rounded text-[10px]">INS</span>}
-                                    <span className="bg-green-500 text-white px-2 rounded text-[10px] font-bold">CLEARED</span>
+                                <div className="bg-slate-100 rounded-lg p-3 text-center">
+                                    <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Security Status</p>
+                                    <div className="flex justify-center gap-2">
+                                        {printedPassEntry.checklist_status?.puc_valid && <span className="bg-teal-50/95 border border-slate-200 px-1 rounded text-[10px]">PUC</span>}
+                                        {printedPassEntry.checklist_status?.insurance_valid && <span className="bg-teal-50/95 border border-slate-200 px-1 rounded text-[10px]">INS</span>}
+                                        <span className="bg-green-500 text-white px-2 rounded text-[10px] font-bold">CLEARED</span>
+                                    </div>
+                                </div>
+
+                                <div className="mt-6 text-center">
+                                    <p className="text-[10px] text-slate-400">Please display on dashboard</p>
                                 </div>
                             </div>
-
-                            <div className="mt-6 text-center">
-                                <p className="text-[10px] text-slate-400">Please display on dashboard</p>
+                            <div className="p-4 bg-slate-50 border-t border-slate-200 flex gap-2">
+                                <button
+                                    onClick={() => { window.print(); setShowGatePassModal(false); }}
+                                    className="flex-1 bg-teal-600 text-white font-bold py-3 rounded-lg hover:bg-teal-700 shadow-lg flex justify-center items-center gap-2"
+                                >
+                                    🖨️ PRINT PASS
+                                </button>
                             </div>
-                        </div>
-                        <div className="p-4 bg-slate-50 border-t border-slate-200 flex gap-2">
-                            <button
-                                onClick={() => { window.print(); setShowGatePassModal(false); }}
-                                className="flex-1 bg-teal-600 text-white font-bold py-3 rounded-lg hover:bg-teal-700 shadow-lg flex justify-center items-center gap-2"
-                            >
-                                🖨️ PRINT PASS
-                            </button>
-                        </div>
-                        <style>{`
+                            <style>{`
                             @media print {
                                 body * { visibility: hidden; }
                                 #vehicle-gate-pass, #vehicle-gate-pass * { visibility: visible; }
@@ -1043,27 +1067,30 @@ const OrganizationLPR = ({ organization }) => {
                                 }
                             }
                         `}</style>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* WEBCAM MODAL */}
-            {showWebcam && (
-                <div className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center p-4">
-                    <div className="bg-teal-50/95 rounded-xl overflow-hidden w-full max-w-2xl relative">
-                        <button
-                            onClick={() => setShowWebcam(false)}
-                            className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center"
-                        >✕</button>
-                        <WebcamCapture
-                            onImageCapture={handleImageCapture}
-                            label={`Capture ${activePhotoSlot ? activePhotoSlot.toUpperCase() : 'Photo'}`}
-                        />
+            {
+                showWebcam && (
+                    <div className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center p-4">
+                        <div className="bg-teal-50/95 rounded-xl overflow-hidden w-full max-w-2xl relative">
+                            <button
+                                onClick={() => setShowWebcam(false)}
+                                className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center"
+                            >✕</button>
+                            <WebcamCapture
+                                onImageCapture={handleImageCapture}
+                                label={`Capture ${activePhotoSlot ? activePhotoSlot.toUpperCase() : 'Photo'}`}
+                            />
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
-        </div>
+        </div >
     );
 };
 

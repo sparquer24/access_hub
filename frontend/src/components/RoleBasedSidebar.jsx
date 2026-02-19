@@ -21,17 +21,20 @@ function RoleBasedSidebar({ isOpen, onToggle }) {
   const [activeSection, setActiveSection] = useState('');
 
   const getNavigationItems = (role) => {
+    // Normalize role name to lowercase and remove underscores for consistent matching
+    const normalizedRole = (role || '').toLowerCase().replace(/\s+/g, '_');
+    
     const commonItems = [
       {
         id: 'profile',
         name: 'My Profile',
-        href: `/${role}/profile`,
+        href: `/${normalizedRole}/profile`,
         icon: User,
         description: 'Manage your profile'
       }
     ];
 
-    switch (role) {
+    switch (normalizedRole) {
       case 'super_admin':
         return [
           {

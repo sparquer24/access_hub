@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { visitorService } from '../../../services/visitorService';
+import { useToast } from '../../../contexts/ToastContext';
+import Loader from '../../common/Loader';
 
 const BlacklistManagement = ({ organizationId }) => {
+    const { success, error: showError } = useToast();
     const [blacklist, setBlacklist] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
@@ -55,7 +58,7 @@ const BlacklistManagement = ({ organizationId }) => {
             }
         } catch (error) {
             console.error("Failed to add to blacklist", error);
-            alert("Failed to add to blacklist: " + (error.response?.data?.message || error.message));
+            showError("Failed to add to blacklist: " + (error.response?.data?.message || error.message));
         }
     };
 
@@ -177,7 +180,10 @@ const BlacklistManagement = ({ organizationId }) => {
                         {loading ? (
                             <tr>
                                 <td colSpan="5" className="px-6 py-8 text-center text-slate-500">
-                                    Loading blacklist...
+                                    <div className="flex justify-center">
+                                        <Loader size="medium" />
+                                    </div>
+                                    <p className="mt-2">Loading blacklist...</p>
                                 </td>
                             </tr>
                         ) : blacklist.length === 0 ? (
@@ -201,9 +207,9 @@ const BlacklistManagement = ({ organizationId }) => {
                                     <td className="px-6 py-4 text-slate-700">{item.reason}</td>
                                     <td className="px-6 py-4">
                                         <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${item.severity === 'critical' ? 'bg-red-100 text-red-700' :
-                                                item.severity === 'high' ? 'bg-orange-100 text-orange-700' :
-                                                    item.severity === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                                                        'bg-blue-100 text-blue-700'
+                                            item.severity === 'high' ? 'bg-orange-100 text-orange-700' :
+                                                item.severity === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                                    'bg-blue-100 text-blue-700'
                                             }`}>
                                             {item.severity}
                                         </span>

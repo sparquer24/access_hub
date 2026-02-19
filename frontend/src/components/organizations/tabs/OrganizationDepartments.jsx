@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { message, Modal, Form, Input, Switch } from 'antd';
+import { Modal, Form, Input, Switch } from 'antd';
 import { departmentsService } from '../../../services/organizationsService';
+import Loader from '../../common/Loader';
+import { useToast } from '../../../contexts/ToastContext';
 
 const OrganizationDepartments = ({ organizationId, organization }) => {
   const [departments, setDepartments] = useState([]);
@@ -8,6 +10,7 @@ const OrganizationDepartments = ({ organizationId, organization }) => {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form] = Form.useForm();
+  const { success, error: showError } = useToast();
 
   useEffect(() => {
     fetchDepartments();
@@ -20,7 +23,7 @@ const OrganizationDepartments = ({ organizationId, organization }) => {
       setDepartments(resp.data?.items || resp.data || []);
     } catch (err) {
       console.error('Error fetching departments:', err);
-      message.error(err.response?.data?.message || 'Failed to load departments');
+      showError(err.response?.data?.message || 'Failed to load departments');
     } finally {
       setLoading(false);
     }
@@ -34,11 +37,11 @@ const OrganizationDepartments = ({ organizationId, organization }) => {
 
   const openEdit = (dept) => {
     setEditing(dept);
-    form.setFieldsValue({ 
-      name: dept.name, 
-      code: dept.code, 
+    form.setFieldsValue({
+      name: dept.name,
+      code: dept.code,
       description: dept.description,
-      is_active: dept.is_active 
+      is_active: dept.is_active
     });
     setShowModal(true);
   };
@@ -47,11 +50,11 @@ const OrganizationDepartments = ({ organizationId, organization }) => {
     if (!window.confirm(`Delete department "${dept.name}"?`)) return;
     try {
       await departmentsService.delete(dept.id, false);
-      message.success('Successfully deleted');
+      success('Successfully deleted');
       fetchDepartments();
     } catch (err) {
       console.error(err);
-      message.error(err.response?.data?.message || 'Failed to delete department');
+      showError(err.response?.data?.message || 'Failed to delete department');
     }
   };
 
@@ -64,7 +67,7 @@ const OrganizationDepartments = ({ organizationId, organization }) => {
           is_active: values.is_active,
         };
         await departmentsService.update(editing.id, payload);
-        message.success('Successfully updated');
+        success('Successfully updated');
       } else {
         const payload = {
           organization_id: organizationId,
@@ -73,25 +76,25 @@ const OrganizationDepartments = ({ organizationId, organization }) => {
           description: values.description,
         };
         await departmentsService.create(payload);
-        message.success('Successfully created');
+        success('Successfully created');
       }
       setShowModal(false);
       form.resetFields();
       fetchDepartments();
     } catch (err) {
       console.error(err);
-      message.error(err.response?.data?.message || 'Failed to save department');
+      showError(err.response?.data?.message || 'Failed to save department');
     }
   };
 
   const toggleStatus = async (dept) => {
     try {
       await departmentsService.update(dept.id, { is_active: !dept.is_active });
-      message.success(dept.is_active ? 'Successfully disabled' : 'Successfully enabled');
+      success(dept.is_active ? 'Successfully disabled' : 'Successfully enabled');
       fetchDepartments();
     } catch (err) {
       console.error(err);
-      message.error(err.response?.data?.message || 'Failed to update status');
+      showError(err.response?.data?.message || 'Failed to update status');
     }
   };
 
@@ -105,7 +108,11 @@ const OrganizationDepartments = ({ organizationId, organization }) => {
         <button onClick={openCreate} className="px-4 py-2 bg-teal-600 text-white rounded-lg">➕ Create Department</button>
       </div>
 
-      {departments.length === 0 ? (
+      {loading ? (
+        <div className="flex justify-center p-12">
+          <Loader />
+        </div>
+      ) : departments.length === 0 ? (
         <div className="text-center py-12 bg-teal-50 rounded-xl">
           <div className="text-6xl mb-4">🏷️</div>
           <h3 className="text-xl font-bold">No departments</h3>
