@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Input, Select, DatePicker, Switch } from 'antd';
+import { Modal, Form, Input, Select, DatePicker, Switch, Pagination } from 'antd';
 import { employeesService, EMPLOYMENT_TYPES, GENDER_OPTIONS, departmentsService, shiftsService, organizationsService } from '../../../services/organizationsService';
 import api from '../../../services/api';
 import moment from 'moment';
@@ -26,6 +26,8 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
   const [form] = Form.useForm();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [departments, setDepartments] = useState([]);
   const [shifts, setShifts] = useState([]);
   const [employeePhoto, setEmployeePhoto] = useState(null);
@@ -38,6 +40,8 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
   const [recordsSearchText, setRecordsSearchText] = useState('');
   const [recordsDepartmentFilter, setRecordsDepartmentFilter] = useState('all');
   const [recordsDateRange, setRecordsDateRange] = useState([moment(), moment()]);
+  const [recordsCurrentPage, setRecordsCurrentPage] = useState(1);
+  const [recordsItemsPerPage, setRecordsItemsPerPage] = useState(10);
   const [allAttendanceRecords, setAllAttendanceRecords] = useState([]);
   const calendarRef = React.useRef(null);
   const analyticsRef = React.useRef(null);
@@ -701,6 +705,17 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
     }
   };
 
+  const handleFileUpload = (e) => {
+    const file = e?.target?.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setEmployeePhoto(reader.result);
+      success('Employee photo uploaded successfully!');
+    };
+    reader.readAsDataURL(file);
+  };
+
   const filteredEmployees = employees.filter((emp) => {
     const matchesSearch =
       emp.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -712,6 +727,37 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
       (filterStatus === 'inactive' && !emp.is_active);
     return matchesSearch && matchesStatus;
   });
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus]);
+
+  const paginatedEmployees = filteredEmployees.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const paginatedAttendanceRecords = attendanceRecords.slice(
+    (recordsCurrentPage - 1) * recordsItemsPerPage,
+    recordsCurrentPage * recordsItemsPerPage
+  );
+
+  const getAttendanceRecordEmployeePhoto = (record) => {
+    const directPhoto = record.employee?.photo_base64 || record.employee?.photo || record.employee?.photo_url;
+    if (directPhoto) return directPhoto;
+
+    const matchedEmployee = employees.find((emp) =>
+      emp.id === record.employee_id ||
+      emp.employee_id === record.employee_id ||
+      (record.employee?.employee_code && emp.employee_code === record.employee.employee_code)
+    );
+
+    return matchedEmployee?.photo_base64 || matchedEmployee?.photo || matchedEmployee?.photo_url || null;
+  };
+
+  useEffect(() => {
+    setRecordsCurrentPage(1);
+  }, [recordsSearchText, recordsDepartmentFilter, recordsDateRange, activeTab]);
 
   if (loading) {
     return (
@@ -875,6 +921,9 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
                   <thead className="bg-teal-50 border-b border-gray-200">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        S.No
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                         Employee
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -898,7 +947,7 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {attendanceRecords.map((record) => (
+                    {paginatedAttendanceRecords.map((record, index) => (
                       <tr
                         key={record.employee_id}
                         className="hover:bg-teal-50 transition-colors cursor-pointer"
@@ -908,11 +957,27 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
                         }}
                         title="Click to view attendance calendar"
                       >
+                        {(() => {
+                          const recordPhoto = getAttendanceRecordEmployeePhoto(record);
+                          const recordName = record.employee?.full_name || 'Employee';
+                          return (
+                            <>
+                        <td className="px-4 py-3 text-sm font-medium text-gray-700">
+                          {(recordsCurrentPage - 1) * recordsItemsPerPage + index + 1}
+                        </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold">
-                              {record.employee?.full_name?.charAt(0).toUpperCase()}
-                            </div>
+                              {recordPhoto ? (
+                                <img
+                                  src={recordPhoto}
+                                  alt={recordName}
+                                  className="w-10 h-10 rounded-full object-cover border border-white shadow-sm"
+                                />
+                              ) : (
+                                <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold">
+                                  {(recordName || 'U').charAt(0).toUpperCase()}
+                                </div>
+                              )}
                             <div>
                               <div className="font-semibold text-gray-900">{record.employee?.full_name || 'N/A'}</div>
                               <div className="text-xs text-gray-500">{record.employee?.employee_code || 'N/A'}</div>
@@ -952,10 +1017,34 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
                             </span>
                           </div>
                         </td>
+                            </>
+                          );
+                        })()}
                       </tr>
                     ))}
                   </tbody>
                 </table>
+
+                {attendanceRecords.length > 0 && (
+                  <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-gray-200 bg-white">
+                    <div className="text-sm text-gray-600">
+                      Showing {attendanceRecords.length === 0 ? 0 : (recordsCurrentPage - 1) * recordsItemsPerPage + 1} to {Math.min(recordsCurrentPage * recordsItemsPerPage, attendanceRecords.length)} of {attendanceRecords.length} records
+                    </div>
+                    <Pagination
+                      current={recordsCurrentPage}
+                      pageSize={recordsItemsPerPage}
+                      total={attendanceRecords.length}
+                      showSizeChanger
+                      pageSizeOptions={[10, 20, 50, 100]}
+                      onChange={(page) => setRecordsCurrentPage(page)}
+                      onShowSizeChange={(_, size) => {
+                        setRecordsCurrentPage(1);
+                        setRecordsItemsPerPage(size);
+                      }}
+                      showLessItems
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -1007,6 +1096,9 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
                 <thead className="bg-teal-50 border-b border-gray-200">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      S.No
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Employee
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -1030,13 +1122,24 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {filteredEmployees.map((employee) => (
+                  {paginatedEmployees.map((employee, index) => (
                     <tr key={employee.id} className="hover:bg-teal-50 transition-colors">
+                      <td className="px-4 py-3 text-sm font-medium text-gray-700">
+                        {(currentPage - 1) * itemsPerPage + index + 1}
+                      </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold">
-                            {employee.full_name?.charAt(0).toUpperCase()}
-                          </div>
+                          {employee.photo_base64 || employee.photo || employee.photo_url ? (
+                            <img
+                              src={employee.photo_base64 || employee.photo || employee.photo_url}
+                              alt={employee.full_name}
+                              className="w-10 h-10 rounded-full object-cover border border-white shadow-sm"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold">
+                              {employee.full_name?.charAt(0).toUpperCase()}
+                            </div>
+                          )}
                           <div>
                             <div className="font-semibold text-gray-900">{employee.full_name}</div>
                           </div>
@@ -1089,6 +1192,27 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
                   ))}
                 </tbody>
               </table>
+
+              {filteredEmployees.length > 0 && (
+                <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-gray-200 bg-white">
+                  <div className="text-sm text-gray-600">
+                    Showing {filteredEmployees.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredEmployees.length)} of {filteredEmployees.length} employees
+                  </div>
+                  <Pagination
+                    current={currentPage}
+                    pageSize={itemsPerPage}
+                    total={filteredEmployees.length}
+                    showSizeChanger
+                    pageSizeOptions={[10, 20, 50, 100]}
+                    onChange={(page) => setCurrentPage(page)}
+                    onShowSizeChange={(_, size) => {
+                      setCurrentPage(1);
+                      setItemsPerPage(size);
+                    }}
+                    showLessItems
+                  />
+                </div>
+              )}
             </div>
           )}
 
@@ -1182,19 +1306,31 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
                     Employee Photo
                   </label>
 
-                  {!showWebcam && !employeePhoto && (
-                    <button
-                      type="button"
-                      onClick={() => setShowWebcam(true)}
-                      className="w-full px-8 py-4 bg-gradient-to-r from-teal-600 to-teal-600 hover:from-teal-700 hover:to-teal-700 text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 mb-6"
-                    >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      Capture Employee Photo
-                    </button>
-                  )}
+                  <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                    {!showWebcam && !employeePhoto && (
+                      <button
+                        type="button"
+                        onClick={() => setShowWebcam(true)}
+                        className="flex-1 px-6 py-3 bg-gradient-to-r from-teal-600 to-teal-600 hover:from-teal-700 hover:to-teal-700 text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-sm"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Capture Photo
+                      </button>
+                    )}
+
+                    {/* File upload button */}
+                    <div className="flex-1">
+                      <label className="w-full cursor-pointer">
+                        <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+                        <div className="w-full px-6 py-3 bg-white border border-gray-200 rounded-xl text-center text-sm text-gray-700 hover:shadow-sm">
+                          📁 Upload Photo
+                        </div>
+                      </label>
+                    </div>
+                  </div>
 
                   {showWebcam && (
                     <div className="mb-6">
