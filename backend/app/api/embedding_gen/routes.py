@@ -8,7 +8,7 @@ face_enroll_bp = Blueprint("face_enroll_bp", __name__, url_prefix="/api/v1")
 @face_enroll_bp.route("/face/enroll", methods=["POST"])
 def face_enroll():
     """
-    Enroll employee face for recognition
+    Enroll face for recognition (Employee or Visitor)
     ---
     tags:
       - Face Recognition
@@ -21,12 +21,12 @@ def face_enroll():
         schema:
           type: object
           required:
-            - employee_id
+            - entity_id
             - img_b64
           properties:
-            employee_id:
+            entity_id:
               type: string
-              description: Employee ID for enrollment
+              description: Entity ID (Employee ID or Visitor ID)
               example: "emp-123"
             img_b64:
               type: string
@@ -54,22 +54,22 @@ def face_enroll():
               example: false
             error:
               type: string
-              example: "employee_id and img_b64 are required"
+              example: "entity_id and img_b64 are required"
       401:
         $ref: '#/responses/UnauthorizedError'
     """
     data = request.get_json(silent=True) or {}
-    employee_id = data.get("employee_id")
+    entity_id = data.get("entity_id")
     img_b64 = data.get("img_b64")
 
-    if not employee_id or not img_b64:
+    if not entity_id or not img_b64:
         return jsonify({
             "ok": False,
-            "error": "employee_id and img_b64 are required"
+            "error": "entity_id and img_b64 are required"
         }), 400
 
     # Runs the heavy pipeline in-request (will block)
-    process_face_enrollment_background(employee_id=employee_id, img_b64=img_b64)
+    process_face_enrollment_background(employee_id=entity_id, img_b64=img_b64)
 
     return jsonify({
         "ok": True,

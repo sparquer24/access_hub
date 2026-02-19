@@ -187,11 +187,11 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
           const employeeId = employeeResponse.data.id;
           const imageBase64 = employeeResponse.data.photo_base64;
 
-          // Only call face enroll if we have both employee_id and image data
+          // Only call face enroll if we have both employeeId and image data
           if (employeeId && imageBase64) {
             try {
               const faceEnrollPayload = {
-                employee_id: employeeId,
+                entity_id: employeeId,
                 img_b64: imageBase64,
               };
 

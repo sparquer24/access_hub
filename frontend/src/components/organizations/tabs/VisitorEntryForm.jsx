@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { message } from 'antd';
 import { visitorService } from '../../../services/visitorService';
+import { faceService } from '../../../services/faceService';
 import WebcamCapture from '../../common/WebcamCapture.jsx';
 
 const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => {
@@ -227,6 +228,13 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
       const response = await visitorService.createVisitor(organizationId, sanitizedData);
 
       message.success('Visitor check-in successful! Generating visitor pass...');
+
+      // Enroll visitor face using unified /api/v1/face/enroll endpoint
+      try {
+        await faceService.enrollFace(response.data.id, formData.image_base64);
+      } catch (enrollmentError) {
+        // Non-blocking error - visitor check-in still successful
+      }
 
       // Store visitor data for slip generation
       setCheckedInVisitor({
