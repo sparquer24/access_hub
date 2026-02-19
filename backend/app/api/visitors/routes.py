@@ -302,7 +302,7 @@ def log_visitor_movement(org_id, visitor_id):
         if alert:
             alert_schema = VisitorAlertSchema()
             response['alert'] = alert_schema.dump(alert)
-            response['alert']['visitor_name'] = alert.visitor.name
+            response['alert']['visitor_name'] = alert.visitor.visitor_name
             response['alert']['mobile_number'] = alert.visitor.mobile_number
         
         return success_response(
@@ -369,7 +369,7 @@ def get_organization_alerts(org_id):
         
         # Add visitor names and mobile numbers
         for i, alert in enumerate(alerts):
-            response_data[i]['visitor_name'] = alert.visitor.name
+            response_data[i]['visitor_name'] = alert.visitor.visitor_name
             response_data[i]['mobile_number'] = alert.visitor.mobile_number
         
         return success_response(
@@ -398,7 +398,7 @@ def get_visitor_alerts(org_id, visitor_id):
         response_data = alert_schema.dump(alerts)
         
         for i, alert in enumerate(alerts):
-            response_data[i]['visitor_name'] = alert.visitor.name
+            response_data[i]['visitor_name'] = alert.visitor.visitor_name
             response_data[i]['mobile_number'] = alert.visitor.mobile_number
         
         return success_response(
