@@ -103,8 +103,8 @@ function EmployeeProfile() {
   };
 
   const ProfileField = ({ icon: Icon, label, value, isEditing, fieldName, type = 'text' }) => (
-    <div className="flex items-start space-x-3 p-4 bg-teal-50 rounded-lg">
-      <Icon className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
+    <div className="flex items-start space-x-3 p-4 bg-white border border-teal-200 rounded-lg hover:border-teal-300">
+      <Icon className="h-5 w-5 text-teal-600 mt-0.5 flex-shrink-0" />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-gray-900">{label}</p>
         {isEditing && fieldName ? (
@@ -123,7 +123,7 @@ function EmployeeProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-teal-50">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -131,7 +131,7 @@ function EmployeeProfile() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-teal-50">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
           <User className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-medium text-gray-900">Profile not found</h3>
@@ -142,8 +142,8 @@ function EmployeeProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-full mx-0 px-5 py-8">
+    <div className="min-h-screen bg-white">
+      <div className="max-w-7xl mx-auto px-5 py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -290,8 +290,8 @@ function EmployeeProfile() {
             </div>
 
             {/* Account Status */}
-            <div className="bg-teal-50/95 rounded-lg shadow mt-6">
-              <div className="p-6 border-b border-gray-200">
+            <div className="bg-teal-50 rounded-lg shadow mt-6">
+              <div className="p-6 border-b border-teal-200">
                 <h4 className="text-lg font-medium text-gray-900">Account Status</h4>
               </div>
               <div className="p-6">

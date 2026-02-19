@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Card, Row, Col, Statistic, message, Spin } from 'antd';
+import { Modal, Button, Card, Row, Col, Statistic } from 'antd';
 import { CheckCircleOutlined, ClockCircleOutlined, EnvironmentOutlined } from '@ant-design/icons';
+import Loader from '../common/Loader';
+import { useToast } from '../../contexts/ToastContext';
 import { attendanceAPI } from '../../services/employeeServices';
 import moment from 'moment';
 
 const CheckInCheckOut = ({ isOpen, onClose, onSuccess }) => {
+    const { success, error: showError } = useToast();
     const [loading, setLoading] = useState(false);
     const [todayAttendance, setTodayAttendance] = useState(null);
     const [fetchingStatus, setFetchingStatus] = useState(false);
@@ -97,13 +100,13 @@ const CheckInCheckOut = ({ isOpen, onClose, onSuccess }) => {
             const response = await attendanceAPI.checkIn(data);
 
             if (response.success) {
-                message.success('Checked in successfully');
+                success('Checked in successfully');
                 await fetchTodayAttendance();
                 if (onSuccess) onSuccess();
             }
         } catch (error) {
             const errorMsg = error.response?.data?.message || 'Failed to check in';
-            message.error(errorMsg);
+            showError(errorMsg);
         } finally {
             setLoading(false);
         }
@@ -135,13 +138,13 @@ const CheckInCheckOut = ({ isOpen, onClose, onSuccess }) => {
             const response = await attendanceAPI.checkOut(data);
 
             if (response.success) {
-                message.success('Checked out successfully');
+                success('Checked out successfully');
                 await fetchTodayAttendance();
                 if (onSuccess) onSuccess();
             }
         } catch (error) {
             const errorMsg = error.response?.data?.message || 'Failed to check out';
-            message.error(errorMsg);
+            showError(errorMsg);
         } finally {
             setLoading(false);
         }
@@ -160,8 +163,8 @@ const CheckInCheckOut = ({ isOpen, onClose, onSuccess }) => {
             destroyOnClose
         >
             {fetchingStatus ? (
-                <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                    <Spin size="large" />
+                <div className="flex justify-center p-8">
+                    <Loader size="large" />
                 </div>
             ) : (
                 <div>

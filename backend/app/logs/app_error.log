@@ -12573,3 +12573,171 @@ Traceback (most recent call last):
   File "C:\Users\kajal\ProjectSp\access_hub\access_hub\backend\venv\Lib\site-packages\PIL\Image.py", line 3579, in open
     raise UnidentifiedImageError(msg)
 PIL.UnidentifiedImageError: cannot identify image file <_io.BytesIO object at 0x0000020A274A77E0>
+[2026-02-11 18:13:42,248] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:13:42,289] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:13:42,660] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:13:42,662] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:14:00,854] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:14:00,863] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:14:01,229] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:14:01,236] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:15:34,199] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:15:34,201] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:15:34,558] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:15:34,560] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:21:11,309] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:21:11,311] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:21:11,699] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:21:11,707] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:21:22,875] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:21:22,896] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:21:23,262] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:21:23,271] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:21:38,141] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:21:38,147] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:21:38,506] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:21:38,512] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:24:48,782] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:24:48,789] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:24:49,186] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:24:49,190] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:30:35,397] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:30:35,517] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:30:36,180] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:30:36,215] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:32:46,718] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:32:46,722] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:32:47,082] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:32:47,085] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:32:56,502] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:32:56,541] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:32:56,916] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:32:56,923] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:33:02,182] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:33:02,185] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:33:02,549] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:33:02,551] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:34:18,698] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:34:18,710] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+
+[2026-02-11 18:34:19,152] ERROR in routes: Error fetching employee stats: 'Employee' object has no attribute 'employee_id'
+[2026-02-11 18:34:19,157] ERROR in routes: Traceback (most recent call last):
+  File "C:\Users\preml\Desktop\office\AccessHub\backend\app\api\employee\routes.py", line 568, in get_employee_stats_summary
+    'employee_id': employee.employee_id,
+                   ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
+

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { auditAPI } from '../../../services/apiServices';
-import { message } from 'antd';
+import { useToast } from '../../../contexts/ToastContext';
+import Loader from '../../common/Loader';
 
 const OrganizationAlerts = ({ organizationId }) => {
+  const { success, error: showError } = useToast();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeAlerts, setActiveAlerts] = useState([]);
@@ -26,7 +28,7 @@ const OrganizationAlerts = ({ organizationId }) => {
 
   const handleDismiss = (id) => {
     setActiveAlerts(prev => prev.filter(alert => alert.id !== id));
-    message.success('Alert dismissed');
+    success('Alert dismissed');
   };
 
   const fetchLogs = async () => {
@@ -37,7 +39,7 @@ const OrganizationAlerts = ({ organizationId }) => {
       setLogs(response.data || []);
     } catch (error) {
       console.error('Error fetching audit logs:', error);
-      // Don't show error message to user as this might be expected if no logs
+      showError('Failed to fetch audit logs');
     } finally {
       setLoading(false);
     }
@@ -79,19 +81,19 @@ const OrganizationAlerts = ({ organizationId }) => {
             🔔 Active Alerts
           </h3>
           <div className="flex gap-2">
-            <button 
+            <button
               onClick={() => setFilter('all')}
               className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${filter === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
             >
               All
             </button>
-            <button 
+            <button
               onClick={() => setFilter('critical')}
               className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${filter === 'critical' ? 'bg-red-600 text-white' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}
             >
               Critical
             </button>
-            <button 
+            <button
               onClick={() => setFilter('warning')}
               className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${filter === 'warning' ? 'bg-yellow-500 text-white' : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'}`}
             >
@@ -99,14 +101,13 @@ const OrganizationAlerts = ({ organizationId }) => {
             </button>
           </div>
         </div>
-        
+
         {filteredAlerts.length > 0 ? (
           <div className="divide-y divide-gray-100">
             {filteredAlerts.map((alert) => (
-              <div key={alert.id} className={`p-4 border-l-4 ${
-                alert.type === 'critical' ? 'border-l-red-500' : 
-                alert.type === 'warning' ? 'border-l-yellow-500' : 'border-l-blue-500'
-              } hover:bg-teal-50 transition-colors`}>
+              <div key={alert.id} className={`p-4 border-l-4 ${alert.type === 'critical' ? 'border-l-red-500' :
+                  alert.type === 'warning' ? 'border-l-yellow-500' : 'border-l-blue-500'
+                } hover:bg-teal-50 transition-colors`}>
                 <div className="flex justify-between items-start">
                   <div className="flex gap-3">
                     <span className="text-xl">{getAlertIcon(alert.type)}</span>
@@ -115,7 +116,7 @@ const OrganizationAlerts = ({ organizationId }) => {
                       <p className="text-xs text-gray-500 mt-1">{formatDate(alert.timestamp)}</p>
                     </div>
                   </div>
-                  <button 
+                  <button
                     className="text-xs text-teal-600 hover:text-teal-800 font-medium"
                     onClick={() => handleDismiss(alert.id)}
                   >
@@ -140,10 +141,10 @@ const OrganizationAlerts = ({ organizationId }) => {
             Activity Log
           </h3>
         </div>
-        
+
         {loading ? (
           <div className="p-8 flex justify-center">
-            <div className="w-8 h-8 border-4 border-gray-200 border-t-teal-600 rounded-full animate-spin"></div>
+            <Loader size="medium" />
           </div>
         ) : logs.length > 0 ? (
           <div className="divide-y divide-gray-100">

@@ -3,7 +3,7 @@
 Attendance schemas for request/response validation.
 """
 
-from marshmallow import Schema, fields, validate, ValidationError
+from marshmallow import Schema, fields, validate, ValidationError, post_load
 from . import TimestampMixin
 
 
@@ -213,6 +213,17 @@ class AttendanceListSchema(Schema):
         load_default=None,
         validate=validate.OneOf(['auto_approved', 'pending', 'approved', 'rejected'])
     )
+
+    @post_load
+    def validate_date_range(self, data, **kwargs):
+        """Validate that start_date is not after end_date"""
+        start_date = data.get('start_date')
+        end_date = data.get('end_date')
+        
+        if start_date and end_date and start_date > end_date:
+            raise ValidationError({'date_range': 'start_date must be before or equal to end_date'})
+        
+        return data
 
 
 class AttendanceApprovalSchema(Schema):

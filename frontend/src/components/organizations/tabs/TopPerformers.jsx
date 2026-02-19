@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { organizationsService } from '../../../services/organizationsService';
 import { Trophy, Zap, Users, Award } from 'lucide-react';
+import Loader from '../../common/Loader';
 
 const TopPerformers = ({ organizationId }) => {
     const [data, setData] = useState({
@@ -40,8 +41,8 @@ const TopPerformers = ({ organizationId }) => {
     if (loading) {
         return (
             <div className="flex justify-center items-center py-12">
-                <div className="text-center">
-                    <div className="text-4xl mb-4">⏳</div>
+                <div className="flex flex-col items-center gap-4">
+                    <Loader size="large" />
                     <p className="text-slate-600 font-semibold">Loading top performers...</p>
                 </div>
             </div>

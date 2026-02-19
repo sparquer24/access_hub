@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { message, Modal, Form, Input, Select, InputNumber, Switch } from 'antd';
+import { Modal, Form, Input, Select, InputNumber, Switch } from 'antd';
 import {
   locationsService,
   LOCATION_TYPES,
 } from '../../../services/organizationsService';
+import Loader from '../../common/Loader';
+import { useToast } from '../../../contexts/ToastContext';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -14,6 +16,7 @@ const OrganizationLocations = ({ organizationId, organization }) => {
   const [showModal, setShowModal] = useState(false);
   const [editingLocation, setEditingLocation] = useState(null);
   const [form] = Form.useForm();
+  const { success, error: showError } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -32,7 +35,7 @@ const OrganizationLocations = ({ organizationId, organization }) => {
       setLocations(response.data?.items || []);
     } catch (error) {
       console.error('Error fetching locations:', error);
-      message.error(error.response?.data?.message || 'Failed to load locations');
+      showError(error.response?.data?.message || 'Failed to load locations');
     } finally {
       setLoading(false);
     }
@@ -60,11 +63,11 @@ const OrganizationLocations = ({ organizationId, organization }) => {
 
     try {
       await locationsService.delete(locationId, false);
-      message.success('Location deleted successfully');
+      success('Location deleted successfully');
       fetchLocations();
     } catch (error) {
       console.error('Error deleting location:', error);
-      message.error(error.response?.data?.message || 'Failed to delete location');
+      showError(error.response?.data?.message || 'Failed to delete location');
     }
   };
 
@@ -73,11 +76,14 @@ const OrganizationLocations = ({ organizationId, organization }) => {
       await locationsService.update(location.id, {
         is_active: !location.is_active,
       });
-      message.success(`Location ${location.is_active ? 'disabled' : 'enabled'} successfully`);
+      await locationsService.update(location.id, {
+        is_active: !location.is_active,
+      });
+      success(`Location ${location.is_active ? 'disabled' : 'enabled'} successfully`);
       fetchLocations();
     } catch (error) {
       console.error('Error updating location status:', error);
-      message.error(error.response?.data?.message || 'Failed to update location status');
+      showError(error.response?.data?.message || 'Failed to update location status');
     }
   };
 
@@ -90,10 +96,10 @@ const OrganizationLocations = ({ organizationId, organization }) => {
 
       if (editingLocation) {
         await locationsService.update(editingLocation.id, payload);
-        message.success('Location updated successfully');
+        success('Location updated successfully');
       } else {
         await locationsService.create(payload);
-        message.success('Location created successfully');
+        success('Location created successfully');
       }
 
       setShowModal(false);
@@ -101,7 +107,7 @@ const OrganizationLocations = ({ organizationId, organization }) => {
       fetchLocations();
     } catch (error) {
       console.error('Error saving location:', error);
-      message.error(error.response?.data?.message || 'Failed to save location');
+      showError(error.response?.data?.message || 'Failed to save location');
     }
   };
 
@@ -141,7 +147,7 @@ const OrganizationLocations = ({ organizationId, organization }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
+        <Loader size="large" />
       </div>
     );
   }
@@ -174,31 +180,28 @@ const OrganizationLocations = ({ organizationId, organization }) => {
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => setFilterStatus('all')}
-            className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-              filterStatus === 'all'
+            className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterStatus === 'all'
                 ? 'bg-teal-600 text-white'
                 : 'bg-teal-100 text-gray-700 hover:bg-gray-200'
-            }`}
+              }`}
           >
             All
           </button>
           <button
             onClick={() => setFilterStatus('active')}
-            className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-              filterStatus === 'active'
+            className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterStatus === 'active'
                 ? 'bg-green-600 text-white'
                 : 'bg-teal-100 text-gray-700 hover:bg-gray-200'
-            }`}
+              }`}
           >
             Active
           </button>
           <button
             onClick={() => setFilterStatus('inactive')}
-            className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-              filterStatus === 'inactive'
+            className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterStatus === 'inactive'
                 ? 'bg-orange-600 text-white'
                 : 'bg-teal-100 text-gray-700 hover:bg-gray-200'
-            }`}
+              }`}
           >
             Inactive
           </button>
@@ -209,41 +212,37 @@ const OrganizationLocations = ({ organizationId, organization }) => {
       <div className="flex gap-2 flex-wrap">
         <button
           onClick={() => setFilterType('all')}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-            filterType === 'all'
+          className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterType === 'all'
               ? 'bg-teal-600 text-white'
               : 'bg-teal-50/95 border-2 border-gray-200 text-gray-700 hover:border-teal-300'
-          }`}
+            }`}
         >
           All Types
         </button>
         <button
           onClick={() => setFilterType(LOCATION_TYPES.ENTRY)}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-            filterType === LOCATION_TYPES.ENTRY
+          className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterType === LOCATION_TYPES.ENTRY
               ? 'bg-green-600 text-white'
               : 'bg-teal-50/95 border-2 border-gray-200 text-gray-700 hover:border-green-300'
-          }`}
+            }`}
         >
           🚪 Entry
         </button>
         <button
           onClick={() => setFilterType(LOCATION_TYPES.EXIT)}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-            filterType === LOCATION_TYPES.EXIT
+          className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterType === LOCATION_TYPES.EXIT
               ? 'bg-orange-600 text-white'
               : 'bg-teal-50/95 border-2 border-gray-200 text-gray-700 hover:border-orange-300'
-          }`}
+            }`}
         >
           🚶 Exit
         </button>
         <button
           onClick={() => setFilterType(LOCATION_TYPES.BOTH)}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-            filterType === LOCATION_TYPES.BOTH
+          className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterType === LOCATION_TYPES.BOTH
               ? 'bg-blue-600 text-white'
               : 'bg-teal-50/95 border-2 border-gray-200 text-gray-700 hover:border-blue-300'
-          }`}
+            }`}
         >
           🔄 Both
         </button>
@@ -323,11 +322,10 @@ const OrganizationLocations = ({ organizationId, organization }) => {
                 <div className="mb-4">
                   <button
                     onClick={() => handleToggleStatus(location)}
-                    className={`w-full px-3 py-2 rounded-lg text-sm font-semibold cursor-pointer transition-all ${
-                      location.is_active
+                    className={`w-full px-3 py-2 rounded-lg text-sm font-semibold cursor-pointer transition-all ${location.is_active
                         ? 'bg-green-100 text-green-700 hover:bg-green-200'
                         : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-                    }`}
+                      }`}
                   >
                     {location.is_active ? '✓ Enabled' : '⊘ Disabled'}
                   </button>

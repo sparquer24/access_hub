@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { DatePicker, Input, Select, Table, Tag, message, Button, TimePicker } from 'antd';
+import { DatePicker, Input, Select, Table, Tag, Button, TimePicker } from 'antd';
+import { useToast } from '../../../contexts/ToastContext';
 import moment from 'moment';
 import { attendanceService } from '../../../services/organizationsService';
 
@@ -7,6 +8,7 @@ const { RangePicker } = DatePicker;
 const { Option } = Select;
 
 const EmployeeAttendanceLogs = ({ employees = [], onEmployeeClick, organizationId }) => {
+    const { success, error: showError } = useToast();
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(false);
     const [searchText, setSearchText] = useState('');
@@ -77,7 +79,7 @@ const EmployeeAttendanceLogs = ({ employees = [], onEmployeeClick, organizationI
             }
         } catch (error) {
             console.error('Error fetching logs:', error);
-            message.error('Failed to load attendance logs');
+            showError('Failed to load attendance logs');
         } finally {
             setLoading(false);
         }
@@ -118,13 +120,13 @@ const EmployeeAttendanceLogs = ({ employees = [], onEmployeeClick, organizationI
 
             const response = await attendanceService.update(id, payload);
             if (response.success) {
-                message.success('Attendance updated successfully');
+                success('Attendance updated successfully');
                 setEditingId(null);
                 fetchLogs();
             }
         } catch (error) {
             console.error('Error saving attendance:', error);
-            message.error('Failed to update attendance');
+            showError('Failed to update attendance');
         } finally {
             setLoading(false);
         }
@@ -297,7 +299,19 @@ const EmployeeAttendanceLogs = ({ employees = [], onEmployeeClick, organizationI
                     />
                     <RangePicker
                         value={dateRange}
-                        onChange={setDateRange}
+                        onChange={(dates) => {
+                            if (!dates || !dates[0] || !dates[1]) {
+                                // Clear the date range if dates are cleared
+                                setDateRange(null);
+                                return;
+                            }
+                            // Validate that start date is before or equal to end date
+                            if (dates[0].isAfter(dates[1])) {
+                                showError('Start date must be before or equal to end date');
+                                return;
+                            }
+                            setDateRange(dates);
+                        }}
                         size="small"
                         className="w-64"
                     />

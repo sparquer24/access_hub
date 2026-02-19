@@ -130,7 +130,7 @@ function EmployeeAttendance() {
   };
 
   const StatCard = ({ icon: Icon, title, value, subtitle, color = "blue" }) => (
-    <div className="bg-teal-50/95 rounded-lg shadow p-6">
+    <div className="bg-teal-50 rounded-lg shadow p-6">
       <div className="flex items-center">
         <div className={`p-3 bg-${color}-100 rounded-lg`}>
           <Icon className={`h-6 w-6 text-${color}-600`} />
@@ -153,7 +153,7 @@ function EmployeeAttendance() {
   }
 
   return (
-    <div className="min-h-screen bg-teal-50">
+    <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -165,7 +165,7 @@ function EmployeeAttendance() {
 
         {/* View Toggle */}
         <div className="flex justify-end mb-6">
-          <div className="bg-teal-50/95 rounded-lg shadow p-1 flex items-center space-x-1">
+          <div className="bg-teal-50 rounded-lg shadow p-1 flex items-center space-x-1">
             <button
               onClick={() => setViewType('list')}
               className={`px-4 py-2 rounded-md flex items-center text-sm font-medium transition-colors ${viewType === 'list'
@@ -190,7 +190,7 @@ function EmployeeAttendance() {
         </div>
 
         {viewType === 'calendar' ? (
-          <div className="bg-teal-50/95 rounded-lg shadow p-6">
+          <div className="bg-teal-50 rounded-lg shadow p-6">
             <EmployeeAttendanceCalendar
               viewMode="employee"
               selectedEmployeeId={user?.employee?.id || user?.id} // Use nested employee.id
@@ -201,7 +201,7 @@ function EmployeeAttendance() {
         ) : (
           <>
             {/* Filters */}
-            <div className="bg-teal-50/95 rounded-lg shadow mb-8">
+            <div className="bg-teal-50 rounded-lg shadow mb-8">
               <div className="p-6">
                 <div className="flex flex-col sm:flex-row gap-4">
                   <div className="flex-1">
@@ -277,8 +277,8 @@ function EmployeeAttendance() {
             </div>
 
             {/* Attendance History Table */}
-            <div className="bg-teal-50/95 rounded-lg shadow overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200">
+            <div className="bg-teal-50 rounded-lg shadow overflow-hidden">
+              <div className="px-6 py-4 border-b border-teal-200">
                 <h3 className="text-lg font-medium text-gray-900">Attendance History</h3>
               </div>
 
@@ -291,7 +291,7 @@ function EmployeeAttendance() {
               ) : (
                 <>
                   <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
+                    <table className="min-w-full divide-y divide-teal-200">
                       <thead className="bg-teal-50">
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -358,14 +358,14 @@ function EmployeeAttendance() {
                         <button
                           onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
                           disabled={currentPage === 1}
-                          className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-teal-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="relative inline-flex items-center px-4 py-2 border border-teal-300 text-sm font-medium rounded-md text-teal-700 bg-white hover:bg-teal-50 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Previous
                         </button>
                         <button
                           onClick={() => setCurrentPage(Math.min(currentPage + 1, totalPages))}
                           disabled={currentPage === totalPages}
-                          className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-teal-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="ml-3 relative inline-flex items-center px-4 py-2 border border-teal-300 text-sm font-medium rounded-md text-teal-700 bg-white hover:bg-teal-50 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Next
                         </button>
@@ -382,14 +382,14 @@ function EmployeeAttendance() {
                             <button
                               onClick={() => setCurrentPage(Math.max(currentPage - 1, 1))}
                               disabled={currentPage === 1}
-                              className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-teal-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-teal-300 bg-white text-sm font-medium text-teal-600 hover:bg-teal-50 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <ChevronLeft className="h-5 w-5" />
                             </button>
                             <button
                               onClick={() => setCurrentPage(Math.min(currentPage + 1, totalPages))}
                               disabled={currentPage === totalPages}
-                              className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-teal-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-teal-300 bg-white text-sm font-medium text-teal-600 hover:bg-teal-50 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <ChevronRight className="h-5 w-5" />
                             </button>

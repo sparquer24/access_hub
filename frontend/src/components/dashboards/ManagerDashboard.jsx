@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { managerAPI, managerLeaveAPI, managerAttendanceChangeAPI } from '../../services/managerServices';
-import { message } from 'antd';
+import { managerAPI, managerLeaveAPI, managerAttendanceChangeAPI } from '../../services/managerServices';
+import Loader from '../common/Loader';
+import { useToast } from '../../contexts/ToastContext';
 import '../../styles/Dashboard.css';
 
 const ManagerDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { success, error: showError } = useToast();
 
   // State for stats and data
   const [stats, setStats] = useState({
@@ -103,7 +106,9 @@ const ManagerDashboard = () => {
     } catch (error) {
       console.error('Error fetching manager data:', error);
       setError('Failed to load dashboard data');
-      message.error('Failed to load dashboard data');
+      console.error('Error fetching manager data:', error);
+      setError('Failed to load dashboard data');
+      showError('Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
@@ -114,13 +119,13 @@ const ManagerDashboard = () => {
       const response = await managerLeaveAPI.approve(leaveId, 'Approved from dashboard');
 
       if (response.success) {
-        message.success('Leave request approved successfully');
+        success('Leave request approved successfully');
         // Refresh data
         fetchManagerData();
       }
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Failed to approve leave request';
-      message.error(errorMsg);
+      showError(errorMsg);
     }
   };
 
@@ -132,13 +137,13 @@ const ManagerDashboard = () => {
       const response = await managerLeaveAPI.reject(leaveId, notes);
 
       if (response.success) {
-        message.success('Leave request rejected');
+        success('Leave request rejected');
         // Refresh data
         fetchManagerData();
       }
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Failed to reject leave request';
-      message.error(errorMsg);
+      showError(errorMsg);
     }
   };
 
@@ -147,13 +152,13 @@ const ManagerDashboard = () => {
       const response = await managerAttendanceChangeAPI.approve(requestId, 'Approved from dashboard');
 
       if (response.success) {
-        message.success('Attendance change request approved successfully');
+        success('Attendance change request approved successfully');
         // Refresh data
         fetchManagerData();
       }
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Failed to approve change request';
-      message.error(errorMsg);
+      showError(errorMsg);
     }
   };
 
@@ -165,13 +170,13 @@ const ManagerDashboard = () => {
       const response = await managerAttendanceChangeAPI.reject(requestId, notes);
 
       if (response.success) {
-        message.success('Attendance change request rejected');
+        success('Attendance change request rejected');
         // Refresh data
         fetchManagerData();
       }
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Failed to reject change request';
-      message.error(errorMsg);
+      showError(errorMsg);
     }
   };
 
@@ -199,11 +204,7 @@ const ManagerDashboard = () => {
   if (loading && !stats.total_members && teamMembers.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-teal-600 mx-auto mb-4"></div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">Loading Dashboard</h2>
-          <p className="text-slate-600">Please wait while we fetch your data...</p>
-        </div>
+        <Loader size="large" />
       </div>
     );
   }

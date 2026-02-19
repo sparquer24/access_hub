@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { message, Modal, Form, Input, Select, InputNumber, Switch } from 'antd';
+import { Modal, Form, Input, Select, InputNumber, Switch } from 'antd';
 import {
   camerasService,
   locationsService,
@@ -7,11 +7,14 @@ import {
   CAMERA_SOURCE_TYPES,
   CAMERA_STATUS,
 } from '../../../services/organizationsService';
+import Loader from '../../common/Loader';
+import { useToast } from '../../../contexts/ToastContext';
 
 const { Option } = Select;
 const { TextArea } = Input;
 
 const OrganizationCameras = ({ organizationId, organization }) => {
+  const { success, error: showError } = useToast();
   const [cameras, setCameras] = useState([]);
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,6 +26,7 @@ const OrganizationCameras = ({ organizationId, organization }) => {
   const [filterType, setFilterType] = useState('all');
   const [hasCreatePermission, setHasCreatePermission] = useState(true);
   const [selectedManagementType, setSelectedManagementType] = useState('ATTENDANCE');
+
 
   useEffect(() => {
     fetchCameras();
@@ -45,14 +49,14 @@ const OrganizationCameras = ({ organizationId, organization }) => {
   const fetchCameras = async () => {
     try {
       setLoading(true);
-      const response = await camerasService.list({
+      const { data } = await camerasService.list({
         organization_id: organizationId,
         per_page: 100,
       });
-      setCameras(response.data?.items || []);
+      setCameras(data?.items || []);
     } catch (error) {
       console.error('Error fetching cameras:', error);
-      message.error(error.response?.data?.message || 'Failed to load cameras');
+      showError(error.response?.data?.message || 'Failed to load cameras');
     } finally {
       setLoading(false);
     }
@@ -93,17 +97,17 @@ const OrganizationCameras = ({ organizationId, organization }) => {
 
     try {
       await camerasService.delete(cameraId, false);
-      message.success('Camera deleted successfully!');
+      success('Camera deleted successfully!');
       fetchCameras();
     } catch (error) {
       console.error('Error deleting camera:', error);
       const statusCode = error.response?.status;
       const errorMessage = error.response?.data?.message;
-      
+
       if (statusCode === 403) {
-        message.error('Insufficient Permissions: You cannot delete cameras. Contact your administrator.');
+        showError('Insufficient Permissions: You cannot delete cameras. Contact your administrator.');
       } else {
-        message.error(errorMessage || 'Failed to delete camera');
+        showError(errorMessage || 'Failed to delete camera');
       }
     }
   };
@@ -113,17 +117,17 @@ const OrganizationCameras = ({ organizationId, organization }) => {
       await camerasService.update(camera.id, {
         is_active: !camera.is_active,
       });
-      message.success(camera.is_active ? 'Camera disabled successfully' : 'Camera enabled successfully');
+      success(camera.is_active ? 'Camera disabled successfully' : 'Camera enabled successfully');
       fetchCameras();
     } catch (error) {
       console.error('Error updating camera status:', error);
       const statusCode = error.response?.status;
       const errorMessage = error.response?.data?.message;
-      
+
       if (statusCode === 403) {
-        message.error('Insufficient Permissions: You cannot update camera status. Contact your administrator.');
+        showError('Insufficient Permissions: You cannot update camera status. Contact your administrator.');
       } else {
-        message.error(errorMessage || 'Failed to update camera status');
+        showError(errorMessage || 'Failed to update camera status');
       }
     }
   };
@@ -152,7 +156,7 @@ const OrganizationCameras = ({ organizationId, organization }) => {
           notification_enabled: values.notification_enabled,
         };
         await camerasService.update(editingCamera.id, payload);
-        message.success('Camera updated successfully!');
+        success('Camera updated successfully!');
       } else {
         const payload = {
           organization_id: organizationId,
@@ -175,7 +179,7 @@ const OrganizationCameras = ({ organizationId, organization }) => {
           notification_enabled: values.notification_enabled,
         };
         await camerasService.create(payload);
-        message.success('Camera created successfully!');
+        success('Camera created successfully!');
         setHasCreatePermission(true);
       }
 
@@ -186,15 +190,15 @@ const OrganizationCameras = ({ organizationId, organization }) => {
       console.error('Error saving camera:', error);
       const statusCode = error.response?.status;
       const errorMessage = error.response?.data?.message;
-      
+
       // Handle permission errors
       if (statusCode === 403) {
         if (!editingCamera) {
           setHasCreatePermission(false);
         }
-        message.error(`Insufficient Permissions: You cannot ${editingCamera ? 'update' : 'create'} cameras. Contact your administrator.`);
+        showError(`Insufficient Permissions: You cannot ${editingCamera ? 'update' : 'create'} cameras. Contact your administrator.`);
       } else {
-        message.error(errorMessage || `Failed to ${editingCamera ? 'update' : 'create'} camera`);
+        showError(errorMessage || `Failed to ${editingCamera ? 'update' : 'create'} camera`);
       }
     }
   };
@@ -238,8 +242,8 @@ const OrganizationCameras = ({ organizationId, organization }) => {
       stroke: "currentColor",
       viewBox: "0 0 24 24"
     };
-    
-    switch(type) {
+
+    switch (type) {
       case CAMERA_TYPES.CHECK_IN:
         return (
           <svg {...iconProps}>
@@ -265,7 +269,7 @@ const OrganizationCameras = ({ organizationId, organization }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
+        <Loader size="large" />
       </div>
     );
   }
@@ -287,11 +291,10 @@ const OrganizationCameras = ({ organizationId, organization }) => {
           <button
             onClick={handleCreateCamera}
             disabled={!hasCreatePermission}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
-              hasCreatePermission
-                ? 'bg-gradient-to-r from-teal-600 to-teal-600 text-white hover:shadow-lg hover:-translate-y-0.5 cursor-pointer'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
-            }`}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${hasCreatePermission
+              ? 'bg-gradient-to-r from-teal-600 to-teal-600 text-white hover:shadow-lg hover:-translate-y-0.5 cursor-pointer'
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+              }`}
           >
             ➕ Add Camera
           </button>
@@ -315,31 +318,28 @@ const OrganizationCameras = ({ organizationId, organization }) => {
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => setFilterStatus('all')}
-            className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-              filterStatus === 'all'
-                ? 'bg-teal-600 text-white'
-                : 'bg-teal-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterStatus === 'all'
+              ? 'bg-teal-600 text-white'
+              : 'bg-teal-100 text-gray-700 hover:bg-gray-200'
+              }`}
           >
             All
           </button>
           <button
             onClick={() => setFilterStatus('active')}
-            className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-              filterStatus === 'active'
-                ? 'bg-green-600 text-white'
-                : 'bg-teal-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterStatus === 'active'
+              ? 'bg-green-600 text-white'
+              : 'bg-teal-100 text-gray-700 hover:bg-gray-200'
+              }`}
           >
             Active
           </button>
           <button
             onClick={() => setFilterStatus('inactive')}
-            className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-              filterStatus === 'inactive'
-                ? 'bg-orange-600 text-white'
-                : 'bg-teal-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterStatus === 'inactive'
+              ? 'bg-orange-600 text-white'
+              : 'bg-teal-100 text-gray-700 hover:bg-gray-200'
+              }`}
           >
             Inactive
           </button>
@@ -350,41 +350,37 @@ const OrganizationCameras = ({ organizationId, organization }) => {
       <div className="flex gap-2 flex-wrap">
         <button
           onClick={() => setFilterType('all')}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-            filterType === 'all'
-              ? 'bg-teal-600 text-white'
-              : 'bg-teal-50/95 border-2 border-gray-200 text-gray-700 hover:border-teal-300'
-          }`}
+          className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterType === 'all'
+            ? 'bg-teal-600 text-white'
+            : 'bg-teal-50/95 border-2 border-gray-200 text-gray-700 hover:border-teal-300'
+            }`}
         >
           All Types
         </button>
         <button
           onClick={() => setFilterType(CAMERA_TYPES.CHECK_IN)}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-            filterType === CAMERA_TYPES.CHECK_IN
-              ? 'bg-blue-600 text-white'
-              : 'bg-teal-50/95 border-2 border-gray-200 text-gray-700 hover:border-blue-300'
-          }`}
+          className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterType === CAMERA_TYPES.CHECK_IN
+            ? 'bg-blue-600 text-white'
+            : 'bg-teal-50/95 border-2 border-gray-200 text-gray-700 hover:border-blue-300'
+            }`}
         >
           ← Check-In
         </button>
         <button
           onClick={() => setFilterType(CAMERA_TYPES.CHECK_OUT)}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-            filterType === CAMERA_TYPES.CHECK_OUT
-              ? 'bg-green-600 text-white'
-              : 'bg-teal-50/95 border-2 border-gray-200 text-gray-700 hover:border-green-300'
-          }`}
+          className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterType === CAMERA_TYPES.CHECK_OUT
+            ? 'bg-green-600 text-white'
+            : 'bg-teal-50/95 border-2 border-gray-200 text-gray-700 hover:border-green-300'
+            }`}
         >
           → Check-Out
         </button>
         <button
           onClick={() => setFilterType(CAMERA_TYPES.CCTV)}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-            filterType === CAMERA_TYPES.CCTV
-              ? 'bg-teal-600 text-white'
-              : 'bg-teal-50/95 border-2 border-gray-200 text-gray-700 hover:border-purple-300'
-          }`}
+          className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterType === CAMERA_TYPES.CCTV
+            ? 'bg-teal-600 text-white'
+            : 'bg-teal-50/95 border-2 border-gray-200 text-gray-700 hover:border-purple-300'
+            }`}
         >
           ⦿ CCTV
         </button>
@@ -468,11 +464,10 @@ const OrganizationCameras = ({ organizationId, organization }) => {
                 <div className="mb-4">
                   <button
                     onClick={() => handleToggleStatus(camera)}
-                    className={`w-full px-3 py-2 rounded-lg text-sm font-semibold cursor-pointer transition-all ${
-                      camera.is_active
-                        ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                        : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-                    }`}
+                    className={`w-full px-3 py-2 rounded-lg text-sm font-semibold cursor-pointer transition-all ${camera.is_active
+                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                      : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                      }`}
                   >
                     {camera.is_active ? '● Enabled' : '○ Disabled'}
                   </button>
@@ -591,15 +586,15 @@ const OrganizationCameras = ({ organizationId, organization }) => {
               </svg>
               Attendance Management Settings
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Form.Item
                 name="management_type"
                 label="Management Type"
                 rules={[{ required: true, message: 'Please select management type' }]}
               >
-                <Select 
-                  placeholder="Select management type" 
+                <Select
+                  placeholder="Select management type"
                   defaultValue="ATTENDANCE"
                   onChange={(value) => {
                     setSelectedManagementType(value);
@@ -617,10 +612,10 @@ const OrganizationCameras = ({ organizationId, organization }) => {
               </Form.Item>
 
               <Form.Item name="auto_check_out_hours" label="Auto Check-out Hours">
-                <InputNumber 
-                  className="w-full" 
-                  min={1} 
-                  max={24} 
+                <InputNumber
+                  className="w-full"
+                  min={1}
+                  max={24}
                   placeholder="12"
                   addonAfter="hours"
                 />

@@ -249,7 +249,7 @@ def process_face_enrollment_background(employee_id: str, img_b64: str):
         # logger.info(f"Enrollment complete for {employee_id}")
 
     except Exception as e:
-        logger.exception(f"Unhandled exception during face enrollment for {employee_id}: {e}")
+        logger.exception(f"Unhandled exception during face enrolllment for {employee_id}: {e}")
 
         
 # --------------------------- Old Implementation (Commented Out) ---------------------------

@@ -7,8 +7,11 @@ import moment from 'moment';
 import { attendanceService, employeesService, departmentsService } from '../../../services/organizationsService';
 import api from '../../../services/api';
 import { Users, CheckCircle, Clock, TrendingUp, Briefcase, AlertCircle, Calendar, BarChart3, Home, Award, Trophy, Star, Zap, Target } from 'lucide-react';
+import Loader from '../../common/Loader';
+import { useToast } from '../../../contexts/ToastContext';
 
 const EmployeeAnalytics = ({ employees = [], organizationId }) => {
+    const { error: showError } = useToast();
     const [attendanceData, setAttendanceData] = useState([]);
     const [attendanceTrendData, setAttendanceTrendData] = useState([]);
     const [typeDistribution, setTypeDistribution] = useState([]);
@@ -118,6 +121,7 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
             }
         } catch (error) {
             console.error('Error fetching shift data:', error);
+            showError('Failed to fetch shift data');
             // Fallback data
             const shifts = [
                 { name: 'Morning', time: '8:00 AM - 5:00 PM', label: 'Morning (8:00 AM - 5:00 PM)', employees: 48 },
@@ -135,7 +139,7 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
             const endDate = moment().format('YYYY-MM-DD');
             const startDate = moment().subtract(29, 'days').format('YYYY-MM-DD');
             const weekStart = moment().subtract(6, 'days').format('YYYY-MM-DD');
-            
+
             const resp = await api.get('/api/analytics/attendance', {
                 params: {
                     organization_id: organizationId,
@@ -155,12 +159,12 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                 });
 
                 // Process 7-day series for bar chart
-                const series = (data.series || []).slice(-7).map(d => ({ 
-                    name: moment(d.date).format('ddd'), 
-                    present: d.present, 
-                    late: d.late, 
+                const series = (data.series || []).slice(-7).map(d => ({
+                    name: moment(d.date).format('ddd'),
+                    present: d.present,
+                    late: d.late,
                     absent: d.absent,
-                    date: d.date 
+                    date: d.date
                 }));
                 setAttendanceData(series);
 
@@ -191,6 +195,7 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
             }
         } catch (error) {
             console.error('Error fetching analytics data:', error);
+            showError('Failed to fetch analytics data');
         } finally {
             setLoading(false);
         }
@@ -215,21 +220,21 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
 
             const allEmployees = empResponse.data?.items || [];
             const allDepartments = deptResponse.data?.items || deptResponse.data || [];
-            
+
             // Calculate statistics
             const active = allEmployees.filter(e => e.is_active).length;
             const inactive = allEmployees.filter(e => !e.is_active).length;
             const maleCount = allEmployees.filter(e => e.gender?.toLowerCase() === 'male' || e.gender === 'M').length;
             const femaleCount = allEmployees.filter(e => e.gender?.toLowerCase() === 'female' || e.gender === 'F').length;
-            
+
             // Gender breakdown for active employees
             const activeMaleCount = allEmployees.filter(e => e.is_active && (e.gender?.toLowerCase() === 'male' || e.gender === 'M')).length;
             const activeFemaleCount = allEmployees.filter(e => e.is_active && (e.gender?.toLowerCase() === 'female' || e.gender === 'F')).length;
-            
+
             // Gender breakdown for inactive employees
             const inactiveMaleCount = allEmployees.filter(e => !e.is_active && (e.gender?.toLowerCase() === 'male' || e.gender === 'M')).length;
             const inactiveFemaleCount = allEmployees.filter(e => !e.is_active && (e.gender?.toLowerCase() === 'female' || e.gender === 'F')).length;
-            
+
             // Count employees by department and calculate metrics
             const deptMap = {};
             const deptAttendance = {};
@@ -238,7 +243,7 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                     deptMap[emp.department.name] = (deptMap[emp.department.name] || 0) + 1;
                 }
             });
-            
+
             // Create department array with metrics
             const departmentList = allDepartments.map((dept, idx) => ({
                 name: dept.name,
@@ -247,7 +252,7 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
             })).sort((a, b) => b.value - a.value);
 
             setDepartmentMetrics(departmentList);
-            
+
             // Calculate new employees this month
             const now = new Date();
             const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -259,12 +264,12 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
             const newThisMonthVal = newEmployees.length;
             const newMaleCount = newEmployees.filter(e => e.gender?.toLowerCase() === 'male' || e.gender === 'M').length;
             const newFemaleCount = newEmployees.filter(e => e.gender?.toLowerCase() === 'female' || e.gender === 'F').length;
-            
+
             // Calculate compliance metrics (based on attendance)
             const excellentAttendance = Math.max(0, Math.floor(allEmployees.length * 0.76)); // >95%
             const goodAttendance = Math.max(0, Math.floor(allEmployees.length * 0.17)); // 85-95%
             const alertAttendance = Math.max(0, allEmployees.length - excellentAttendance - goodAttendance);
-            
+
             setComplianceMetrics({
                 excellent: excellentAttendance,
                 good: goodAttendance,
@@ -275,7 +280,7 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
             const totalEmployees = empResponse.data.pagination?.total_items || allEmployees.length;
             const pendingLeaves = Math.ceil(totalEmployees * 0.05);
             const approvedLeaves = Math.ceil(totalEmployees * 0.07);
-            
+
             const leaveData = [
                 { name: 'Casual', pending: Math.ceil(pendingLeaves * 0.6), approved: Math.ceil(approvedLeaves * 0.5) },
                 { name: 'Sick', pending: Math.ceil(pendingLeaves * 0.25), approved: Math.ceil(approvedLeaves * 0.3) },
@@ -283,7 +288,7 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                 { name: 'Unpaid', pending: 0, approved: Math.ceil(approvedLeaves * 0.05) }
             ];
             setLeaveDistribution(leaveData);
-            
+
             setEmployeeStats({
                 totalEmployees: totalEmployees,
                 activeEmployees: active,
@@ -301,11 +306,12 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                 pendingLeaves,
                 approvedThisMonth: approvedLeaves,
             });
-            
+
             // Also update departmentDistribution for pie chart
             setDepartmentDistribution(departmentList.length ? departmentList : [{ name: 'No Departments', value: 1, color: '#e5e7eb' }]);
         } catch (error) {
             console.error('Error fetching employee stats:', error);
+            showError('Failed to fetch employee statistics');
             // Non-blocking error
         }
     };
@@ -342,7 +348,7 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
 
             // Fetch individual employee attendance records
             const employeeAttendanceLogs = await Promise.all(
-                allEmployees.map(emp => 
+                allEmployees.map(emp =>
                     api.get(`/api/attendance/records/${emp.id}`, {
                         params: {
                             start_date: startDate,
@@ -358,13 +364,13 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                 .map((emp, idx) => {
                     const attData = attendanceByEmployee[emp.id] || {};
                     const logs = employeeAttendanceLogs[idx]?.data?.items || [];
-                    
+
                     // Calculate attendance percentage from logs
                     const totalDays = logs.length;
                     const presentDays = logs.filter(log => log.status === 'present' || log.status === 'P').length;
                     const lateDays = logs.filter(log => log.status === 'late' || log.status === 'L').length;
                     const absentDays = logs.filter(log => log.status === 'absent' || log.status === 'A').length;
-                    
+
                     // Metrics (0-1 scale)
                     const attendanceScore = totalDays > 0 ? (presentDays + (lateDays * 0.5)) / totalDays : 0.4;
                     const punctualityScore = totalDays > 0 ? (totalDays - lateDays) / totalDays : 0.4;
@@ -400,6 +406,7 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
             setTopEmployees(employeeScores);
         } catch (error) {
             console.error('Error calculating top employees:', error);
+            showError('Failed to calculate top employees');
         }
     };
 
@@ -470,8 +477,8 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+            <div className="flex items-center justify-center h-96 bg-white/50 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-sm">
+                <Loader size="large" text="Preparing workforce analytics..." />
             </div>
         );
     }
@@ -505,7 +512,7 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                                 <Users size={20} />
                             </div>
                         </div>
-                        
+
                         <div className="border-t border-blue-300 pt-4 mt-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="text-center">
@@ -531,7 +538,7 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                                 <CheckCircle size={20} />
                             </div>
                         </div>
-                        
+
                         <div className="border-t border-green-300 pt-4 mt-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="text-center">
@@ -557,7 +564,7 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                                 <Clock size={20} />
                             </div>
                         </div>
-                        
+
                         <div className="border-t border-orange-300 pt-4 mt-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="text-center">
@@ -583,7 +590,7 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                                 <TrendingUp size={20} />
                             </div>
                         </div>
-                        
+
                         <div className="border-t border-purple-300 pt-4 mt-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="text-center">
@@ -616,9 +623,9 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                         </div>
                         <div className="mt-4 pt-4 border-t border-teal-200">
                             <div className="w-full bg-teal-200 rounded-full h-2">
-                                <div 
-                                    className="bg-teal-600 h-2 rounded-full transition-all" 
-                                    style={{width: `${Math.min(stats.attendanceRate, 100)}%`}}
+                                <div
+                                    className="bg-teal-600 h-2 rounded-full transition-all"
+                                    style={{ width: `${Math.min(stats.attendanceRate, 100)}%` }}
                                 ></div>
                             </div>
                         </div>
@@ -633,9 +640,9 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                         </div>
                         <div className="mt-4 pt-4 border-t border-green-200">
                             <div className="w-full bg-green-200 rounded-full h-2">
-                                <div 
-                                    className="bg-green-600 h-2 rounded-full transition-all" 
-                                    style={{width: `${Math.min(stats.onTimeRate, 100)}%`}}
+                                <div
+                                    className="bg-green-600 h-2 rounded-full transition-all"
+                                    style={{ width: `${Math.min(stats.onTimeRate, 100)}%` }}
                                 ></div>
                             </div>
                         </div>
@@ -729,7 +736,7 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all">
                         <div className="flex items-center justify-between mb-4">
                             <h4 className="text-base font-bold text-gray-900">30-Day Attendance Trend</h4>
-                            <select 
+                            <select
                                 value={selectedMonth}
                                 onChange={(e) => setSelectedMonth(e.target.value)}
                                 className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 font-medium hover:border-teal-500 focus:outline-none focus:border-teal-600"
@@ -745,30 +752,30 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                                 <LineChart data={attendanceTrendData.filter(d => moment(d.fullDate).format('YYYY-MM') === selectedMonth)} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                                    <XAxis 
-                                        dataKey="date" 
+                                    <XAxis
+                                        dataKey="date"
                                         fontSize={12}
                                         tick={{ fill: '#6b7280' }}
                                     />
-                                    <YAxis 
+                                    <YAxis
                                         fontSize={12}
                                         tick={{ fill: '#6b7280' }}
                                         domain={[0, 100]}
                                     />
-                                    <Tooltip 
-                                        contentStyle={{ 
-                                            borderRadius: '8px', 
-                                            border: 'none', 
+                                    <Tooltip
+                                        contentStyle={{
+                                            borderRadius: '8px',
+                                            border: 'none',
                                             boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                                             backgroundColor: 'rgba(255, 255, 255, 0.95)'
                                         }}
                                         formatter={(value) => [`${value}%`, 'Attendance']}
                                     />
                                     <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                                    <Line 
-                                        type="monotone" 
-                                        dataKey="attendance" 
-                                        stroke="#0D9488" 
+                                    <Line
+                                        type="monotone"
+                                        dataKey="attendance"
+                                        stroke="#0D9488"
                                         strokeWidth={3}
                                         dot={{ fill: '#0D9488', r: 4 }}
                                         activeDot={{ r: 6 }}
@@ -803,8 +810,8 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                         <h4 className="text-base font-bold text-gray-900 mb-4">Department Headcount</h4>
                         <div className="h-80 w-full ">
                             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                                <BarChart 
-                                    data={departmentMetrics} 
+                                <BarChart
+                                    data={departmentMetrics}
                                     layout="vertical"
                                     margin={{ top: 20, right: 80, left: 20, bottom: 5 }}
                                 >
@@ -835,17 +842,17 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                                         label={({ name, value }) => `${name}: ${value}`}
                                     >
                                         {typeDistribution.map((entry, index) => (
-                                            <Cell 
-                                                key={`cell-${index}`} 
+                                            <Cell
+                                                key={`cell-${index}`}
                                                 fill={entry.color}
                                                 style={{ filter: `drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))` }}
                                             />
                                         ))}
                                     </Pie>
-                                    <Tooltip 
-                                        contentStyle={{ 
-                                            borderRadius: '8px', 
-                                            border: 'none', 
+                                    <Tooltip
+                                        contentStyle={{
+                                            borderRadius: '8px',
+                                            border: 'none',
                                             boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
                                             backgroundColor: 'rgba(255, 255, 255, 0.95)'
                                         }}
@@ -880,8 +887,8 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                         <h4 className="text-base font-bold text-gray-900 mb-4">Shift Distribution</h4>
                         <div className="h-80 w-full ">
                             <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                                <BarChart 
-                                    data={shiftData} 
+                                <BarChart
+                                    data={shiftData}
                                     layout="vertical"
                                     margin={{ top: 20, right: 80, left: 20, bottom: 5 }}
                                 >
@@ -902,7 +909,7 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                 <div className="mb-8">
                     <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
                         <TrendingUp size={24} className="text-teal-600" />
-                            Top 5 Performers
+                        Top 5 Performers
                     </h2>
                     <p className="text-gray-600">Based on Attendance, Punctuality, Leave Balance, Work Hours & Department Impact</p>
                 </div>
@@ -920,7 +927,7 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                             let scoreColor = 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200';
                             let badgeBg = 'bg-gray-100';
                             let badgeText = 'text-gray-700';
-                            
+
                             if (emp.scores.overall >= 85) {
                                 scoreColor = 'bg-gradient-to-br from-green-50 to-green-100 border-green-300';
                                 badgeBg = 'bg-green-100';
@@ -930,7 +937,7 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                                 badgeBg = 'bg-blue-100';
                                 badgeText = 'text-blue-700';
                             }
-                            
+
                             return (
                                 <div key={emp.id} className={`${scoreColor} p-4 rounded-xl shadow-md border-2 hover:shadow-lg transition-all duration-300`}>
                                     {/* Medal & Name */}
