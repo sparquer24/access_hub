@@ -17,7 +17,7 @@ def face_enroll():
 
   """
 
-  Enroll employee face for recognition
+  Enroll face for recognition (Employee or Visitor)
 
   ---
 
@@ -43,17 +43,17 @@ def face_enroll():
 
         required:
 
-          - employee_id
+          - entity_id
 
           - img_b64
 
         properties:
 
-          employee_id:
+          entity_id:
 
             type: string
 
-            description: Employee ID for enrollment
+            description: Entity ID (Employee or Visitor) for enrollment
 
             example: "emp-123"
 
@@ -109,7 +109,7 @@ def face_enroll():
 
             type: string
 
-            example: "employee_id and img_b64 are required"
+            example: "entity_id and img_b64 are required"
 
     401:
 
@@ -119,19 +119,19 @@ def face_enroll():
 
   data = request.get_json(silent=True) or {}
 
-  employee_id = data.get("employee_id")
+  entity_id = data.get("entity_id")
 
   img_b64 = data.get("img_b64")
 
 
 
-  if not employee_id or not img_b64:
+  if not entity_id or not img_b64:
 
       return jsonify({
 
           "ok": False,
 
-          "error": "employee_id and img_b64 are required"
+          "error": "entity_id and img_b64 are required"
 
       }), 400
 
@@ -143,7 +143,7 @@ def face_enroll():
 
       target=process_face_enrollment_background,
 
-      kwargs={"employee_id": employee_id, "img_b64": img_b64},
+      kwargs={"entity_id": entity_id, "img_b64": img_b64},
 
       daemon=True,
 
@@ -157,7 +157,7 @@ def face_enroll():
 
       "ok": True,
 
-      "message": "Enrollment started"
+      "message": "Enrollment has been started and is processing in the background"
 
   }), 202
 
