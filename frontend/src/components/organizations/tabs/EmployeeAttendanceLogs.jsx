@@ -402,6 +402,7 @@ const EmployeeAttendanceLogs = ({ employees = [], onEmployeeClick, organizationI
             {/* Table */}
             <div className="bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <Table
+                    className="attendance-logs-table"
                     dataSource={logs}
                     columns={columns}
                     rowKey="id"
