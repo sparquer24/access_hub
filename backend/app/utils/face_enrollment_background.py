@@ -242,7 +242,7 @@ def aggregate_image_to_prototype(face_bgr, num_variants=25, min_keep=5, hard_sim
 
 
 
-def process_face_enrollment_background(employee_id: str, img_b64: str):
+def process_face_enrollment_background(entity_id: str, img_b64: str):
 
     """
 
@@ -268,7 +268,7 @@ def process_face_enrollment_background(employee_id: str, img_b64: str):
 
 
 
-    logger.info(f"[ENROLL] Starting enrollment for employee_id={employee_id}")
+    logger.info(f"[ENROLL] Starting enrollment for entity_id={entity_id}")
 
     logger.info(f"[ENROLL] FASTAPI_EMBEDDING_URL = {FASTAPI_EMBEDDING_URL}")
 
@@ -304,7 +304,7 @@ def process_face_enrollment_background(employee_id: str, img_b64: str):
 
         if not bboxes:
 
-            logger.warning(f"[ENROLL] ABORT — No faces detected for {employee_id}")
+            logger.warning(f"[ENROLL] ABORT — No faces detected for {entity_id}")
 
             return
 
@@ -346,7 +346,7 @@ def process_face_enrollment_background(employee_id: str, img_b64: str):
 
         if face_rgb.size == 0:
 
-            logger.warning(f"[ENROLL] ABORT — Invalid face crop for {employee_id}")
+            logger.warning(f"[ENROLL] ABORT — Invalid face crop for {entity_id}")
 
             return
 
@@ -408,7 +408,7 @@ def process_face_enrollment_background(employee_id: str, img_b64: str):
 
         if not embs:
 
-            logger.warning(f"[ENROLL] ABORT — No valid embeddings for {employee_id}")
+            logger.warning(f"[ENROLL] ABORT — No valid embeddings for {entity_id}")
 
             return
 
@@ -482,7 +482,7 @@ def process_face_enrollment_background(employee_id: str, img_b64: str):
 
                 FASTAPI_EMBEDDING_URL,
 
-                json={"employee_id": employee_id, "embedding": proto.tolist()},
+                json={"employee_id": entity_id, "embedding": proto.tolist()},
 
                 timeout=10
 
@@ -494,16 +494,16 @@ def process_face_enrollment_background(employee_id: str, img_b64: str):
 
         except Exception:
 
-            logger.exception(f"[ENROLL] FAILED — Could not push embedding for {employee_id}")
+            logger.exception(f"[ENROLL] FAILED — Could not push embedding for {entity_id}")
 
             return
 
 
 
-        logger.info(f"[ENROLL] SUCCESS — Enrollment complete for {employee_id}")
+        logger.info(f"[ENROLL] SUCCESS — Enrollment complete for {entity_id}")
 
 
 
     except Exception as e:
 
-        logger.exception(f"[ENROLL] UNHANDLED ERROR during face enrollment for {employee_id}: {e}")
+        logger.exception(f"[ENROLL] UNHANDLED ERROR during face enrollment for {entity_id}: {e}")

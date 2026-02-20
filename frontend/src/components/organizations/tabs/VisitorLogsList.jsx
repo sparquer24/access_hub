@@ -10,7 +10,7 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
   const [visitors, setVisitors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [alerts, setAlerts] = useState([]);
-  const [selectedTab, setSelectedTab] = useState('visitors');
+  const [selectedTab, setSelectedTab] = useState('alerts');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [fromDate, setFromDate] = useState(moment().format('YYYY-MM-DD')); // Default to today
@@ -89,6 +89,14 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
     }
   };
 
+  // Ensure alerts are loaded when Alerts is the default tab on mount
+  useEffect(() => {
+    if (selectedTab === 'alerts') {
+      fetchAlerts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTab, organizationId]);
+
   const handlePresetDate = (type) => {
     const today = moment();
     let from, to;
@@ -154,15 +162,6 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
         {/* Tabs - Left Side */}
         <div className="flex bg-gray-100 p-1 rounded-lg w-fit">
           <button
-            onClick={() => handleTabChange('visitors')}
-            className={`px-6 py-2.5 font-semibold rounded-md transition-all duration-300 flex items-center gap-2 ${selectedTab === 'visitors'
-              ? 'bg-white text-indigo-600 shadow-md'
-              : 'text-gray-600 hover:text-gray-900'
-              }`}
-          >
-            👥 Active Visitors
-          </button>
-          <button
             onClick={() => handleTabChange('alerts')}
             className={`px-6 py-2.5 font-semibold rounded-md transition-all duration-300 flex items-center gap-2 ${selectedTab === 'alerts'
               ? 'bg-white text-indigo-600 shadow-md'
@@ -170,6 +169,15 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
               }`}
           >
             ⚠️ Alerts
+          </button>
+          <button
+            onClick={() => handleTabChange('visitors')}
+            className={`px-6 py-2.5 font-semibold rounded-md transition-all duration-300 flex items-center gap-2 ${selectedTab === 'visitors'
+              ? 'bg-white text-indigo-600 shadow-md'
+              : 'text-gray-600 hover:text-gray-900'
+              }`}
+          >
+            👥 Active Visitors
           </button>
         </div>
 
