@@ -124,6 +124,7 @@ const OrganizationShifts = ({ organizationId, organization }) => {
           <table className="w-full">
             <thead className="bg-teal-50 border-b">
               <tr>
+                <th className="px-6 py-3 text-left">S.No</th>
                 <th className="px-6 py-3 text-left">Name</th>
                 <th className="px-6 py-3 text-left">Start</th>
                 <th className="px-6 py-3 text-left">End</th>
@@ -133,8 +134,9 @@ const OrganizationShifts = ({ organizationId, organization }) => {
               </tr>
             </thead>
             <tbody className="divide-y">
-              {shifts.map((s) => (
+              {shifts.map((s, index) => (
                 <tr key={s.id} className="hover:bg-teal-50">
+                  <td className="px-6 py-4">{index + 1}</td>
                   <td className="px-6 py-4">{s.name}</td>
                   <td className="px-6 py-4">{s.start_time || '-'}</td>
                   <td className="px-6 py-4">{s.end_time || '-'}</td>

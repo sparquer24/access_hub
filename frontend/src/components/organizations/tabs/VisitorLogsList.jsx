@@ -242,6 +242,9 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
                   <thead className="bg-gradient-to-r from-indigo-50 to-blue-50 border-b-2 border-indigo-200">
                     <tr>
                       <th className="px-6 py-4 text-left text-xs font-bold text-indigo-900 uppercase tracking-wider">
+                        S.No.
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-indigo-900 uppercase tracking-wider">
                         Name
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-bold text-indigo-900 uppercase tracking-wider">
@@ -268,8 +271,11 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {visitors.map((visitor) => (
+                    {visitors.map((visitor, index) => (
                       <tr key={visitor.id} className="hover:bg-indigo-50 transition-colors duration-150">
+                        <td className="px-6 py-4 text-sm font-semibold text-gray-700">
+                          {(page - 1) * pageSize + index + 1}
+                        </td>
                         <td className="px-6 py-4 text-sm font-semibold text-gray-900">
                           {visitor.visitor_name}
                         </td>
