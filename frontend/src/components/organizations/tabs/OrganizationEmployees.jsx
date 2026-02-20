@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Select, DatePicker, Switch } from 'antd';
 import { employeesService, EMPLOYMENT_TYPES, GENDER_OPTIONS, departmentsService, shiftsService, organizationsService } from '../../../services/organizationsService';
+import { faceService } from '../../../services/faceService';
 import api from '../../../services/api';
 import moment from 'moment';
 import WebcamCapture from '../../common/WebcamCapture.jsx';
@@ -660,8 +661,18 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
           is_active: values.is_active,
           photo_base64: employeePhoto || undefined,
         };
-        await employeesService.update(editingEmployee.id, payload);
+        const updateResponse = await employeesService.update(editingEmployee.id, payload);
         success('Successfully updated');
+
+        // Enroll employee face if photo was updated
+        if (employeePhoto) {
+          try {
+            await faceService.enrollFace(editingEmployee.id, employeePhoto);
+          } catch (enrollmentError) {
+            // Non-blocking error - employee update still successful
+            console.warn('⚠️ Face enrollment failed for update:', enrollmentError);
+          }
+        }
       } else {
         const generateUUID = () => {
           return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -686,33 +697,16 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
           address: values.address,
           photo_base64: employeePhoto || undefined,
         };
+        const createResponse = await employeesService.create(payload);
+        success('Successfully created');
 
-        // Step 1: Create the employee
-        const employeeResponse = await employeesService.create(payload);
-        message.success('Successfully created');
-
-        // Step 2: If employee was created successfully and has image, enroll face
-        if (employeeResponse.success && employeeResponse.data) {
-          const employeeId = employeeResponse.data.id;
-          const imageBase64 = employeeResponse.data.photo_base64;
-
-          // Only call face enroll if we have both employeeId and image data
-          if (employeeId && imageBase64) {
-            try {
-              const faceEnrollPayload = {
-                entity_id: employeeId,
-                img_b64: imageBase64,
-              };
-
-              await api.post('/api/v1/face/enroll', faceEnrollPayload);
-              console.log('Face enrollment successful for employee:', employeeId);
-            } catch (faceError) {
-              console.error('Face enrollment failed:', faceError);
-              // Show warning but don't block the employee creation
-              message.warning('Employee created successfully, but face enrollment failed. You can retry later.');
-            }
-          } else {
-            console.warn('Missing employee_id or image data for face enrollment');
+        // Enroll employee face using unified /api/v1/face/enroll endpoint
+        if (employeePhoto && createResponse.data?.id) {
+          try {
+            await faceService.enrollFace(createResponse.data.id, employeePhoto);
+          } catch (enrollmentError) {
+            // Non-blocking error - employee creation still successful
+            console.warn('⚠️ Face enrollment failed for new employee:', enrollmentError);
           }
         }
       }
@@ -927,10 +921,10 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
                   <tbody className="divide-y divide-gray-200">
                     {attendanceRecords.map((record) => (
                       <tr
-                        key={record.employee_id}
+                        key={record.entity_id }
                         className="hover:bg-teal-50 transition-colors cursor-pointer"
                         onClick={() => {
-                          setSelectedCalendarEmployee(record.employee_id);
+                          setSelectedCalendarEmployee(record.entity_id );
                           setActiveTab('calendar');
                         }}
                         title="Click to view attendance calendar"
