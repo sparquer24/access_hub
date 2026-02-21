@@ -132,8 +132,8 @@ class Config:
     UPLOAD_FOLDER = settings.upload_folder
     
     # Model path for YOLO detector
-    MODEL_PATH = settings.model_path
-    
+    # MODEL_PATH = settings.model_path
+    MODEL_PATH = settings.model_path or os.environ.get("MODEL_PATH") or "C:\\Users\\durga\\access_hub\\backend\\app\\detector\\face_detector.pt"  # Default to a common face detection model if not set
     # Redis (optional)
     REDIS_URL = settings.redis_url
 

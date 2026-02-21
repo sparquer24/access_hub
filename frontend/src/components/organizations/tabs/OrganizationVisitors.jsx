@@ -7,7 +7,10 @@ import PreRegistrationList from './PreRegistrationList';
 import { visitorService } from '../../../services/visitorService';
 import { Users, BarChart3, UserCheck, ShieldAlert, FileText, Calendar, XCircle, RefreshCw, Ticket, Footprints, AlertTriangle, Thermometer, Crown, HardHat, Package, UserPlus, Briefcase, Settings2, Circle, DownloadCloud, Wrench, CheckCircle2, User, Building, TruckIcon } from 'lucide-react';
 
+import { useToast } from '../../../contexts/ToastContext';
+
 const OrganizationVisitors = ({ organizationId, organization }) => {
+  const { error: showError } = useToast();
   const [activeSubTab, setActiveSubTab] = useState('overview'); // checkin, security, logs, overview
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [stats, setStats] = useState({
@@ -40,6 +43,7 @@ const OrganizationVisitors = ({ organizationId, organization }) => {
       }
     } catch (error) {
       console.error("Failed to fetch visitor stats", error);
+      showError('Failed to fetch visitor statistics');
     }
   };
 
@@ -71,6 +75,15 @@ const OrganizationVisitors = ({ organizationId, organization }) => {
           {/* Sub-tabs */}
           <div className="flex gap-1 bg-slate-100 p-1 rounded-lg">
             <button
+              onClick={() => setActiveSubTab('logs')}
+              className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-1.5 ${activeSubTab === 'logs'
+                ? 'bg-white text-teal-700 shadow-sm'
+                : 'text-slate-600 hover:text-teal-600 hover:bg-slate-200'
+                }`}
+            >
+              <FileText className="w-4 h-4" /> Logs
+            </button>
+            <button
               onClick={() => setActiveSubTab('overview')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-1.5 ${activeSubTab === 'overview'
                 ? 'bg-white text-teal-700 shadow-sm'
@@ -88,7 +101,7 @@ const OrganizationVisitors = ({ organizationId, organization }) => {
             >
               <UserCheck className="w-4 h-4" /> Check In
             </button>
-            <button
+            {/* <button
               onClick={() => setActiveSubTab('security')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-1.5 ${activeSubTab === 'security'
                 ? 'bg-white text-teal-700 shadow-sm'
@@ -96,17 +109,8 @@ const OrganizationVisitors = ({ organizationId, organization }) => {
                 }`}
             >
               <ShieldAlert className="w-4 h-4" /> Security
-            </button>
-            <button
-              onClick={() => setActiveSubTab('logs')}
-              className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-1.5 ${activeSubTab === 'logs'
-                ? 'bg-white text-teal-700 shadow-sm'
-                : 'text-slate-600 hover:text-teal-600 hover:bg-slate-200'
-                }`}
-            >
-              <FileText className="w-4 h-4" /> Logs
-            </button>
-            <button
+            </button> */}  
+            {/* <button
               onClick={() => setActiveSubTab('preregister')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-1.5 ${activeSubTab === 'preregister'
                 ? 'bg-white text-teal-700 shadow-sm'
@@ -114,8 +118,8 @@ const OrganizationVisitors = ({ organizationId, organization }) => {
                 }`}
             >
               <Calendar className="w-4 h-4" /> Pre-Reg
-            </button>
-            <button
+            </button> */}
+            {/* <button
               onClick={() => setActiveSubTab('blacklist')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-1.5 ${activeSubTab === 'blacklist'
                 ? 'bg-white text-teal-700 shadow-sm'
@@ -123,7 +127,7 @@ const OrganizationVisitors = ({ organizationId, organization }) => {
                 }`}
             >
               <XCircle className="w-4 h-4" /> Blacklist
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
@@ -131,6 +135,12 @@ const OrganizationVisitors = ({ organizationId, organization }) => {
 
       {/* Content */}
       <div>
+       {activeSubTab === 'logs' && (
+          <VisitorLogsList
+            organizationId={organizationId}
+            refreshTrigger={refreshTrigger}
+          />
+        )}
         {activeSubTab === 'overview' && (
           <>
             {/* Primary Stats - 4 columns */}
@@ -367,24 +377,19 @@ const OrganizationVisitors = ({ organizationId, organization }) => {
             onSubmitSuccess={handleVisitorCreated}
           />
         )}
-        {activeSubTab === 'security' && (
+         {/* {activeSubTab === 'security' && (
           <SecurityGateEntry
             organizationId={organizationId}
             organization={organization}
           />
-        )}
-        {activeSubTab === 'logs' && (
-          <VisitorLogsList
-            organizationId={organizationId}
-            refreshTrigger={refreshTrigger}
-          />
-        )}
-        {activeSubTab === 'preregister' && (
+        )}  */}
+        
+        {/* {activeSubTab === 'preregister' && (
           <PreRegistrationList organizationId={organizationId} />
         )}
         {activeSubTab === 'blacklist' && (
           <BlacklistManagement organizationId={organizationId} />
-        )}
+        )} */}
       </div>
     </div>
   );

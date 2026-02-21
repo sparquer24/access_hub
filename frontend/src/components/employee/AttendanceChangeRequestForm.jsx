@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Select, DatePicker, TimePicker, Input, Button, message, Card, Tag } from 'antd';
+import { Modal, Form, Select, DatePicker, TimePicker, Input, Button, Card, Tag } from 'antd';
 import { attendanceChangeRequestAPI, attendanceAPI } from '../../services/employeeServices';
+import { useToast } from '../../contexts/ToastContext';
 import moment from 'moment';
 
 const { Option } = Select;
 const { TextArea } = Input;
 
 const AttendanceChangeRequestForm = ({ isOpen, onClose, onSuccess }) => {
+    const { success, error: showError } = useToast();
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [requestType, setRequestType] = useState('manual_checkin');
@@ -53,7 +55,7 @@ const AttendanceChangeRequestForm = ({ isOpen, onClose, onSuccess }) => {
             }
         } catch (error) {
             console.error('Failed to fetch attendance history:', error);
-            message.error('Failed to load attendance history');
+            showError('Failed to load attendance history');
         } finally {
             setLoadingHistory(false);
         }
@@ -96,7 +98,7 @@ const AttendanceChangeRequestForm = ({ isOpen, onClose, onSuccess }) => {
 
     const handleSubmit = async (values) => {
         if (!selectedDate) {
-            message.error('Please select a date');
+            showError('Please select a date');
             return;
         }
 
@@ -150,7 +152,7 @@ const AttendanceChangeRequestForm = ({ isOpen, onClose, onSuccess }) => {
             const response = await attendanceChangeRequestAPI.create(data);
 
             if (response.success) {
-                message.success('Attendance change request submitted successfully');
+                success('Attendance change request submitted successfully');
                 form.resetFields();
                 setSelectedDate(null);
                 setCurrentAttendance(null);
@@ -159,7 +161,7 @@ const AttendanceChangeRequestForm = ({ isOpen, onClose, onSuccess }) => {
             }
         } catch (error) {
             const errorMsg = error.response?.data?.message || 'Failed to submit request';
-            message.error(errorMsg);
+            showError(errorMsg);
         } finally {
             setLoading(false);
         }

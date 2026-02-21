@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { message } from 'antd';
+import { useToast } from '../../../contexts/ToastContext';
+import Loader from '../../common/Loader';
 import { visitorService } from '../../../services/visitorService';
 
 const SecurityGateEntry = ({ organizationId, organization }) => {
+  const { success, error: showError } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVisitor, setSelectedVisitor] = useState(null);
   const [visitors, setVisitors] = useState([]);
@@ -21,13 +23,13 @@ const SecurityGateEntry = ({ organizationId, organization }) => {
         query: searchQuery,
         status: 'checked_in'
       });
-      
+
       if (response.success) {
         setVisitors(response.data || []);
       }
     } catch (error) {
       console.error('Error searching visitors:', error);
-      message.error('Failed to search visitors');
+      showError('Failed to search visitors');
     } finally {
       setLoading(false);
     }
@@ -50,13 +52,13 @@ const SecurityGateEntry = ({ organizationId, organization }) => {
         notes: `${action === 'building_entry' ? 'Entered' : 'Exited'} building with visitor pass`
       });
 
-      message.success(`Visitor ${action === 'building_entry' ? 'entry' : 'exit'} recorded successfully`);
+      success(`Visitor ${action === 'building_entry' ? 'entry' : 'exit'} recorded successfully`);
       setSelectedVisitor(null);
       setSearchQuery('');
       fetchVisitors();
     } catch (error) {
       console.error(`Error recording ${action}:`, error);
-      message.error(`Failed to record visitor ${action}`);
+      showError(`Failed to record visitor ${action}`);
     }
   };
 
@@ -82,21 +84,19 @@ const SecurityGateEntry = ({ organizationId, organization }) => {
         <div className="flex gap-2 mb-6 bg-teal-100 p-1 rounded-lg w-fit">
           <button
             onClick={() => setEntryMode('search')}
-            className={`px-6 py-2.5 font-semibold rounded-md transition-all duration-300 ${
-              entryMode === 'search'
+            className={`px-6 py-2.5 font-semibold rounded-md transition-all duration-300 ${entryMode === 'search'
                 ? 'bg-white text-teal-600 shadow-md'
                 : 'text-gray-600 hover:text-gray-900'
-            }`}
+              }`}
           >
             🔍 Search Visitor
           </button>
           <button
             onClick={() => setEntryMode('manual')}
-            className={`px-6 py-2.5 font-semibold rounded-md transition-all duration-300 ${
-              entryMode === 'manual'
+            className={`px-6 py-2.5 font-semibold rounded-md transition-all duration-300 ${entryMode === 'manual'
                 ? 'bg-white text-teal-600 shadow-md'
                 : 'text-gray-600 hover:text-gray-900'
-            }`}
+              }`}
           >
             ✍️ Manual Entry
           </button>
@@ -122,7 +122,7 @@ const SecurityGateEntry = ({ organizationId, organization }) => {
             {/* Search Results */}
             {loading && (
               <div className="flex justify-center py-8">
-                <div className="w-8 h-8 border-4 border-gray-200 border-t-teal-600 rounded-full animate-spin"></div>
+                <Loader size="large" />
               </div>
             )}
 

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { message } from 'antd';
 import { statsAPI } from '../../../services/api';
-import { 
+import Loader from '../../common/Loader';
+import { useToast } from '../../../contexts/ToastContext';
+import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, AreaChart, Area,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell 
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell
 } from 'recharts';
 
 const OrganizationStatistics = ({ organization, organizationId = null }) => {
+  const { error: showError } = useToast();
   const [timeRange, setTimeRange] = useState('month');
   const [analyticsData, setAnalyticsData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -15,7 +17,7 @@ const OrganizationStatistics = ({ organization, organizationId = null }) => {
   // Fetch analytics data from API
   const fetchAnalytics = async () => {
     if (!organizationId) return;
-    
+
     try {
       setLoading(true);
       setError(null);
@@ -23,7 +25,9 @@ const OrganizationStatistics = ({ organization, organizationId = null }) => {
       setAnalyticsData(response.data);
     } catch (err) {
       console.error('Error fetching analytics:', err);
-      setError(err.message || 'Failed to load analytics data');
+      const errorMsg = err.message || 'Failed to load analytics data';
+      setError(errorMsg);
+      showError(errorMsg);
       // Set to null to trigger fallback data
       setAnalyticsData(null);
     } finally {
@@ -42,16 +46,16 @@ const OrganizationStatistics = ({ organization, organizationId = null }) => {
     if (analyticsData?.trends?.[timeRange]) {
       return analyticsData.trends[timeRange];
     }
-    
+
     // Generate trend data based on current totals if available
     if (analyticsData) {
       const employeeCount = analyticsData.employees?.active || analyticsData.employees?.total || 0;
       const visitorCount = analyticsData.visitors?.total || 0;
-      
+
       // Generate realistic trend patterns based on actual data
       const baseVisitors = Math.floor(visitorCount / 30); // Daily average
       const baseEmployees = employeeCount;
-      
+
       if (timeRange === 'week') {
         return [
           { name: 'Mon', visitors: Math.max(0, baseVisitors + Math.floor(Math.random() * 20 - 10)), employees: baseEmployees },
@@ -77,14 +81,14 @@ const OrganizationStatistics = ({ organization, organizationId = null }) => {
         ];
       }
     }
-    
+
     // Minimal fallback data when API is completely unavailable
     const minimalData = {
       week: [{ name: 'Current', visitors: 0, employees: 0 }],
       month: [{ name: 'Current', visitors: 0, employees: 0 }],
       year: [{ name: 'Current', visitors: 0, employees: 0 }]
     };
-    
+
     return minimalData[timeRange] || minimalData.month;
   };
 
@@ -93,43 +97,43 @@ const OrganizationStatistics = ({ organization, organizationId = null }) => {
     if (analyticsData?.attendance) {
       return analyticsData.attendance;
     }
-    
+
     // Generate attendance pattern based on employee count if available
     if (analyticsData?.employees?.active) {
       const activeEmployees = analyticsData.employees.active;
       const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-      
+
       return weekDays.map(day => {
         const onTimeRate = 0.8 + (Math.random() * 0.15); // 80-95% on time
         const lateRate = 0.05 + (Math.random() * 0.1); // 5-15% late
         const absentRate = 0.02 + (Math.random() * 0.05); // 2-7% absent
-        
+
         const onTime = Math.floor(activeEmployees * onTimeRate);
         const late = Math.floor(activeEmployees * lateRate);
         const absent = Math.floor(activeEmployees * absentRate);
-        
+
         return { name: day, onTime, late, absent };
       });
     }
-    
+
     // Minimal fallback
     return [
       { name: 'No Data', onTime: 0, late: 0, absent: 0 }
     ];
   };
-  
+
   const attendanceData = getAttendanceData();
 
   // Get employee type data from analytics if available
   const getEmployeeTypeData = () => {
     const totalEmployees = analyticsData?.employees?.total || organization?.employees_count || 0;
-    
+
     if (totalEmployees === 0) {
       return [
         { name: 'No Data', value: 0, color: '#9ca3af' }
       ];
     }
-    
+
     // If API provides breakdown, use it
     if (analyticsData?.employees?.by_type) {
       return Object.entries(analyticsData.employees.by_type).map(([type, count], index) => ({
@@ -138,7 +142,7 @@ const OrganizationStatistics = ({ organization, organizationId = null }) => {
         color: ['#4f46e5', '#06b6d4', '#8b5cf6', '#f59e0b'][index % 4]
       }));
     }
-    
+
     // Generate realistic distribution based on total
     return [
       { name: 'Full-time', value: Math.round(totalEmployees * 0.7), color: '#4f46e5' },
@@ -146,7 +150,7 @@ const OrganizationStatistics = ({ organization, organizationId = null }) => {
       { name: 'Interns', value: Math.round(totalEmployees * 0.1), color: '#8b5cf6' },
     ].filter(item => item.value > 0);
   };
-  
+
   const employeeTypeData = getEmployeeTypeData();
 
   // Get camera status data - use real API data
@@ -154,19 +158,19 @@ const OrganizationStatistics = ({ organization, organizationId = null }) => {
     const totalCameras = analyticsData?.cameras?.total || organization?.cameras_count || 0;
     const onlineCameras = analyticsData?.cameras?.online || 0;
     const offlineCameras = totalCameras - onlineCameras;
-    
+
     if (totalCameras === 0) {
       return [
         { name: 'No Cameras', value: 1, color: '#9ca3af' }
       ];
     }
-    
+
     return [
       { name: 'Online', value: onlineCameras, color: '#22c55e' },
       { name: 'Offline', value: Math.max(0, offlineCameras), color: '#ef4444' },
     ].filter(item => item.value > 0);
   };
-  
+
   const cameraStatusData = getCameraStatusData();
 
   return (
@@ -175,7 +179,7 @@ const OrganizationStatistics = ({ organization, organizationId = null }) => {
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-teal-50/95 p-4 rounded-xl shadow-sm border border-gray-200">
         <div className="flex items-center gap-3">
           <h2 className="text-lg font-bold text-gray-900">📊 Analytics Overview</h2>
-          {loading && <div className="animate-spin text-blue-500">⏳</div>}
+          {loading && <Loader size="small" />}
           {error && (
             <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">
               {error}
@@ -200,11 +204,10 @@ const OrganizationStatistics = ({ organization, organizationId = null }) => {
               <button
                 key={range}
                 onClick={() => setTimeRange(range)}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  timeRange === range 
-                    ? 'bg-white text-teal-600 shadow-sm' 
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${timeRange === range
+                    ? 'bg-white text-teal-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
-                }`}
+                  }`}
               >
                 {range.charAt(0).toUpperCase() + range.slice(1)}
               </button>
@@ -222,9 +225,8 @@ const OrganizationStatistics = ({ organization, organizationId = null }) => {
               {analyticsData?.cameras?.total ?? organization?.cameras_count ?? 0}
             </span>
             {analyticsData?.cameras?.online != null && analyticsData?.cameras?.total && (
-              <span className={`text-sm font-medium mb-1 ${
-                analyticsData.cameras.online === analyticsData.cameras.total ? 'text-green-600' : 'text-yellow-600'
-              }`}>
+              <span className={`text-sm font-medium mb-1 ${analyticsData.cameras.online === analyticsData.cameras.total ? 'text-green-600' : 'text-yellow-600'
+                }`}>
                 {analyticsData.cameras.online}/{analyticsData.cameras.total} online
               </span>
             )}
@@ -264,12 +266,12 @@ const OrganizationStatistics = ({ organization, organizationId = null }) => {
               <AreaChart data={getVisitorData()} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorVisitors" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorEmployees" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="name" />

@@ -1075,3 +1075,120 @@ def get_team_performance_report():
             'status': 'error',
             'message': 'Failed to generate team performance report'
         }), 500
+
+@bp.route('/api/manager/reports/attendance/download', methods=['GET'])
+@jwt_required()
+@tenant_required
+@manager_required
+def download_attendance_report():
+    """
+    Download attendance report in CSV, Excel, or PDF format
+    """
+    try:
+        from flask_jwt_extended import get_jwt
+        from app.utils.export import ReportGenerator
+        organization_id = g.organization_id
+        claims = get_jwt()
+        
+        # Get date range parameters
+        start_date_str = request.args.get('start_date')
+        end_date_str = request.args.get('end_date')
+        file_format = request.args.get('format', 'pdf').lower()
+        
+        # Validate format
+        if file_format not in ['csv', 'excel', 'pdf', 'json']:
+            return jsonify({'status': 'error', 'message': 'Invalid format. Use csv, excel, pdf, or json'}), 400
+        
+        if start_date_str:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        else:
+            start_date = datetime.utcnow().date().replace(day=1)
+        
+        if end_date_str:
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        else:
+            end_date = datetime.utcnow().date()
+        
+        # Get attendance records
+        attendance_records = AttendanceRecord.query.join(Employee).filter(
+            AttendanceRecord.organization_id == organization_id,
+            AttendanceRecord.date >= start_date,
+            AttendanceRecord.date <= end_date
+        ).all()
+        
+        # Generate report based on format
+        if file_format == 'excel':
+            return ReportGenerator.attendance_report(attendance_records, str(start_date), str(end_date), 'excel')
+        elif file_format == 'json':
+            return ReportGenerator.attendance_report(attendance_records, str(start_date), str(end_date), 'json')
+        elif file_format == 'csv':
+            return ReportGenerator.attendance_report(attendance_records, str(start_date), str(end_date), 'csv')
+        else:  # pdf
+            return ReportGenerator.attendance_report(attendance_records, str(start_date), str(end_date), 'pdf')
+            
+    except Exception as e:
+        current_app.logger.error(f"Error downloading attendance report: {str(e)}")
+        current_app.logger.error(traceback.format_exc())
+        return jsonify({
+            'status': 'error',
+            'message': 'Failed to download attendance report'
+        }), 500
+
+
+@bp.route('/api/manager/reports/leaves/download', methods=['GET'])
+@jwt_required()
+@tenant_required
+@manager_required
+def download_leaves_report():
+    """
+    Download leaves report in CSV, Excel, or PDF format
+    """
+    try:
+        from flask_jwt_extended import get_jwt
+        from app.utils.export import ReportGenerator
+        organization_id = g.organization_id
+        claims = get_jwt()
+        
+        # Get date range parameters
+        start_date_str = request.args.get('start_date')
+        end_date_str = request.args.get('end_date')
+        file_format = request.args.get('format', 'pdf').lower()
+        
+        # Validate format
+        if file_format not in ['csv', 'excel', 'pdf', 'json']:
+            return jsonify({'status': 'error', 'message': 'Invalid format. Use csv, excel, pdf, or json'}), 400
+        
+        if start_date_str:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        else:
+            start_date = datetime.utcnow().date().replace(day=1)
+        
+        if end_date_str:
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        else:
+            end_date = datetime.utcnow().date()
+        
+        # Get leave requests
+        leaves = LeaveRequest.query.join(Employee).filter(
+            LeaveRequest.organization_id == organization_id,
+            LeaveRequest.start_date >= start_date,
+            LeaveRequest.end_date <= end_date
+        ).all()
+        
+        # Generate report based on format
+        if file_format == 'excel':
+            return ReportGenerator.leave_report(leaves, str(start_date), str(end_date), 'excel')
+        elif file_format == 'json':
+            return ReportGenerator.leave_report(leaves, str(start_date), str(end_date), 'json')
+        elif file_format == 'csv':
+            return ReportGenerator.leave_report(leaves, str(start_date), str(end_date), 'csv')
+        else:  # pdf
+            return ReportGenerator.leave_report(leaves, str(start_date), str(end_date), 'pdf')
+            
+    except Exception as e:
+        current_app.logger.error(f"Error downloading leaves report: {str(e)}")
+        current_app.logger.error(traceback.format_exc())
+        return jsonify({
+            'status': 'error',
+            'message': 'Failed to download leaves report'
+        }), 500

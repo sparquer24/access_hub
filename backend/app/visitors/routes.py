@@ -494,3 +494,7 @@
 # # Note: face registration endpoints and imports removed per revert request
 
 # # (No generic list endpoint in original code.)
+
+# Create a dummy blueprint for compatibility
+from flask import Blueprint
+bp = Blueprint("visitors", __name__)

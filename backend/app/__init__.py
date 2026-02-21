@@ -400,6 +400,7 @@ def create_app():
     from .api.roles.routes import bp as roles_v2_bp
     app.register_blueprint(roles_v2_bp)
 
+    # Face enrollment endpoint for both employees and visitors
     from .api.embedding_gen.routes import face_enroll_bp
     app.register_blueprint(face_enroll_bp)
     

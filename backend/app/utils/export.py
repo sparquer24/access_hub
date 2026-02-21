@@ -10,6 +10,12 @@ import pandas as pd
 from flask import make_response
 from decimal import Decimal
 import logging
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
 
 logger = logging.getLogger(__name__)
 
@@ -116,6 +122,101 @@ class DataExporter:
             return DataExporter._error_response('Excel export failed')
     
     @staticmethod
+    def to_pdf(data, filename=None, title='Report', sheet_name='Report', columns=None):
+        """Export data to PDF format"""
+        try:
+            if not data:
+                return DataExporter._empty_pdf_response(filename or "empty_report.pdf")
+            
+            # Convert data to list of dictionaries if needed
+            if hasattr(data[0], '__dict__'):
+                data = [DataExporter._serialize_object(item) for item in data]
+            
+            # Create PDF document
+            output = BytesIO()
+            doc = SimpleDocTemplate(output, pagesize=letter, rightMargin=0.5*inch, leftMargin=0.5*inch,
+                                   topMargin=0.75*inch, bottomMargin=0.75*inch)
+            
+            # Container for PDF elements
+            elements = []
+            
+            # Define styles
+            styles = getSampleStyleSheet()
+            title_style = ParagraphStyle(
+                'CustomTitle',
+                parent=styles['Heading1'],
+                fontSize=16,
+                textColor=colors.HexColor('#1f2937'),
+                spaceAfter=6,
+                alignment=TA_CENTER,
+                fontName='Helvetica-Bold'
+            )
+            
+            # Add title
+            elements.append(Paragraph(title, title_style))
+            elements.append(Spacer(1, 0.2*inch))
+            
+            # Add date
+            date_style = ParagraphStyle(
+                'DateStyle',
+                parent=styles['Normal'],
+                fontSize=9,
+                textColor=colors.HexColor('#6b7280'),
+                alignment=TA_CENTER
+            )
+            elements.append(Paragraph(f"Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", date_style))
+            elements.append(Spacer(1, 0.3*inch))
+            
+            # Prepare table data
+            if columns is None:
+                columns = list(data[0].keys()) if data else []
+            
+            # Create table data with headers
+            table_data = [columns]
+            for row in data:
+                table_row = [str(row.get(col, '')) for col in columns]
+                table_data.append(table_row)
+            
+            # Create table with styling
+            table = Table(table_data, colWidths=[7.5*inch/len(columns)]*len(columns))
+            
+            table.setStyle(TableStyle([
+                # Header styling
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0d9488')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ('FONTSIZE', (0, 1), (-1, -1), 8),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f3f4f6')]),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 8),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ]))
+            
+            elements.append(table)
+            
+            # Build PDF
+            doc.build(elements)
+            output.seek(0)
+            
+            # Create response
+            response = make_response(output.getvalue())
+            response.headers['Content-Type'] = 'application/pdf'
+            response.headers['Content-Disposition'] = f'attachment; filename="{filename or "report.pdf"}"'
+            
+            return response
+            
+        except Exception as e:
+            logger.error(f"PDF export error: {e}")
+            return DataExporter._error_response(f'PDF export failed: {str(e)}')
+    
+    @staticmethod
     def _serialize_object(obj):
         """Serialize a single object"""
         if hasattr(obj, '__dict__'):
@@ -171,6 +272,28 @@ class DataExporter:
         return response
     
     @staticmethod
+    def _empty_pdf_response(filename):
+        """Return an empty PDF response"""
+        try:
+            output = BytesIO()
+            doc = SimpleDocTemplate(output, pagesize=letter)
+            elements = []
+            
+            styles = getSampleStyleSheet()
+            elements.append(Paragraph("No Data Available", styles['Heading1']))
+            
+            doc.build(elements)
+            output.seek(0)
+            
+            response = make_response(output.getvalue())
+            response.headers['Content-Type'] = 'application/pdf'
+            response.headers['Content-Disposition'] = f'attachment; filename="{filename or "empty.pdf"}"'
+            return response
+        except Exception as e:
+            logger.error(f"Empty PDF creation error: {e}")
+            return DataExporter._error_response('Failed to create empty PDF')
+    
+    @staticmethod
     def _error_response(message):
         """Return an error response"""
         response = make_response(f'Error: {message}')
@@ -186,6 +309,8 @@ class ReportGenerator:
     def attendance_report(attendance_data, start_date, end_date, format_type='csv'):
         """Generate attendance report"""
         if not attendance_data:
+            if format_type == 'pdf':
+                return DataExporter._empty_pdf_response(f'attendance_report_{start_date}_to_{end_date}.pdf')
             return DataExporter._empty_response(format_type, f'attendance_report_{start_date}_to_{end_date}.{format_type}')
         
         # Format data for report
@@ -203,19 +328,23 @@ class ReportGenerator:
             }
             report_data.append(formatted_record)
         
-        filename = f'attendance_report_{start_date}_to_{end_date}.{format_type}'
+        filename = f'attendance_report_{start_date}_to_{end_date}'
         
         if format_type == 'csv':
-            return DataExporter.to_csv(report_data, filename)
+            return DataExporter.to_csv(report_data, f'{filename}.csv')
         elif format_type == 'json':
-            return DataExporter.to_json(report_data, filename)
+            return DataExporter.to_json(report_data, f'{filename}.json')
         elif format_type == 'excel':
-            return DataExporter.to_excel(report_data, filename, 'Attendance Report')
+            return DataExporter.to_excel(report_data, f'{filename}.xlsx', 'Attendance Report')
+        elif format_type == 'pdf':
+            return DataExporter.to_pdf(report_data, f'{filename}.pdf', 'Attendance Report', columns=list(report_data[0].keys()) if report_data else [])
     
     @staticmethod
     def leave_report(leave_data, start_date, end_date, format_type='csv'):
         """Generate leave report"""
         if not leave_data:
+            if format_type == 'pdf':
+                return DataExporter._empty_pdf_response(f'leave_report_{start_date}_to_{end_date}.pdf')
             return DataExporter._empty_response(format_type, f'leave_report_{start_date}_to_{end_date}.{format_type}')
         
         # Format data for report
@@ -234,19 +363,23 @@ class ReportGenerator:
             }
             report_data.append(formatted_record)
         
-        filename = f'leave_report_{start_date}_to_{end_date}.{format_type}'
+        filename = f'leave_report_{start_date}_to_{end_date}'
         
         if format_type == 'csv':
-            return DataExporter.to_csv(report_data, filename)
+            return DataExporter.to_csv(report_data, f'{filename}.csv')
         elif format_type == 'json':
-            return DataExporter.to_json(report_data, filename)
+            return DataExporter.to_json(report_data, f'{filename}.json')
         elif format_type == 'excel':
-            return DataExporter.to_excel(report_data, filename, 'Leave Report')
+            return DataExporter.to_excel(report_data, f'{filename}.xlsx', 'Leave Report')
+        elif format_type == 'pdf':
+            return DataExporter.to_pdf(report_data, f'{filename}.pdf', 'Leave Report', columns=list(report_data[0].keys()) if report_data else [])
     
     @staticmethod
     def employee_report(employee_data, format_type='csv'):
         """Generate employee report"""
         if not employee_data:
+            if format_type == 'pdf':
+                return DataExporter._empty_pdf_response('employee_report.pdf')
             return DataExporter._empty_response(format_type, f'employee_report.{format_type}')
         
         # Format data for report
@@ -265,19 +398,23 @@ class ReportGenerator:
             }
             report_data.append(formatted_record)
         
-        filename = f'employee_report_{datetime.now().strftime("%Y%m%d")}.{format_type}'
+        filename = f'employee_report_{datetime.now().strftime("%Y%m%d")}'
         
         if format_type == 'csv':
-            return DataExporter.to_csv(report_data, filename)
+            return DataExporter.to_csv(report_data, f'{filename}.csv')
         elif format_type == 'json':
-            return DataExporter.to_json(report_data, filename)
+            return DataExporter.to_json(report_data, f'{filename}.json')
         elif format_type == 'excel':
-            return DataExporter.to_excel(report_data, filename, 'Employee Report')
+            return DataExporter.to_excel(report_data, f'{filename}.xlsx', 'Employee Report')
+        elif format_type == 'pdf':
+            return DataExporter.to_pdf(report_data, f'{filename}.pdf', 'Employee Report', columns=list(report_data[0].keys()) if report_data else [])
     
     @staticmethod
     def department_summary_report(department_data, format_type='csv'):
         """Generate department summary report"""
         if not department_data:
+            if format_type == 'pdf':
+                return DataExporter._empty_pdf_response('department_summary.pdf')
             return DataExporter._empty_response(format_type, f'department_summary.{format_type}')
         
         # Format data for report
@@ -293,14 +430,16 @@ class ReportGenerator:
             }
             report_data.append(formatted_record)
         
-        filename = f'department_summary_{datetime.now().strftime("%Y%m%d")}.{format_type}'
+        filename = f'department_summary_{datetime.now().strftime("%Y%m%d")}'
         
         if format_type == 'csv':
-            return DataExporter.to_csv(report_data, filename)
+            return DataExporter.to_csv(report_data, f'{filename}.csv')
         elif format_type == 'json':
-            return DataExporter.to_json(report_data, filename)
+            return DataExporter.to_json(report_data, f'{filename}.json')
         elif format_type == 'excel':
-            return DataExporter.to_excel(report_data, filename, 'Department Summary')
+            return DataExporter.to_excel(report_data, f'{filename}.xlsx', 'Department Summary')
+        elif format_type == 'pdf':
+            return DataExporter.to_pdf(report_data, f'{filename}.pdf', 'Department Summary', columns=list(report_data[0].keys()) if report_data else [])
 
 
 # Global exporter instance

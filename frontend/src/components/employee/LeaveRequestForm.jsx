@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Modal, Form, Select, DatePicker, Input, Button, message, InputNumber } from 'antd';
+import { Modal, Form, Select, DatePicker, Input, Button, InputNumber } from 'antd';
 import { leaveRequestsAPI } from '../../services/employeeServices';
+import { useToast } from '../../contexts/ToastContext';
 import moment from 'moment';
 
 const { Option } = Select;
@@ -8,6 +9,7 @@ const { TextArea } = Input;
 const { RangePicker } = DatePicker;
 
 const LeaveRequestForm = ({ isOpen, onClose, onSuccess }) => {
+    const { success, error: showError } = useToast();
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [dateRange, setDateRange] = useState([null, null]);
@@ -27,6 +29,13 @@ const LeaveRequestForm = ({ isOpen, onClose, onSuccess }) => {
     ];
 
     const handleDateChange = (dates) => {
+        if (dates && dates[0] && dates[1]) {
+            // Validate that start date is before or equal to end date
+            if (dates[0].isAfter(dates[1])) {
+                showError('Start date must be before or equal to end date');
+                return;
+            }
+        }
         setDateRange(dates);
         calculateTotalDays(dates, durationType);
     };
@@ -57,7 +66,7 @@ const LeaveRequestForm = ({ isOpen, onClose, onSuccess }) => {
 
     const handleSubmit = async (values) => {
         if (!dateRange || !dateRange[0] || !dateRange[1]) {
-            message.error('Please select start and end dates');
+            showError('Please select start and end dates');
             return;
         }
 
@@ -75,7 +84,7 @@ const LeaveRequestForm = ({ isOpen, onClose, onSuccess }) => {
             const response = await leaveRequestsAPI.create(data);
 
             if (response.success) {
-                message.success('Leave request submitted successfully');
+                success('Leave request submitted successfully');
                 form.resetFields();
                 setDateRange([null, null]);
                 setTotalDays(0);
@@ -84,7 +93,7 @@ const LeaveRequestForm = ({ isOpen, onClose, onSuccess }) => {
             }
         } catch (error) {
             const errorMsg = error.response?.data?.message || 'Failed to submit leave request';
-            message.error(errorMsg);
+            showError(errorMsg);
         } finally {
             setLoading(false);
         }

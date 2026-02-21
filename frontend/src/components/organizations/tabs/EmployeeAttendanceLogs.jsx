@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { DatePicker, Input, Select, Table, Tag, message, Button, TimePicker } from 'antd';
+import React, { useState, useEffect, useCallback } from 'react';
+import { DatePicker, Input, Select, Table, Tag, Button, TimePicker } from 'antd';
+import { useToast } from '../../../contexts/ToastContext';
 import moment from 'moment';
 import { attendanceService } from '../../../services/organizationsService';
 
@@ -7,6 +8,7 @@ const { RangePicker } = DatePicker;
 const { Option } = Select;
 
 const EmployeeAttendanceLogs = ({ employees = [], onEmployeeClick, organizationId }) => {
+    const { success, error: showError } = useToast();
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(false);
     const [searchText, setSearchText] = useState('');
@@ -21,18 +23,23 @@ const EmployeeAttendanceLogs = ({ employees = [], onEmployeeClick, organizationI
     // Editing State
     const [editingId, setEditingId] = useState(null);
     const [editForm, setEditForm] = useState({});
+    const [avatarErrors, setAvatarErrors] = useState({});
+    const currentPage = pagination.current;
+    const currentPageSize = pagination.pageSize;
 
     useEffect(() => {
-        fetchLogs();
-    }, [pagination.current, pagination.pageSize, statusFilter, dateRange, searchText]);
+        setPagination(prev => (
+            prev.current === 1 ? prev : { ...prev, current: 1 }
+        ));
+    }, [statusFilter, searchText, dateRange, organizationId]);
 
-    const fetchLogs = async () => {
+    const fetchLogs = useCallback(async () => {
         try {
             setLoading(true);
             const params = {
                 organization_id: organizationId,
-                page: pagination.current,
-                per_page: pagination.pageSize,
+                page: currentPage,
+                per_page: currentPageSize,
             };
 
             if (statusFilter !== 'all') {
@@ -58,6 +65,7 @@ const EmployeeAttendanceLogs = ({ employees = [], onEmployeeClick, organizationI
 
             if (response.success) {
                 let items = response.data.items || [];
+                const paginationInfo = response.data?.pagination || {};
 
                 if (statusFilter === 'active') {
                     items = items.filter(i => !i.check_out_time);
@@ -72,16 +80,20 @@ const EmployeeAttendanceLogs = ({ employees = [], onEmployeeClick, organizationI
                 setLogs(items);
                 setPagination(prev => ({
                     ...prev,
-                    total: response.data.pagination.total_items
+                    total: paginationInfo.total_items ?? paginationInfo.total ?? response.data?.total_items ?? items.length
                 }));
             }
         } catch (error) {
             console.error('Error fetching logs:', error);
-            message.error('Failed to load attendance logs');
+            showError('Failed to load attendance logs');
         } finally {
             setLoading(false);
         }
-    };
+    }, [organizationId, currentPage, currentPageSize, statusFilter, searchText, dateRange, showError]);
+
+    useEffect(() => {
+        fetchLogs();
+    }, [fetchLogs]);
 
     const handleTableChange = (newPagination) => {
         setPagination(prev => ({
@@ -107,6 +119,34 @@ const EmployeeAttendanceLogs = ({ employees = [], onEmployeeClick, organizationI
         setEditForm({});
     };
 
+    const getEmployeeImage = (employee = {}, record = null) => {
+        const matchedEmployee = employees.find((emp) =>
+            emp.id === record?.employee_id ||
+            emp.employee_id === record?.employee_id ||
+            (employee?.employee_code && emp.employee_code === employee.employee_code) ||
+            (employee?.id && emp.id === employee.id)
+        );
+
+        return (
+            employee.photo_base64 ||
+            employee.photo_url ||
+            employee.photo ||
+            employee.profile_image ||
+            employee.profile_image_url ||
+            employee.avatar ||
+            employee.avatar_url ||
+            employee.image ||
+            matchedEmployee?.photo_base64 ||
+            matchedEmployee?.photo ||
+            matchedEmployee?.photo_url ||
+            ''
+        );
+    };
+
+    const handleAvatarError = (employeeId) => {
+        setAvatarErrors(prev => ({ ...prev, [employeeId]: true }));
+    };
+
     const saveEditing = async (id) => {
         try {
             setLoading(true);
@@ -118,13 +158,13 @@ const EmployeeAttendanceLogs = ({ employees = [], onEmployeeClick, organizationI
 
             const response = await attendanceService.update(id, payload);
             if (response.success) {
-                message.success('Attendance updated successfully');
+                success('Attendance updated successfully');
                 setEditingId(null);
                 fetchLogs();
             }
         } catch (error) {
             console.error('Error saving attendance:', error);
-            message.error('Failed to update attendance');
+            showError('Failed to update attendance');
         } finally {
             setLoading(false);
         }
@@ -132,25 +172,50 @@ const EmployeeAttendanceLogs = ({ employees = [], onEmployeeClick, organizationI
 
     const columns = [
         {
+            title: 'S.No',
+            key: 'serial_number',
+            width: 80,
+            render: (_, __, index) => {
+                const currentPage = pagination.current || 1;
+                const pageSize = pagination.pageSize || 10;
+                return <span className="text-gray-600">{((currentPage - 1) * pageSize) + index + 1}</span>;
+            }
+        },
+        {
             title: 'Employee',
             dataIndex: 'employee',
             key: 'employee',
-            render: (employee) => (
-                <div
-                    className="flex items-center gap-3 cursor-pointer group"
-                    onClick={() => onEmployeeClick && onEmployeeClick(employee.id)}
-                >
-                    <div className="w-8 h-8 bg-teal-100 group-hover:bg-teal-200 transition-colors rounded-full flex items-center justify-center text-teal-600 font-bold text-xs">
-                        {employee?.full_name?.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                        <div className="font-medium text-gray-900 group-hover:text-teal-600 transition-colors">
-                            {employee?.full_name || 'Unknown'}
+            render: (employee, record) => {
+                const avatarKey = employee?.id || record?.employee_id || employee?.employee_code || 'unknown';
+                const imageSrc = getEmployeeImage(employee, record);
+                const showImage = imageSrc && !avatarErrors[avatarKey];
+
+                return (
+                    <div
+                        className="flex items-center gap-3 cursor-pointer group"
+                        onClick={() => onEmployeeClick?.(employee?.id)}
+                    >
+                        {showImage ? (
+                            <img
+                                src={imageSrc}
+                                alt={employee?.full_name || 'Employee'}
+                                className="w-8 h-8 rounded-full object-cover border border-teal-100"
+                                onError={() => handleAvatarError(avatarKey)}
+                            />
+                        ) : (
+                            <div className="w-8 h-8 bg-teal-100 group-hover:bg-teal-200 transition-colors rounded-full flex items-center justify-center text-teal-600 font-bold text-xs">
+                                {employee?.full_name?.charAt(0).toUpperCase()}
+                            </div>
+                        )}
+                        <div>
+                            <div className="font-medium text-gray-900 group-hover:text-teal-600 transition-colors">
+                                {employee?.full_name || 'Unknown'}
+                            </div>
+                            <div className="text-xs text-gray-500">{employee?.employee_code || 'N/A'}</div>
                         </div>
-                        <div className="text-xs text-gray-500">{employee?.employee_code || 'N/A'}</div>
                     </div>
-                </div>
-            ),
+                );
+            },
         },
         {
             title: 'Date',
@@ -297,7 +362,19 @@ const EmployeeAttendanceLogs = ({ employees = [], onEmployeeClick, organizationI
                     />
                     <RangePicker
                         value={dateRange}
-                        onChange={setDateRange}
+                        onChange={(dates) => {
+                            if (!dates || !dates[0] || !dates[1]) {
+                                // Clear the date range if dates are cleared
+                                setDateRange(null);
+                                return;
+                            }
+                            // Validate that start date is before or equal to end date
+                            if (dates[0].isAfter(dates[1])) {
+                                showError('Start date must be before or equal to end date');
+                                return;
+                            }
+                            setDateRange(dates);
+                        }}
                         size="small"
                         className="w-64"
                     />
@@ -325,10 +402,16 @@ const EmployeeAttendanceLogs = ({ employees = [], onEmployeeClick, organizationI
             {/* Table */}
             <div className="bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <Table
+                    className="attendance-logs-table"
                     dataSource={logs}
                     columns={columns}
                     rowKey="id"
-                    pagination={pagination}
+                    pagination={{
+                        ...pagination,
+                        showSizeChanger: true,
+                        pageSizeOptions: ['10', '20', '50'],
+                        showTotal: (total, range) => `${range[0]}-${range[1]} of ${total}`,
+                    }}
                     loading={loading}
                     onChange={handleTableChange}
                     size="small"

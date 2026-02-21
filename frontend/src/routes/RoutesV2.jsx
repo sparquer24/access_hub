@@ -471,8 +471,6 @@ const RoutesV2 = () => {
         }
       />
 
-      {/* Root redirect - send to login */}
-      <Route path="/" element={<Navigate to="/login" replace />} />
 
       {/* Catch all - redirect to login */}
       <Route path="*" element={<Navigate to="/login" replace />} />

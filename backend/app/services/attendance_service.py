@@ -384,3 +384,68 @@ class AttendanceService:
         }
 
         return payload
+
+    @staticmethod
+    def get_department_attendance_stats(organization_id, date_str=None):
+        """
+        Get attendance statistics broken down by department.
+        Returns list of {name, rate, total, present}
+        """
+        from sqlalchemy import func, distinct, case
+        from ..models import Department, Employee, AttendanceRecord
+        
+        target_date = datetime.utcnow().date()
+        if date_str:
+            try:
+                target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            except ValueError:
+                pass
+                
+        # 1. Get all departments with employee counts
+        dept_query = db.session.query(
+            Department.id,
+            Department.name,
+            func.count(Employee.id).label('total_employees')
+        ).outerjoin(Employee, and_(
+            Employee.department_id == Department.id,
+            Employee.is_active.is_(True),
+            Employee.deleted_at.is_(None)
+        )).filter(
+            Department.organization_id == organization_id
+        ).group_by(Department.id, Department.name).all()
+        
+        results = []
+        
+        for dept in dept_query:
+            if dept.total_employees == 0:
+                results.append({
+                    'name': dept.name,
+                    'rate': 0,
+                    'total': 0,
+                    'present': 0
+                })
+                continue
+                
+            # 2. Get present count for this department on target date
+            present_count = db.session.query(func.count(distinct(AttendanceRecord.employee_id))).join(
+                Employee, Employee.id == AttendanceRecord.employee_id
+            ).filter(
+                Employee.department_id == dept.id,
+                AttendanceRecord.organization_id == organization_id,
+                AttendanceRecord.date == target_date,
+                AttendanceRecord.check_in_time.isnot(None)
+            ).scalar() or 0
+            
+            rate = round((present_count / dept.total_employees) * 100)
+            
+            results.append({
+                'name': dept.name,
+                'rate': rate,
+                'total': dept.total_employees,
+                'present': present_count
+            })
+            
+        # Sort by rate desc
+        results.sort(key=lambda x: x['rate'], reverse=True)
+        
+        return results

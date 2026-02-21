@@ -1,5 +1,23 @@
 import api from './api';
 
+// Profile & Dashboard
+export const employeeDashboardAPI = {
+    getProfile: async () => {
+        const response = await api.get('/api/employee/profile');
+        return response.data;
+    },
+
+    getStatsSummary: async () => {
+        const response = await api.get('/api/employee/stats/summary');
+        return response.data;
+    },
+
+    getTodayAttendance: async () => {
+        const response = await api.get('/api/employee/attendance/today');
+        return response.data;
+    }
+};
+
 // Leave Requests
 export const leaveRequestsAPI = {
     create: async (data) => {
