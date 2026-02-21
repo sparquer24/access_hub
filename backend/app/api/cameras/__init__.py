@@ -1,0 +1,3 @@
+"""
+Cameras API module.
+"""

@@ -1,0 +1,52 @@
+flask>=3.0.3
+flask-cors>=4.0.0
+flask-sqlalchemy>=3.1.1
+flask-migrate>=4.0.5
+flask-bcrypt>=1.0.1
+flask-socketio>=5.3.6
+flask-caching>=2.1.0
+flask-jwt-extended>=4.6.0
+flasgger>=0.9.7.1
+python-dotenv>=1.0.1
+psycopg2-binary>=2.9.9
+redis>=5.0.3
+marshmallow>=3.20.1
+
+# Async SQLAlchemy stack
+sqlalchemy>=2.0.29
+asyncpg>=0.29.0
+alembic>=1.13.1
+
+# Pydantic for config
+pydantic>=2.6.4
+
+# Security
+pyjwt>=2.8.0
+bcrypt>=4.1.2
+
+# Image handling, CV, ML
+pillow>=10.2.0
+numpy>=1.26.4
+opencv-python-headless>=4.9.0.80
+albumentations>=1.4.0
+requests>=2.31.0
+
+# Linting & dev
+black>=24.3.0
+isort>=5.13.2
+mypy>=1.8.0
+
+#embedding Generation
+qdrant-client>=1.8.0
+ultralytics>=8.1.0  
+Flask-WTF==1.1.1
+WTForms==3.0.1
+gunicorn==21.2.0
+Flask-Login==0.6.3
+Werkzeug>=3.0.0
+blinker>=1.9.0
+tensorflow==2.14.0
+keras==2.14.0
+opencv-python
+deepface==0.0.93
+ultralytics==8.1.0

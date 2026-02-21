@@ -1,0 +1,51 @@
+/* Import Inter font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    @apply text-gray-900;
+    background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 50%, #5eead4 100%);
+    background-attachment: fixed;
+  }
+
+  code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+      monospace;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+
+  /* Custom gradient utilities for Teal theme */
+  .bg-gradient-teal {
+    background: linear-gradient(135deg, #0D9488 0%, #14B8A6 100%);
+  }
+
+  .bg-gradient-teal-light {
+    background: linear-gradient(135deg, #5EEAD4 0%, #14B8A6 100%);
+  }
+
+  .text-gradient-teal {
+    @apply bg-gradient-to-r from-teal-600 to-teal-500 bg-clip-text text-transparent;
+  }
+
+  /* Teal-tinted cards */
+  .card-teal {
+    @apply bg-white/80 backdrop-blur-sm border border-teal-100/50 shadow-lg hover:shadow-teal/20;
+  }
+}

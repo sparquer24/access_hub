@@ -1,0 +1,99 @@
+/* App.css - Tailwind overrides only */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+
+  html,
+  body {
+    height: auto;
+    margin: 0;
+    padding: 0;
+    overflow: auto;
+    @apply font-sans;
+    background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 50%, #5eead4 100%);
+    background-attachment: fixed;
+  }
+}
+
+@layer components {
+
+  /* Teal-themed form inputs */
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: #0D9488;
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+  }
+
+  /* Teal-themed buttons */
+  .capture-btn {
+    background: linear-gradient(135deg, #0D9488 0%, #14B8A6 100%);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s;
+  }
+
+  .capture-btn:hover {
+    box-shadow: 0 4px 14px 0 rgba(13, 148, 136, 0.3);
+    transform: translateY(-1px);
+  }
+
+  .submit-btn {
+    background: linear-gradient(135deg, #0D9488 0%, #14B8A6 100%);
+    color: white;
+    border-radius: 20px;
+    margin-top: 25px;
+    padding: 10px 24px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s;
+  }
+
+  .submit-btn:hover {
+    box-shadow: 0 6px 20px 0 rgba(13, 148, 136, 0.3);
+    transform: translateY(-1px);
+  }
+
+  .secondary-btn {
+    background-color: #6c757d;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  .button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .error-message {
+    color: #dc3545;
+    margin-bottom: 15px;
+  }
+}
+
+.video-container {
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+}

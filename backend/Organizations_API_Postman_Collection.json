@@ -1,0 +1,423 @@
+{
+  "info": {
+    "name": "VMS - Organizations API",
+    "description": "Complete CRUD operations for Organizations",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5001",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "YOUR_JWT_TOKEN_HERE",
+      "type": "string"
+    },
+    {
+      "key": "org_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.access_token) {",
+                  "        pm.collectionVariables.set('jwt_token', jsonData.data.access_token);",
+                  "        console.log('Token saved:', jsonData.data.access_token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v2/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "auth", "login"]
+            },
+            "description": "Login to get JWT token. Token is automatically saved to collection variable."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Organizations",
+      "item": [
+        {
+          "name": "1. Create Organization",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set('org_id', jsonData.data.id);",
+                  "        console.log('Organization ID saved:', jsonData.data.id);",
+                  "    }",
+                  "}",
+                  "",
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has success field', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success');",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Acme Corporation\",\n  \"code\": \"ACME001\",\n  \"address\": \"123 Main St, City, Country\",\n  \"contact_email\": \"contact@acme.com\",\n  \"contact_phone\": \"+1234567890\",\n  \"organization_type\": \"office\",\n  \"timezone\": \"Asia/Kolkata\",\n  \"working_hours\": {\n    \"start\": \"09:00\",\n    \"end\": \"18:00\",\n    \"days\": [1, 2, 3, 4, 5]\n  },\n  \"settings\": {\n    \"allow_remote_checkin\": true,\n    \"require_face_recognition\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v2/organizations",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "organizations"]
+            },
+            "description": "Create a new organization. Required fields: name, code"
+          },
+          "response": []
+        },
+        {
+          "name": "2. Get All Organizations",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has pagination', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('pagination');",
+                  "    pm.expect(jsonData.data).to.have.property('items');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v2/organizations?page=1&per_page=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "organizations"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "organization_type",
+                  "value": "office",
+                  "disabled": true
+                },
+                {
+                  "key": "is_active",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List all organizations with pagination. Use query params to filter results."
+          },
+          "response": []
+        },
+        {
+          "name": "3. Search Organizations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v2/organizations?search=Acme",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "organizations"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "Acme"
+                }
+              ]
+            },
+            "description": "Search organizations by name or code"
+          },
+          "response": []
+        },
+        {
+          "name": "4. Filter Organizations by Type",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v2/organizations?organization_type=office&is_active=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "organizations"],
+              "query": [
+                {
+                  "key": "organization_type",
+                  "value": "office"
+                },
+                {
+                  "key": "is_active",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Filter organizations by type and active status"
+          },
+          "response": []
+        },
+        {
+          "name": "5. Get Single Organization",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Organization has required fields', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('id');",
+                  "    pm.expect(jsonData.data).to.have.property('name');",
+                  "    pm.expect(jsonData.data).to.have.property('code');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v2/organizations/{{org_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "organizations", "{{org_id}}"]
+            },
+            "description": "Get detailed information about a specific organization"
+          },
+          "response": []
+        },
+        {
+          "name": "6. Update Organization",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Organization updated', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.include('updated');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Acme Corporation Ltd.\",\n  \"address\": \"789 New Address, City, Country\",\n  \"contact_email\": \"newcontact@acme.com\",\n  \"contact_phone\": \"+1234567899\",\n  \"timezone\": \"America/New_York\",\n  \"working_hours\": {\n    \"start\": \"08:00\",\n    \"end\": \"17:00\",\n    \"days\": [1, 2, 3, 4, 5]\n  },\n  \"settings\": {\n    \"allow_remote_checkin\": false,\n    \"require_face_recognition\": true,\n    \"max_employees\": 500\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v2/organizations/{{org_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "organizations", "{{org_id}}"]
+            },
+            "description": "Update organization information. All fields are optional."
+          },
+          "response": []
+        },
+        {
+          "name": "7. Get Organization Stats",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Stats include counts', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('departments_count');",
+                  "    pm.expect(jsonData.data).to.have.property('employees_count');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v2/organizations/{{org_id}}/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "organizations", "{{org_id}}", "stats"]
+            },
+            "description": "Get statistics for an organization (departments, employees, locations, etc.)"
+          },
+          "response": []
+        },
+        {
+          "name": "8. Delete Organization (Soft)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Organization deleted', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.include('deleted');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v2/organizations/{{org_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "organizations", "{{org_id}}"]
+            },
+            "description": "Soft delete - marks organization as deleted but keeps data"
+          },
+          "response": []
+        },
+        {
+          "name": "9. Delete Organization (Hard)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v2/organizations/{{org_id}}?hard_delete=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "organizations", "{{org_id}}"],
+              "query": [
+                {
+                  "key": "hard_delete",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Hard delete - permanently removes organization and all related data"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "API Health",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "health"]
+            },
+            "description": "Check if API is running"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
