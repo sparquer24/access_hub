@@ -15,6 +15,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
     from_date: '',
     to_date: '',
     allowed_floor: '',
+    allowed_towers: '',
     image_base64: '',
 
     // New fields
@@ -247,6 +248,39 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
       return;
     }
 
+    // 🔴 LAYER 1: IMMEDIATE AGGRESSIVE CAMERA SHUTDOWN - BEFORE STATE UPDATE
+    console.log('🔴 LAYER 1: AGGRESSIVE IMMEDIATE SHUTDOWN STARTING');
+    const videoElements = document.querySelectorAll('video');
+    let stoppedTrackCount = 0;
+    videoElements.forEach((video, idx) => {
+      console.log(`Processing video element ${idx}:`, video.id || 'no-id');
+      
+      // Get and stop all tracks
+      const tracks = video.srcObject?.getTracks() || [];
+      tracks.forEach(track => {
+        console.log(`  🛑 Stopping ${track.kind} track (enabled: ${track.enabled}, readyState: ${track.readyState})`);
+        track.enabled = false;
+        track.stop();
+        stoppedTrackCount++;
+      });
+      
+      // Clear video element completely
+      if (video.srcObject) {
+        video.srcObject = null;
+      }
+      video.src = '';
+      video.pause();
+      video.muted = true;
+      video.autoplay = false;
+      video.controls = false;
+      video.style.display = 'none';
+      video.style.visibility = 'hidden';
+      video.style.opacity = '0';
+      
+      console.log(`  ✅ Video element ${idx} cleared (stopped ${tracks.length} tracks)`);
+    });
+    console.log(`🔴 LAYER 1 COMPLETE: Stopped ${stoppedTrackCount} total tracks`);
+
     // Update form data with the captured image based on active slot
     if (activePhotoSlot === 'visitor' || !activePhotoSlot) {
       setFormData(prev => ({
@@ -261,28 +295,56 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
       }
     }
 
-    // Immediately hide webcam and stop camera stream
-    setShowWebcam(false);
-    setActivePhotoSlot(null);
-
-    // Additional cleanup - force stop any active media streams
+    // 🔴 CRITICAL: DELAY UNMOUNT to allow OS to release camera device
+    // The WebcamCapture component needs time to fully release hardware BEFORE unmounting
+    console.log('⏲️ Scheduling delayed unmount to allow device release...');
     setTimeout(() => {
-      // Get all video elements and stop their streams
+      console.log('⏲️ 250ms elapsed: NOW safe to hide webcam and unmount component');
+      setShowWebcam(false);
+      setActivePhotoSlot(null);
+    }, 250);
+
+    // 🟠 LAYER 2: DELAYED CLEANUP - Catch any streams that survived layer 1
+    setTimeout(() => {
+      console.log('🟠 LAYER 2: Running delayed camera cleanup (100ms)');
       const videoElements = document.querySelectorAll('video');
-      videoElements.forEach(video => {
+      videoElements.forEach((video, idx) => {
         if (video.srcObject) {
+          console.log(`  ⚠️ Video ${idx} STILL HAS STREAM! Force stopping...`);
           const stream = video.srcObject;
           if (stream && stream.getTracks) {
             stream.getTracks().forEach(track => {
+              console.log(`    🔴 Force stopping ${track.kind} track`);
               track.stop();
             });
           }
           video.srcObject = null;
         }
       });
+      console.log('🟠 LAYER 2 COMPLETE');
     }, 100);
 
-    console.log('✅ Webcam stopped automatically');
+    // 🟡 LAYER 3: FINAL VERIFICATION - Check if camera is really dead
+    setTimeout(() => {
+      console.log('🟡 LAYER 3: Running tertiary camera cleanup (200ms)');
+      const videoElements = document.querySelectorAll('video');
+      videoElements.forEach((video, idx) => {
+        const tracks = video.srcObject?.getTracks() || [];
+        if (tracks.length > 0) {
+          console.log(`  ⚠️ Video ${idx} FOUND ${tracks.length} ACTIVE TRACKS! FINAL SHUTDOWN...`);
+          tracks.forEach(track => {
+            console.log(`    🔴 FINAL: Stopping ${track.kind}`);
+            track.stop();
+          });
+          video.srcObject = null;
+        } else {
+          console.log(`  ✅ Video ${idx}: No active tracks - camera is OFF`);
+        }
+      });
+      console.log('🟡 LAYER 3 COMPLETE - CAMERA SHOULD NOW BE COMPLETELY OFF');
+    }, 200);
+
+    console.log('🎬 ✅ CAMERA SHUTDOWN HANDLERS QUEUED - Image capture complete');
   };
 
   const handleClearImage = () => {
@@ -621,32 +683,63 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
             </div>
           </div>
 
-          {/* Purpose and Floor */}
+          {/* Purpose of Visit */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Purpose of Visit *
+            </label>
+            <input
+              type="text"
+              name="purpose_of_visit"
+              value={formData.purpose_of_visit}
+              onChange={handleInputChange}
+              placeholder="e.g., Meeting, Delivery, Service"
+              className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.purpose_of_visit
+                ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
+                : 'border-gray-300 focus:ring-teal-500'
+                }`}
+            />
+            {errors.purpose_of_visit && (
+              <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {errors.purpose_of_visit}
+              </p>
+            )}
+          </div>
+
+          {/* Floor and Tower */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+                        <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Purpose of Visit *
+                Tower
               </label>
-              <input
-                type="text"
-                name="purpose_of_visit"
-                value={formData.purpose_of_visit}
+              <select
+                name="allowed_towers"
+                value={formData.allowed_towers || ''}
                 onChange={handleInputChange}
-                placeholder="e.g., Meeting, Delivery, Service"
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.purpose_of_visit
-                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
+                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.allowed_towers
+                  ? 'border-red-500 bg-red-50 focus:ring-red-500'
                   : 'border-gray-300 focus:ring-teal-500'
                   }`}
-              />
-              {errors.purpose_of_visit && (
+              >
+                <option value="">Select a tower</option>
+                <option value="Tower A">Tower A</option>
+                <option value="Tower B">Tower B</option>
+                <option value="Tower C">Tower C</option>
+                <option value="Tower D">Tower D</option>
+              </select>
+              {errors.allowed_towers && (
                 <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                  {errors.purpose_of_visit}
+                  {errors.allowed_towers}
                 </p>
               )}
             </div>
+            
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -677,6 +770,8 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                 </p>
               )}
             </div>
+
+
           </div>
 
           {/* Conditional Fields for Contractors/Vendors */}
