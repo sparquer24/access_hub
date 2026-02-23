@@ -420,12 +420,33 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
     try {
       setLoading(true);
 
-      // Sanitize form data - convert empty strings to null for integer fields
-      const { gender, from_date, to_date, ...apiFormData } = formData;
+      const parseOptionalInt = (value) => {
+        if (value === '' || value === null || value === undefined) {
+          return null;
+        }
+        const parsed = Number.parseInt(value, 10);
+        return Number.isNaN(parsed) ? null : parsed;
+      };
+
+      // Build API payload with only schema-supported fields
       const sanitizedData = {
-        ...apiFormData,
-        delivery_package_count: formData.delivery_package_count === '' ? null : parseInt(formData.delivery_package_count) || null,
-        expected_duration_hours: formData.expected_duration_hours === '' ? null : parseInt(formData.expected_duration_hours) || null,
+        name: formData.name.trim(),
+        mobile_number: formData.mobile_number.trim(),
+        email: formData.email.trim() || null,
+        purpose_of_visit: formData.purpose_of_visit.trim(),
+        allowed_floor: formData.allowed_floor,
+        image_base64: formData.image_base64 || null,
+        visitor_type: formData.visitor_type || 'guest',
+        host_name: formData.host_name.trim() || null,
+        host_phone: formData.host_phone.trim() || null,
+        company_name: formData.company_name.trim() || null,
+        company_address: formData.company_address.trim() || null,
+        is_recurring: Boolean(formData.is_recurring),
+        work_description: formData.work_description.trim() || null,
+        expected_duration_hours: parseOptionalInt(formData.expected_duration_hours),
+        delivery_package_count: parseOptionalInt(formData.delivery_package_count),
+        delivery_recipient_name: formData.delivery_recipient_name.trim() || null,
+        special_instructions: formData.special_instructions.trim() || null,
       };
 
       const response = await visitorService.createVisitor(organizationId, sanitizedData);
@@ -474,6 +495,16 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
         errorMessage = 'Access denied. You do not have permission to check-in visitors.';
       } else if (error.response?.status === 404) {
         errorMessage = 'Organization not found or API endpoint missing.';
+      } else if (error.response?.status === 400 && error.response?.data?.errors) {
+        const validationErrors = error.response.data.errors;
+        const firstErrorEntry = Object.entries(validationErrors)[0];
+        if (firstErrorEntry) {
+          const [fieldName, fieldMessages] = firstErrorEntry;
+          const firstMessage = Array.isArray(fieldMessages) ? fieldMessages[0] : fieldMessages;
+          errorMessage = `${fieldName}: ${firstMessage}`;
+        } else {
+          errorMessage = error.response?.data?.message || 'Validation failed.';
+        }
       } else if (error.response?.status === 422) {
         errorMessage = error.response?.data?.message || 'Invalid data provided.';
       } else if (error.response?.data?.message) {
