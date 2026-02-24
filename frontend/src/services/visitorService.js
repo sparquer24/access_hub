@@ -201,6 +201,31 @@ export const visitorService = {
   },
 
   /**
+   * Get existing visitor by mobile number
+   * @param {string} organizationId - Organization ID
+   * @param {string} mobileNumber - Visitor mobile number
+   * @returns {Promise<Object|null>}
+   */
+  getExistingVisitorByMobile: async (organizationId, mobileNumber) => {
+    try {
+      const response = await api.get(
+        `${ORG_VISITOR_API_BASE}/${organizationId}/visitors/search`,
+        { params: { mobile_number: mobileNumber } }
+      );
+      
+      // Return first match if exists
+      if (response.data?.success && response.data?.data?.length > 0) {
+        return response.data.data[0];
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error fetching visitor by mobile:', error);
+      return null;
+    }
+  },
+
+  /**
    * Record physical movement (entry/exit)
    * @param {string} organizationId - Organization ID
    * @param {string} visitorId - Visitor ID

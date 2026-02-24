@@ -30,7 +30,7 @@ bcrypt>=4.1.2
 # pillow>=10.2.0
 # numpy>=1.26.4
 # opencv-python-headless>=4.9.0.80
-# albumentations>=1.4.0
+albumentations>=1.4.0
 requests>=2.31.0
 qdrant-client>=1.8.0
 # ultralytics>=8.1.0
@@ -62,6 +62,6 @@ Werkzeug>=3.0.0
 blinker>=1.9.0
 tensorflow==2.14.0
 keras==2.14.0
-opencv-python-headless
+opencv-python
 deepface==0.0.93
 ultralytics==8.1.0
