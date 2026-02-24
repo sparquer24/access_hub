@@ -11,7 +11,7 @@ import { useToast } from '../../../contexts/ToastContext';
 
 const OrganizationVisitors = ({ organizationId, organization }) => {
   const { error: showError } = useToast();
-  const [activeSubTab, setActiveSubTab] = useState('overview'); // checkin, security, logs, overview
+  const [activeSubTab, setActiveSubTab] = useState('logs'); // checkin, security, logs, overview
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [stats, setStats] = useState({
     active_visitors: 0,
