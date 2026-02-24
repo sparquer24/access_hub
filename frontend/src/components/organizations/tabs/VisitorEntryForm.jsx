@@ -187,7 +187,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
 
     const timer = setTimeout(async () => {
       try {
-        const visitor = await visitorService.getExistingVisitorByMobileMock(organizationId, mobile);
+        const visitor = await visitorService.getExistingVisitorByMobile(organizationId, mobile);
         setLastCheckedMobile(mobile);
 
         if (!visitor) {

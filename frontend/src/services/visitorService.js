@@ -3,43 +3,6 @@ import api from './api';
 const VISITOR_API_BASE = '/api/v2/visitors';
 const ORG_VISITOR_API_BASE = '/api/v2/organizations';
 
-const MOCK_VISITOR_DATA_BY_MOBILE = {
-  '9876543210': {
-    id: 'mock-visitor-1',
-    name: 'Rahul Sharma',
-    mobile_number: '9876543210',
-    email: 'rahul.sharma@example.com',
-    gender: 'male',
-    visitor_type: 'guest',
-    purpose_of_visit: 'Meeting',
-    host_name: 'Amit Verma',
-    host_phone: '9876501234',
-    allowed_floor: 'Floor 2',
-    from_date: '2026-02-20',
-    to_date: '2026-02-20',
-    image_base64: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="100%" height="100%" fill="%23d1fae5"/><circle cx="200" cy="110" r="55" fill="%230f766e"/><rect x="110" y="175" width="180" height="90" rx="45" fill="%230f766e"/><text x="200" y="290" text-anchor="middle" font-size="20" fill="%230f766e">Stored Visitor Image</text></svg>',
-    last_visit_at: '2026-02-20T10:30:00Z'
-  },
-  '9123456789': {
-    id: 'mock-visitor-2',
-    name: 'Sneha Iyer',
-    mobile_number: '9123456789',
-    email: 'sneha.iyer@example.com',
-    gender: 'female',
-    visitor_type: 'vendor',
-    purpose_of_visit: 'Vendor discussion',
-    host_name: 'Nisha Rao',
-    host_phone: '9000012345',
-    allowed_floor: 'Floor 3',
-    from_date: '2026-02-21',
-    to_date: '2026-02-21',
-    company_name: 'ABC Supplies',
-    company_address: 'MG Road, Bengaluru',
-    image_base64: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="100%" height="100%" fill="%23e0f2fe"/><circle cx="200" cy="110" r="55" fill="%230364a1"/><rect x="110" y="175" width="180" height="90" rx="45" fill="%230364a1"/><text x="200" y="290" text-anchor="middle" font-size="20" fill="%230364a1">Stored Visitor Image</text></svg>',
-    last_visit_at: '2026-02-21T16:15:00Z'
-  }
-};
-
 export const visitorService = {
   /**
    * Get visitor stats
@@ -238,20 +201,28 @@ export const visitorService = {
   },
 
   /**
-   * Mock existing visitor lookup by mobile number.
-   * Temporary helper for Visitor Form until backend endpoint is available.
-   * @param {string} organizationId - Organization ID (kept for future parity)
+   * Get existing visitor by mobile number
+   * @param {string} organizationId - Organization ID
    * @param {string} mobileNumber - Visitor mobile number
    * @returns {Promise<Object|null>}
    */
-  getExistingVisitorByMobileMock: async (organizationId, mobileNumber) => {
-    const sanitizedMobile = String(mobileNumber || '').trim();
-
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(MOCK_VISITOR_DATA_BY_MOBILE[sanitizedMobile] || null);
-      }, 450);
-    });
+  getExistingVisitorByMobile: async (organizationId, mobileNumber) => {
+    try {
+      const response = await api.get(
+        `${ORG_VISITOR_API_BASE}/${organizationId}/visitors/search`,
+        { params: { mobile_number: mobileNumber } }
+      );
+      
+      // Return first match if exists
+      if (response.data?.success && response.data?.data?.length > 0) {
+        return response.data.data[0];
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error fetching visitor by mobile:', error);
+      return null;
+    }
   },
 
   /**
