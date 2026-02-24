@@ -5,6 +5,8 @@ const WebcamCapture = ({ onImageCapture, onBack }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
+  const startupTimeoutRef = useRef(null);
+  const streamSessionRef = useRef(0);
   const isMountedRef = useRef(true);
   const isCapturingRef = useRef(false);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -12,40 +14,118 @@ const WebcamCapture = ({ onImageCapture, onBack }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Clean up stream on unmount - AGGRESSIVE CLEANUP
-  useEffect(() => {
-    return () => {
-      console.log('🛑🛑🛑 WebcamCapture UNMOUNTING - Initiating aggressive cleanup...');
-      try {
-        // Stop all tracks
-        if (streamRef.current) {
-          const tracks = streamRef.current.getTracks();
-          console.log(`Unmount cleanup: Found ${tracks.length} tracks`);
-          tracks.forEach((track, i) => {
-            track.enabled = false;
-            track.stop();
-            console.log(`Unmount: Track ${i + 1} disabled and stopped`);
-          });
-          streamRef.current = null;
-        }
-        
-        // Clear video element
-        if (videoRef.current) {
-          videoRef.current.pause();
-          videoRef.current.srcObject = null;
-          videoRef.current.src = '';
-          videoRef.current.style.display = 'none';
-          console.log('Unmount: Video element cleared');
-        }
-        
-        console.log('🛑🛑🛑 UNMOUNT CLEANUP COMPLETE - All camera resources released');
-      } catch (error) {
-        console.error('Error during unmount cleanup:', error);
+  const logStreamTracks = useCallback((label, stream) => {
+    if (!stream || typeof stream.getTracks !== 'function') {
+      console.log(`[Webcam][${label}] no stream`);
+      return;
+    }
+
+    const tracks = stream.getTracks();
+    if (!tracks.length) {
+      console.log(`[Webcam][${label}] stream has 0 tracks`);
+      return;
+    }
+
+    console.log(
+      `[Webcam][${label}] tracks:`,
+      tracks.map((track) => ({
+        kind: track.kind,
+        id: track.id,
+        enabled: track.enabled,
+        muted: track.muted,
+        readyState: track.readyState,
+      }))
+    );
+  }, []);
+
+  const stopStreamTracks = useCallback((stream, label) => {
+    if (!stream || typeof stream.getTracks !== 'function') return;
+
+    logStreamTracks(`${label}-before-stop`, stream);
+    stream.getTracks().forEach((track) => {
+      track.enabled = false;
+      track.stop();
+    });
+    logStreamTracks(`${label}-after-stop`, stream);
+  }, [logStreamTracks]);
+
+  const stopWebcam = useCallback(() => {
+    try {
+      streamSessionRef.current += 1;
+
+      if (startupTimeoutRef.current) {
+        clearTimeout(startupTimeoutRef.current);
+        startupTimeoutRef.current = null;
       }
-    };
+
+      if (videoRef.current) {
+        const videoElement = videoRef.current;
+        const elementStream = videoElement.srcObject;
+
+        stopStreamTracks(elementStream, 'video-srcObject');
+        stopStreamTracks(streamRef.current, 'streamRef');
+
+        videoElement.onloadedmetadata = null;
+        videoElement.onplay = null;
+        videoElement.onerror = null;
+
+        videoElement.pause();
+        videoElement.srcObject = null;
+        videoElement.removeAttribute('src');
+        videoElement.load();
+      } else if (streamRef.current) {
+        stopStreamTracks(streamRef.current, 'streamRef-no-video');
+      }
+
+      if (streamRef.current) {
+        streamRef.current = null;
+      }
+
+      setTimeout(() => {
+        const videoStream = videoRef.current?.srcObject;
+        const refStream = streamRef.current;
+        console.log('[Webcam][post-stop-check] srcObject exists:', Boolean(videoStream), 'streamRef exists:', Boolean(refStream));
+        if (videoStream) logStreamTracks('post-stop-srcObject', videoStream);
+        if (refStream) logStreamTracks('post-stop-streamRef', refStream);
+      }, 0);
+
+      setTimeout(() => {
+        const videoStream = videoRef.current?.srcObject;
+        const refStream = streamRef.current;
+        console.log('[Webcam][post-stop-check-500ms] srcObject exists:', Boolean(videoStream), 'streamRef exists:', Boolean(refStream));
+        if (videoStream) logStreamTracks('post-stop-500ms-srcObject', videoStream);
+        if (refStream) logStreamTracks('post-stop-500ms-streamRef', refStream);
+      }, 500);
+
+      setTimeout(() => {
+        const videoStream = videoRef.current?.srcObject;
+        const refStream = streamRef.current;
+        console.log('[Webcam][post-stop-check-1500ms] srcObject exists:', Boolean(videoStream), 'streamRef exists:', Boolean(refStream));
+        if (videoStream) logStreamTracks('post-stop-1500ms-srcObject', videoStream);
+        if (refStream) logStreamTracks('post-stop-1500ms-streamRef', refStream);
+      }, 1500);
+
+      if (isMountedRef.current) {
+        setIsLoading(false);
+        setError(null);
+        setIsStreaming(false);
+      } else {
+        setIsStreaming(false);
+      }
+    } catch (stopError) {
+      console.error('Error stopping webcam:', stopError);
+    }
+  }, [logStreamTracks, stopStreamTracks]);
+
+  const canvasToBlob = useCallback((canvas, type = 'image/jpeg', quality = 0.95) => {
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => resolve(blob), type, quality);
+    });
   }, []);
 
   const startWebcam = useCallback(async () => {
+    const startSessionId = ++streamSessionRef.current;
+
     if (!isMountedRef.current) {
       console.log('⚠️ Component not mounted, aborting startWebcam');
       return;
@@ -65,9 +145,13 @@ const WebcamCapture = ({ onImageCapture, onBack }) => {
       
       // Stop any existing stream first
       if (streamRef.current) {
-        const existingTracks = streamRef.current.getTracks();
-        existingTracks.forEach(track => track.stop());
+        stopStreamTracks(streamRef.current, 'existing-stream-before-start');
         streamRef.current = null;
+      }
+
+      if (videoRef.current?.srcObject && typeof videoRef.current.srcObject.getTracks === 'function') {
+        stopStreamTracks(videoRef.current.srcObject, 'video-srcObject-before-start');
+        videoRef.current.srcObject = null;
       }
       
       // Request permission explicitly
@@ -81,6 +165,13 @@ const WebcamCapture = ({ onImageCapture, onBack }) => {
       });
       
       console.log('Camera stream received:', stream);
+      logStreamTracks('new-stream-received', stream);
+
+      if (startSessionId !== streamSessionRef.current) {
+        console.warn('[Webcam] stale getUserMedia result detected, stopping stale stream');
+        stopStreamTracks(stream, 'stale-stream');
+        return;
+      }
       
       if (!isMountedRef.current) {
         console.log('⚠️ Component unmounted during getUserMedia, stopping stream');
@@ -117,7 +208,13 @@ const WebcamCapture = ({ onImageCapture, onBack }) => {
         
         if (!isMountedRef.current) {
           console.log('⚠️ Component unmounted, stopping stream');
-          stream.getTracks().forEach(track => track.stop());
+          stopStreamTracks(stream, 'unmounted-before-attach');
+          return;
+        }
+
+        if (startSessionId !== streamSessionRef.current) {
+          console.warn('[Webcam] stale stream before attach, stopping stream');
+          stopStreamTracks(stream, 'stale-before-attach');
           return;
         }
         
@@ -125,8 +222,6 @@ const WebcamCapture = ({ onImageCapture, onBack }) => {
         streamRef.current = stream;
         
         console.log('Stream attached to video element');
-        
-        let timeoutId = null;
         
         // Wait for video to be ready and playing
         videoElement.onloadedmetadata = () => {
@@ -150,16 +245,13 @@ const WebcamCapture = ({ onImageCapture, onBack }) => {
         };
         
         // Fallback timeout with proper cleanup
-        timeoutId = setTimeout(() => {
-          if (!isCapturingRef.current && isMountedRef.current && videoElement && streamRef.current && !isStreaming) {
+        startupTimeoutRef.current = setTimeout(() => {
+          if (!isCapturingRef.current && isMountedRef.current && videoElement && streamRef.current) {
             console.log('Fallback: Setting streaming to true');
             setIsStreaming(true);
             setIsLoading(false);
           }
         }, 3000);
-        
-        // Store timeout ID for cleanup if needed
-        videoElement.timeoutId = timeoutId;
         
       } catch (videoError) {
         console.error('Video element error:', videoError);
@@ -203,6 +295,7 @@ const WebcamCapture = ({ onImageCapture, onBack }) => {
             basicStream.getTracks().forEach(track => track.stop());
           }
         } catch (basicError) {
+          console.error('Basic camera fallback failed:', basicError);
           errorMessage = '❌ Camera access failed. Please check your camera permissions.';
         }
       }
@@ -213,82 +306,31 @@ const WebcamCapture = ({ onImageCapture, onBack }) => {
         message.error(errorMessage);
       }
     }
-  }, []);
+  }, [logStreamTracks, stopStreamTracks]);
 
   // Auto-start webcam on component mount
   useEffect(() => {
     isMountedRef.current = true;
     console.log('✨ WebcamCapture mounted');
     startWebcam();
+
+    const handlePageClose = () => {
+      stopWebcam();
+    };
+
+    window.addEventListener('beforeunload', handlePageClose);
+    window.addEventListener('pagehide', handlePageClose);
     
     // Cleanup on unmount
     return () => {
       isMountedRef.current = false;
-      console.log('✨ WebcamCapture UNMOUNTING - Stopping all resources');
-      
-      if (streamRef.current) {
-        const tracks = streamRef.current.getTracks();
-        tracks.forEach(track => {
-          track.enabled = false;
-          track.stop();
-        });
-        streamRef.current = null;
-      }
-      
-      if (videoRef.current) {
-        videoRef.current.pause();
-        videoRef.current.autoplay = false;
-        videoRef.current.srcObject = null;
-        videoRef.current.src = '';
-      }
+      window.removeEventListener('beforeunload', handlePageClose);
+      window.removeEventListener('pagehide', handlePageClose);
+      stopWebcam();
     };
-  }, []);
+  }, [startWebcam, stopWebcam]);
 
-  const stopWebcam = () => {
-    try {
-      console.log('🛑 STOPPING CAMERA - Nuclear mode...');
-      
-      // Step 1: Stop all tracks in the stream
-      if (streamRef.current) {
-        console.log('🔴 Found stream, stopping all tracks...');
-        const tracks = streamRef.current.getTracks();
-        console.log(`🔴 Total tracks to stop: ${tracks}======= ${tracks.length}`);
-        console.log(`Total tracks found: ${tracks.length}`);
-        
-        tracks.forEach((track, index) => {
-          console.log(`[${index + 1}/${tracks.length}] Stopping: ${track.kind}`);
-          track.enabled = false;
-          track.stop();
-          console.log(`[${index + 1}/${tracks.length}] ✅ Track stopped`);
-        });
-        
-        streamRef.current = null;
-        console.log('✅ Stream reference nullified');
-      }
-      
-      // Step 2: Clear video element completely
-      if (videoRef.current) {
-        console.log('🔴 Clearing video element...');
-        videoRef.current.pause();
-        videoRef.current.autoplay = false;
-        videoRef.current.srcObject = null;
-        videoRef.current.src = '';
-        videoRef.current.currentTime = 0;
-        videoRef.current.style.display = 'none';
-        console.log('✅ Video element completely cleared');
-      }
-      
-      // Step 3: Update state
-      setIsStreaming(false);
-      setError(null);
-      
-      console.log('🎬 ✅ CAMERA COMPLETELY STOPPED');
-    } catch (error) {
-      console.error('❌ ERROR in stopWebcam:', error);
-    }
-  };
-
-  const captureImage = () => {
+  const captureImage = async () => {
     if (!videoRef.current || !canvasRef.current || !isStreaming) {
       message.error('Camera not ready for capture');
       return;
@@ -309,13 +351,13 @@ const WebcamCapture = ({ onImageCapture, onBack }) => {
       // Draw video frame to canvas
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // Convert canvas to base64
+      // Convert canvas to base64 + blob
       const base64Image = canvas.toDataURL('image/jpeg', 0.95);
+      const imageBlob = await canvasToBlob(canvas, 'image/jpeg', 0.95);
       
       console.log('📸 Image captured, stopping camera and sending to parent...');
       
-      // Stop the webcam immediately and aggressively
-      console.log('🛑 Calling stopWebcam from captureImage');
+      // Stop webcam immediately after successful capture
       stopWebcam();
       
       // Set captured image
@@ -323,7 +365,7 @@ const WebcamCapture = ({ onImageCapture, onBack }) => {
       
       // Automatically send image to parent component
       if (onImageCapture) {
-        onImageCapture(base64Image);
+        onImageCapture(base64Image, imageBlob);
         console.log('✅ Image sent to parent component');
       }
       
