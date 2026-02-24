@@ -12741,3 +12741,1960 @@ AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 
                    ^^^^^^^^^^^^^^^^^^^^
 AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
 
+[2026-02-23 13:13:46,719] ERROR in routes: Unhandled error in auth login
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\app\api\auth\routes.py", line 130, in login
+    result = AuthService.login(
+        username_or_email=data['username'],
+        password=data['password']
+    )
+  File "C:\Users\manoj\access_hub\backend\app\services\auth_service.py", line 33, in login
+    user = User.query.filter(
+           ^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+           ~~~~~~~~~~~~~~~^
+        cls, session=cls.__fsa__.session()  # type: ignore[arg-type]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 289, in _set_entities
+    coercions.expect(
+    ~~~~~~~~~~~~~~~~^
+        roles.ColumnsClauseRole,
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        post_inspect=True,
+        ^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\sql\coercions.py", line 389, in expect
+    insp._post_inspect
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\util\langhelpers.py", line 1338, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ~~~~~~~~~^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2733, in _post_inspect
+    self._check_configure()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2410, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4227, in _configure_registries
+    _do_configure_registries(registries, cascade)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4264, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[VisitorHistoryDetail(visitor_history_details)]'. Original exception was: Could not determine join condition between parent/child tables on relationship VisitorHistoryDetail.visitor - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+[2026-02-23 13:14:01,306] ERROR in routes: Unhandled error in auth login
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\app\api\auth\routes.py", line 130, in login
+    result = AuthService.login(
+        username_or_email=data['username'],
+        password=data['password']
+    )
+  File "C:\Users\manoj\access_hub\backend\app\services\auth_service.py", line 33, in login
+    user = User.query.filter(
+           ^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+           ~~~~~~~~~~~~~~~^
+        cls, session=cls.__fsa__.session()  # type: ignore[arg-type]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 289, in _set_entities
+    coercions.expect(
+    ~~~~~~~~~~~~~~~~^
+        roles.ColumnsClauseRole,
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        post_inspect=True,
+        ^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\sql\coercions.py", line 389, in expect
+    insp._post_inspect
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\util\langhelpers.py", line 1338, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ~~~~~~~~~^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2733, in _post_inspect
+    self._check_configure()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2410, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4227, in _configure_registries
+    _do_configure_registries(registries, cascade)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4264, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[VisitorHistoryDetail(visitor_history_details)]'. Original exception was: Could not determine join condition between parent/child tables on relationship VisitorHistoryDetail.visitor - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+[2026-02-23 13:14:21,354] ERROR in routes: Unhandled error in auth login
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\app\api\auth\routes.py", line 130, in login
+    result = AuthService.login(
+        username_or_email=data['username'],
+        password=data['password']
+    )
+  File "C:\Users\manoj\access_hub\backend\app\services\auth_service.py", line 33, in login
+    user = User.query.filter(
+           ^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+           ~~~~~~~~~~~~~~~^
+        cls, session=cls.__fsa__.session()  # type: ignore[arg-type]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 289, in _set_entities
+    coercions.expect(
+    ~~~~~~~~~~~~~~~~^
+        roles.ColumnsClauseRole,
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        post_inspect=True,
+        ^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\sql\coercions.py", line 389, in expect
+    insp._post_inspect
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\util\langhelpers.py", line 1338, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ~~~~~~~~~^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2733, in _post_inspect
+    self._check_configure()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2410, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4227, in _configure_registries
+    _do_configure_registries(registries, cascade)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4264, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[VisitorHistoryDetail(visitor_history_details)]'. Original exception was: Could not determine join condition between parent/child tables on relationship VisitorHistoryDetail.visitor - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+[2026-02-23 13:15:43,523] ERROR in routes: Unhandled error in auth login
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\app\api\auth\routes.py", line 130, in login
+    result = AuthService.login(
+        username_or_email=data['username'],
+        password=data['password']
+    )
+  File "C:\Users\manoj\access_hub\backend\app\services\auth_service.py", line 33, in login
+    user = User.query.filter(
+           ^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+           ~~~~~~~~~~~~~~~^
+        cls, session=cls.__fsa__.session()  # type: ignore[arg-type]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 289, in _set_entities
+    coercions.expect(
+    ~~~~~~~~~~~~~~~~^
+        roles.ColumnsClauseRole,
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        post_inspect=True,
+        ^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\sql\coercions.py", line 389, in expect
+    insp._post_inspect
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\util\langhelpers.py", line 1338, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ~~~~~~~~~^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2733, in _post_inspect
+    self._check_configure()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2410, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4227, in _configure_registries
+    _do_configure_registries(registries, cascade)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4264, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[VisitorHistoryDetail(visitor_history_details)]'. Original exception was: Could not determine join condition between parent/child tables on relationship VisitorHistoryDetail.visitor - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+[2026-02-23 13:23:27,158] ERROR in routes: Unhandled error in auth login
+Traceback (most recent call last):
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\relationships.py", line 2434, in _determine_joins
+    self.primaryjoin = join_condition(
+                       ~~~~~~~~~~~~~~^
+        self.parent_persist_selectable,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        consider_as_foreign_keys=consider_as_foreign_keys,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\sql\util.py", line 121, in join_condition
+    return Join._join_condition(
+           ~~~~~~~~~~~~~~~~~~~~^
+        a,
+        ^^
+    ...<2 lines>...
+        consider_as_foreign_keys=consider_as_foreign_keys,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\sql\selectable.py", line 1453, in _join_condition
+    raise exc.NoForeignKeysError(
+    ...<3 lines>...
+    )
+sqlalchemy.exc.NoForeignKeysError: Can't find any foreign key relationships between 'visitor_history_details' and 'visitors'.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\app\api\auth\routes.py", line 130, in login
+    result = AuthService.login(
+        username_or_email=data['username'],
+        password=data['password']
+    )
+  File "C:\Users\manoj\access_hub\backend\app\services\auth_service.py", line 33, in login
+    user = User.query.filter(
+           ^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+           ~~~~~~~~~~~~~~~^
+        cls, session=cls.__fsa__.session()  # type: ignore[arg-type]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 289, in _set_entities
+    coercions.expect(
+    ~~~~~~~~~~~~~~~~^
+        roles.ColumnsClauseRole,
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        post_inspect=True,
+        ^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\sql\coercions.py", line 389, in expect
+    insp._post_inspect
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\util\langhelpers.py", line 1338, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ~~~~~~~~~^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2733, in _post_inspect
+    self._check_configure()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2410, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4227, in _configure_registries
+    _do_configure_registries(registries, cascade)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4268, in _do_configure_registries
+    mapper._post_configure_properties()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2427, in _post_configure_properties
+    prop.init()
+    ~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\interfaces.py", line 595, in init
+    self.do_init()
+    ~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\relationships.py", line 1657, in do_init
+    self._setup_join_conditions()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\relationships.py", line 1895, in _setup_join_conditions
+    self._join_condition = jc = JoinCondition(
+                                ~~~~~~~~~~~~~^
+        parent_persist_selectable=self.parent.persist_selectable,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<14 lines>...
+        can_be_synced_fn=self._columns_are_mapped,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\relationships.py", line 2321, in __init__
+    self._determine_joins()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\relationships.py", line 2455, in _determine_joins
+    raise sa_exc.NoForeignKeysError(
+    ...<7 lines>...
+    ) from nfe
+sqlalchemy.exc.NoForeignKeysError: Could not determine join condition between parent/child tables on relationship VisitorHistoryDetail.visitor - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+[2026-02-23 13:23:42,958] ERROR in routes: Unhandled error in auth login
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\app\api\auth\routes.py", line 130, in login
+    result = AuthService.login(
+        username_or_email=data['username'],
+        password=data['password']
+    )
+  File "C:\Users\manoj\access_hub\backend\app\services\auth_service.py", line 33, in login
+    user = User.query.filter(
+           ^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+           ~~~~~~~~~~~~~~~^
+        cls, session=cls.__fsa__.session()  # type: ignore[arg-type]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 289, in _set_entities
+    coercions.expect(
+    ~~~~~~~~~~~~~~~~^
+        roles.ColumnsClauseRole,
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        post_inspect=True,
+        ^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\sql\coercions.py", line 389, in expect
+    insp._post_inspect
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\util\langhelpers.py", line 1338, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ~~~~~~~~~^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2733, in _post_inspect
+    self._check_configure()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2410, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4227, in _configure_registries
+    _do_configure_registries(registries, cascade)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4264, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[VisitorHistoryDetail(visitor_history_details)]'. Original exception was: Could not determine join condition between parent/child tables on relationship VisitorHistoryDetail.visitor - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+[2026-02-23 16:03:06,637] ERROR in routes: Unhandled error in auth login
+Traceback (most recent call last):
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\relationships.py", line 2434, in _determine_joins
+    self.primaryjoin = join_condition(
+                       ~~~~~~~~~~~~~~^
+        self.parent_persist_selectable,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        consider_as_foreign_keys=consider_as_foreign_keys,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\sql\util.py", line 121, in join_condition
+    return Join._join_condition(
+           ~~~~~~~~~~~~~~~~~~~~^
+        a,
+        ^^
+    ...<2 lines>...
+        consider_as_foreign_keys=consider_as_foreign_keys,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\sql\selectable.py", line 1453, in _join_condition
+    raise exc.NoForeignKeysError(
+    ...<3 lines>...
+    )
+sqlalchemy.exc.NoForeignKeysError: Can't find any foreign key relationships between 'visitor_history_details' and 'visitors'.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\app\api\auth\routes.py", line 130, in login
+    result = AuthService.login(
+        username_or_email=data['username'],
+        password=data['password']
+    )
+  File "C:\Users\manoj\access_hub\backend\app\services\auth_service.py", line 33, in login
+    user = User.query.filter(
+           ^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+           ~~~~~~~~~~~~~~~^
+        cls, session=cls.__fsa__.session()  # type: ignore[arg-type]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 289, in _set_entities
+    coercions.expect(
+    ~~~~~~~~~~~~~~~~^
+        roles.ColumnsClauseRole,
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        post_inspect=True,
+        ^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\sql\coercions.py", line 389, in expect
+    insp._post_inspect
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\util\langhelpers.py", line 1338, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ~~~~~~~~~^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2733, in _post_inspect
+    self._check_configure()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2410, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4227, in _configure_registries
+    _do_configure_registries(registries, cascade)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4268, in _do_configure_registries
+    mapper._post_configure_properties()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2427, in _post_configure_properties
+    prop.init()
+    ~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\interfaces.py", line 595, in init
+    self.do_init()
+    ~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\relationships.py", line 1657, in do_init
+    self._setup_join_conditions()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\relationships.py", line 1895, in _setup_join_conditions
+    self._join_condition = jc = JoinCondition(
+                                ~~~~~~~~~~~~~^
+        parent_persist_selectable=self.parent.persist_selectable,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<14 lines>...
+        can_be_synced_fn=self._columns_are_mapped,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\relationships.py", line 2321, in __init__
+    self._determine_joins()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\relationships.py", line 2455, in _determine_joins
+    raise sa_exc.NoForeignKeysError(
+    ...<7 lines>...
+    ) from nfe
+sqlalchemy.exc.NoForeignKeysError: Could not determine join condition between parent/child tables on relationship VisitorHistoryDetail.visitor - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+[2026-02-23 16:03:53,796] ERROR in routes: Unhandled error in auth login
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\app\api\auth\routes.py", line 130, in login
+    result = AuthService.login(
+        username_or_email=data['username'],
+        password=data['password']
+    )
+  File "C:\Users\manoj\access_hub\backend\app\services\auth_service.py", line 33, in login
+    user = User.query.filter(
+           ^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+           ~~~~~~~~~~~~~~~^
+        cls, session=cls.__fsa__.session()  # type: ignore[arg-type]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 289, in _set_entities
+    coercions.expect(
+    ~~~~~~~~~~~~~~~~^
+        roles.ColumnsClauseRole,
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        post_inspect=True,
+        ^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\sql\coercions.py", line 389, in expect
+    insp._post_inspect
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\util\langhelpers.py", line 1338, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ~~~~~~~~~^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2733, in _post_inspect
+    self._check_configure()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2410, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4227, in _configure_registries
+    _do_configure_registries(registries, cascade)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4264, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[VisitorHistoryDetail(visitor_history_details)]'. Original exception was: Could not determine join condition between parent/child tables on relationship VisitorHistoryDetail.visitor - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+[2026-02-23 16:04:03,132] ERROR in routes: Unhandled error in auth login
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\app\api\auth\routes.py", line 130, in login
+    result = AuthService.login(
+        username_or_email=data['username'],
+        password=data['password']
+    )
+  File "C:\Users\manoj\access_hub\backend\app\services\auth_service.py", line 33, in login
+    user = User.query.filter(
+           ^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+           ~~~~~~~~~~~~~~~^
+        cls, session=cls.__fsa__.session()  # type: ignore[arg-type]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 289, in _set_entities
+    coercions.expect(
+    ~~~~~~~~~~~~~~~~^
+        roles.ColumnsClauseRole,
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        post_inspect=True,
+        ^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\sql\coercions.py", line 389, in expect
+    insp._post_inspect
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\util\langhelpers.py", line 1338, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ~~~~~~~~~^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2733, in _post_inspect
+    self._check_configure()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2410, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4227, in _configure_registries
+    _do_configure_registries(registries, cascade)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4264, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[VisitorHistoryDetail(visitor_history_details)]'. Original exception was: Could not determine join condition between parent/child tables on relationship VisitorHistoryDetail.visitor - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+[2026-02-23 16:09:08,054] ERROR in routes: Unhandled error in auth login
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\app\api\auth\routes.py", line 130, in login
+    result = AuthService.login(
+        username_or_email=data['username'],
+        password=data['password']
+    )
+  File "C:\Users\manoj\access_hub\backend\app\services\auth_service.py", line 33, in login
+    user = User.query.filter(
+           ^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+           ~~~~~~~~~~~~~~~^
+        cls, session=cls.__fsa__.session()  # type: ignore[arg-type]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 289, in _set_entities
+    coercions.expect(
+    ~~~~~~~~~~~~~~~~^
+        roles.ColumnsClauseRole,
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        post_inspect=True,
+        ^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\sql\coercions.py", line 389, in expect
+    insp._post_inspect
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\util\langhelpers.py", line 1338, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ~~~~~~~~~^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2733, in _post_inspect
+    self._check_configure()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2410, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4227, in _configure_registries
+    _do_configure_registries(registries, cascade)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4264, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[VisitorHistoryDetail(visitor_history_details)]'. Original exception was: Could not determine join condition between parent/child tables on relationship VisitorHistoryDetail.visitor - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+[2026-02-23 16:10:18,184] ERROR in routes: Unhandled error in auth login
+Traceback (most recent call last):
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\relationships.py", line 2434, in _determine_joins
+    self.primaryjoin = join_condition(
+                       ~~~~~~~~~~~~~~^
+        self.parent_persist_selectable,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        consider_as_foreign_keys=consider_as_foreign_keys,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\sql\util.py", line 121, in join_condition
+    return Join._join_condition(
+           ~~~~~~~~~~~~~~~~~~~~^
+        a,
+        ^^
+    ...<2 lines>...
+        consider_as_foreign_keys=consider_as_foreign_keys,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\sql\selectable.py", line 1453, in _join_condition
+    raise exc.NoForeignKeysError(
+    ...<3 lines>...
+    )
+sqlalchemy.exc.NoForeignKeysError: Can't find any foreign key relationships between 'visitor_history_details' and 'visitors'.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\app\api\auth\routes.py", line 130, in login
+    result = AuthService.login(
+        username_or_email=data['username'],
+        password=data['password']
+    )
+  File "C:\Users\manoj\access_hub\backend\app\services\auth_service.py", line 33, in login
+    user = User.query.filter(
+           ^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+           ~~~~~~~~~~~~~~~^
+        cls, session=cls.__fsa__.session()  # type: ignore[arg-type]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 289, in _set_entities
+    coercions.expect(
+    ~~~~~~~~~~~~~~~~^
+        roles.ColumnsClauseRole,
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        post_inspect=True,
+        ^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\sql\coercions.py", line 389, in expect
+    insp._post_inspect
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\util\langhelpers.py", line 1338, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ~~~~~~~~~^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2733, in _post_inspect
+    self._check_configure()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2410, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4227, in _configure_registries
+    _do_configure_registries(registries, cascade)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4268, in _do_configure_registries
+    mapper._post_configure_properties()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2427, in _post_configure_properties
+    prop.init()
+    ~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\interfaces.py", line 595, in init
+    self.do_init()
+    ~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\relationships.py", line 1657, in do_init
+    self._setup_join_conditions()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\relationships.py", line 1895, in _setup_join_conditions
+    self._join_condition = jc = JoinCondition(
+                                ~~~~~~~~~~~~~^
+        parent_persist_selectable=self.parent.persist_selectable,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<14 lines>...
+        can_be_synced_fn=self._columns_are_mapped,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\relationships.py", line 2321, in __init__
+    self._determine_joins()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\relationships.py", line 2455, in _determine_joins
+    raise sa_exc.NoForeignKeysError(
+    ...<7 lines>...
+    ) from nfe
+sqlalchemy.exc.NoForeignKeysError: Could not determine join condition between parent/child tables on relationship VisitorHistoryDetail.visitor - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+[2026-02-23 16:13:44,288] ERROR in routes: Unhandled error in auth login
+Traceback (most recent call last):
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\relationships.py", line 2434, in _determine_joins
+    self.primaryjoin = join_condition(
+                       ~~~~~~~~~~~~~~^
+        self.parent_persist_selectable,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        consider_as_foreign_keys=consider_as_foreign_keys,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\sql\util.py", line 121, in join_condition
+    return Join._join_condition(
+           ~~~~~~~~~~~~~~~~~~~~^
+        a,
+        ^^
+    ...<2 lines>...
+        consider_as_foreign_keys=consider_as_foreign_keys,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\sql\selectable.py", line 1453, in _join_condition
+    raise exc.NoForeignKeysError(
+    ...<3 lines>...
+    )
+sqlalchemy.exc.NoForeignKeysError: Can't find any foreign key relationships between 'visitor_history_details' and 'visitors'.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\app\api\auth\routes.py", line 130, in login
+    result = AuthService.login(
+        username_or_email=data['username'],
+        password=data['password']
+    )
+  File "C:\Users\manoj\access_hub\backend\app\services\auth_service.py", line 33, in login
+    user = User.query.filter(
+           ^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+           ~~~~~~~~~~~~~~~^
+        cls, session=cls.__fsa__.session()  # type: ignore[arg-type]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 289, in _set_entities
+    coercions.expect(
+    ~~~~~~~~~~~~~~~~^
+        roles.ColumnsClauseRole,
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        post_inspect=True,
+        ^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\sql\coercions.py", line 389, in expect
+    insp._post_inspect
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\util\langhelpers.py", line 1338, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ~~~~~~~~~^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2733, in _post_inspect
+    self._check_configure()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2410, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4227, in _configure_registries
+    _do_configure_registries(registries, cascade)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4268, in _do_configure_registries
+    mapper._post_configure_properties()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2427, in _post_configure_properties
+    prop.init()
+    ~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\interfaces.py", line 595, in init
+    self.do_init()
+    ~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\relationships.py", line 1657, in do_init
+    self._setup_join_conditions()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\relationships.py", line 1895, in _setup_join_conditions
+    self._join_condition = jc = JoinCondition(
+                                ~~~~~~~~~~~~~^
+        parent_persist_selectable=self.parent.persist_selectable,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<14 lines>...
+        can_be_synced_fn=self._columns_are_mapped,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\relationships.py", line 2321, in __init__
+    self._determine_joins()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\relationships.py", line 2455, in _determine_joins
+    raise sa_exc.NoForeignKeysError(
+    ...<7 lines>...
+    ) from nfe
+sqlalchemy.exc.NoForeignKeysError: Could not determine join condition between parent/child tables on relationship VisitorHistoryDetail.visitor - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+[2026-02-23 16:14:07,373] ERROR in routes: Unhandled error in auth login
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\app\api\auth\routes.py", line 130, in login
+    result = AuthService.login(
+        username_or_email=data['username'],
+        password=data['password']
+    )
+  File "C:\Users\manoj\access_hub\backend\app\services\auth_service.py", line 33, in login
+    user = User.query.filter(
+           ^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\flask_sqlalchemy\model.py", line 22, in __get__
+    return cls.query_class(
+           ~~~~~~~~~~~~~~~^
+        cls, session=cls.__fsa__.session()  # type: ignore[arg-type]
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 276, in __init__
+    self._set_entities(entities)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\query.py", line 289, in _set_entities
+    coercions.expect(
+    ~~~~~~~~~~~~~~~~^
+        roles.ColumnsClauseRole,
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        post_inspect=True,
+        ^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\sql\coercions.py", line 389, in expect
+    insp._post_inspect
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\util\langhelpers.py", line 1338, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+                                           ~~~~~~~~~^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2733, in _post_inspect
+    self._check_configure()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 2410, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4227, in _configure_registries
+    _do_configure_registries(registries, cascade)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\AppData\Roaming\Python\Python313\site-packages\sqlalchemy\orm\mapper.py", line 4264, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[VisitorHistoryDetail(visitor_history_details)]'. Original exception was: Could not determine join condition between parent/child tables on relationship VisitorHistoryDetail.visitor - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+[2026-02-23 16:41:37,302] ERROR in errors: Database error: (psycopg2.errors.UndefinedColumn) column attendance_records.is_modified does not exist
+LINE 1: ...eview_status AS attendance_records_review_status, attendance...
+                                                             ^
+
+[SQL: SELECT attendance_records.id AS attendance_records_id, attendance_records.employee_id AS attendance_records_employee_id, attendance_records.organization_id AS attendance_records_organization_id, attendance_records.camera_id AS attendance_records_camera_id, attendance_records.date AS attendance_records_date, attendance_records.check_in_time AS attendance_records_check_in_time, attendance_records.check_out_time AS attendance_records_check_out_time, attendance_records.status AS attendance_records_status, attendance_records.work_hours AS attendance_records_work_hours, attendance_records.location_check_in AS attendance_records_location_check_in, attendance_records.location_check_out AS attendance_records_location_check_out, attendance_records.device_info AS attendance_records_device_info, attendance_records.face_match_confidence AS attendance_records_face_match_confidence, attendance_records.liveness_verified AS attendance_records_liveness_verified, attendance_records.review_status AS attendance_records_review_status, attendance_records.is_modified AS attendance_records_is_modified, attendance_records.modified_by_request_id AS attendance_records_modified_by_request_id, attendance_records.notes AS attendance_records_notes, attendance_records.approved_by AS attendance_records_approved_by, attendance_records.created_at AS attendance_records_created_at, attendance_records.updated_at AS attendance_records_updated_at 
+FROM attendance_records 
+WHERE attendance_records.organization_id = %(organization_id_1)s AND attendance_records.organization_id = %(organization_id_2)s AND attendance_records.date >= %(date_1)s AND attendance_records.date <= %(date_2)s ORDER BY attendance_records.date DESC 
+ LIMIT %(param_1)s OFFSET %(param_2)s]
+[parameters: {'organization_id_1': 'e48e7921-3b9d-41de-9ab2-142030c12dd3', 'organization_id_2': 'e48e7921-3b9d-41de-9ab2-142030c12dd3', 'date_1': datetime.date(2026, 2, 23), 'date_2': datetime.date(2026, 2, 23), 'param_1': 10, 'param_2': 0}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-02-23 16:41:37,359] ERROR in errors: Database error: (psycopg2.errors.UndefinedColumn) column attendance_records.is_modified does not exist
+LINE 1: ...eview_status AS attendance_records_review_status, attendance...
+                                                             ^
+
+[SQL: SELECT attendance_records.id AS attendance_records_id, attendance_records.employee_id AS attendance_records_employee_id, attendance_records.organization_id AS attendance_records_organization_id, attendance_records.camera_id AS attendance_records_camera_id, attendance_records.date AS attendance_records_date, attendance_records.check_in_time AS attendance_records_check_in_time, attendance_records.check_out_time AS attendance_records_check_out_time, attendance_records.status AS attendance_records_status, attendance_records.work_hours AS attendance_records_work_hours, attendance_records.location_check_in AS attendance_records_location_check_in, attendance_records.location_check_out AS attendance_records_location_check_out, attendance_records.device_info AS attendance_records_device_info, attendance_records.face_match_confidence AS attendance_records_face_match_confidence, attendance_records.liveness_verified AS attendance_records_liveness_verified, attendance_records.review_status AS attendance_records_review_status, attendance_records.is_modified AS attendance_records_is_modified, attendance_records.modified_by_request_id AS attendance_records_modified_by_request_id, attendance_records.notes AS attendance_records_notes, attendance_records.approved_by AS attendance_records_approved_by, attendance_records.created_at AS attendance_records_created_at, attendance_records.updated_at AS attendance_records_updated_at 
+FROM attendance_records 
+WHERE attendance_records.organization_id = %(organization_id_1)s AND attendance_records.organization_id = %(organization_id_2)s ORDER BY attendance_records.date DESC 
+ LIMIT %(param_1)s OFFSET %(param_2)s]
+[parameters: {'organization_id_1': 'e48e7921-3b9d-41de-9ab2-142030c12dd3', 'organization_id_2': 'e48e7921-3b9d-41de-9ab2-142030c12dd3', 'param_1': 500, 'param_2': 0}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-02-23 16:41:37,360] ERROR in errors: Database error: (psycopg2.errors.UndefinedColumn) column attendance_records.is_modified does not exist
+LINE 1: ...eview_status AS attendance_records_review_status, attendance...
+                                                             ^
+
+[SQL: SELECT attendance_records.id AS attendance_records_id, attendance_records.employee_id AS attendance_records_employee_id, attendance_records.organization_id AS attendance_records_organization_id, attendance_records.camera_id AS attendance_records_camera_id, attendance_records.date AS attendance_records_date, attendance_records.check_in_time AS attendance_records_check_in_time, attendance_records.check_out_time AS attendance_records_check_out_time, attendance_records.status AS attendance_records_status, attendance_records.work_hours AS attendance_records_work_hours, attendance_records.location_check_in AS attendance_records_location_check_in, attendance_records.location_check_out AS attendance_records_location_check_out, attendance_records.device_info AS attendance_records_device_info, attendance_records.face_match_confidence AS attendance_records_face_match_confidence, attendance_records.liveness_verified AS attendance_records_liveness_verified, attendance_records.review_status AS attendance_records_review_status, attendance_records.is_modified AS attendance_records_is_modified, attendance_records.modified_by_request_id AS attendance_records_modified_by_request_id, attendance_records.notes AS attendance_records_notes, attendance_records.approved_by AS attendance_records_approved_by, attendance_records.created_at AS attendance_records_created_at, attendance_records.updated_at AS attendance_records_updated_at 
+FROM attendance_records 
+WHERE attendance_records.organization_id = %(organization_id_1)s AND attendance_records.organization_id = %(organization_id_2)s AND attendance_records.date >= %(date_1)s AND attendance_records.date <= %(date_2)s ORDER BY attendance_records.date DESC 
+ LIMIT %(param_1)s OFFSET %(param_2)s]
+[parameters: {'organization_id_1': 'e48e7921-3b9d-41de-9ab2-142030c12dd3', 'organization_id_2': 'e48e7921-3b9d-41de-9ab2-142030c12dd3', 'date_1': datetime.date(2026, 2, 23), 'date_2': datetime.date(2026, 2, 23), 'param_1': 10, 'param_2': 0}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-02-23 16:41:39,208] ERROR in errors: Database error: (psycopg2.errors.UndefinedColumn) column attendance_records.is_modified does not exist
+LINE 1: ...eview_status AS attendance_records_review_status, attendance...
+                                                             ^
+
+[SQL: SELECT attendance_records.id AS attendance_records_id, attendance_records.employee_id AS attendance_records_employee_id, attendance_records.organization_id AS attendance_records_organization_id, attendance_records.camera_id AS attendance_records_camera_id, attendance_records.date AS attendance_records_date, attendance_records.check_in_time AS attendance_records_check_in_time, attendance_records.check_out_time AS attendance_records_check_out_time, attendance_records.status AS attendance_records_status, attendance_records.work_hours AS attendance_records_work_hours, attendance_records.location_check_in AS attendance_records_location_check_in, attendance_records.location_check_out AS attendance_records_location_check_out, attendance_records.device_info AS attendance_records_device_info, attendance_records.face_match_confidence AS attendance_records_face_match_confidence, attendance_records.liveness_verified AS attendance_records_liveness_verified, attendance_records.review_status AS attendance_records_review_status, attendance_records.is_modified AS attendance_records_is_modified, attendance_records.modified_by_request_id AS attendance_records_modified_by_request_id, attendance_records.notes AS attendance_records_notes, attendance_records.approved_by AS attendance_records_approved_by, attendance_records.created_at AS attendance_records_created_at, attendance_records.updated_at AS attendance_records_updated_at 
+FROM attendance_records 
+WHERE attendance_records.organization_id = %(organization_id_1)s AND attendance_records.organization_id = %(organization_id_2)s ORDER BY attendance_records.date DESC 
+ LIMIT %(param_1)s OFFSET %(param_2)s]
+[parameters: {'organization_id_1': 'e48e7921-3b9d-41de-9ab2-142030c12dd3', 'organization_id_2': 'e48e7921-3b9d-41de-9ab2-142030c12dd3', 'param_1': 10, 'param_2': 0}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-02-24 14:53:02,120] ERROR in routes: Unhandled error in auth login
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 3309, in raw_connection
+    return self.pool.connect()
+           ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 447, in connect
+    return _ConnectionFairy._checkout(self)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 1264, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 711, in checkout
+    rec = pool._do_get()
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\impl.py", line 177, in _do_get
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\impl.py", line 175, in _do_get
+    return self._create_connection()
+           ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 388, in _create_connection
+    return _ConnectionRecord(self)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 673, in __init__
+    self.__connect()
+    ~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 899, in __connect
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 895, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\create.py", line 661, in connect
+    return dialect.connect(*cargs, **cparams)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\app\api\auth\routes.py", line 130, in login
+    result = AuthService.login(
+        username_or_email=data['username'],
+        password=data['password']
+    )
+  File "C:\Users\manoj\access_hub\backend\app\services\auth_service.py", line 35, in login
+    ).first()
+      ~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 2759, in first
+    return self.limit(1)._iter().first()  # type: ignore
+           ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ~~~~~~~~~~~~~~~~~~~~^
+        statement,
+        ^^^^^^^^^^
+        params,
+        ^^^^^^^
+        execution_options={"_sa_orm_load_options": self.load_options},
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+           ~~~~~~~~~~~~~~~~~~~~~~^
+        statement,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        _add_event=_add_event,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2239, in _execute_internal
+    conn = self._connection_for_bind(bind)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2108, in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2, in _connection_for_bind
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 1187, in _connection_for_bind
+    conn = bind.connect()
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 3285, in connect
+    return self._connection_cls(self)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 145, in __init__
+    Connection._handle_dbapi_exception_noconnection(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        err, dialect, engine
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2448, in _handle_dbapi_exception_noconnection
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 3309, in raw_connection
+    return self.pool.connect()
+           ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 447, in connect
+    return _ConnectionFairy._checkout(self)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 1264, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 711, in checkout
+    rec = pool._do_get()
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\impl.py", line 177, in _do_get
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\impl.py", line 175, in _do_get
+    return self._create_connection()
+           ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 388, in _create_connection
+    return _ConnectionRecord(self)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 673, in __init__
+    self.__connect()
+    ~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 899, in __connect
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 895, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\create.py", line 661, in connect
+    return dialect.connect(*cargs, **cparams)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "127.0.0.1", port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+[2026-02-24 14:53:48,459] ERROR in routes: Unhandled error in auth login
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 3309, in raw_connection
+    return self.pool.connect()
+           ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 447, in connect
+    return _ConnectionFairy._checkout(self)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 1264, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 711, in checkout
+    rec = pool._do_get()
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\impl.py", line 177, in _do_get
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\impl.py", line 175, in _do_get
+    return self._create_connection()
+           ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 388, in _create_connection
+    return _ConnectionRecord(self)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 673, in __init__
+    self.__connect()
+    ~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 899, in __connect
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 895, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\create.py", line 661, in connect
+    return dialect.connect(*cargs, **cparams)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\app\api\auth\routes.py", line 130, in login
+    result = AuthService.login(
+        username_or_email=data['username'],
+        password=data['password']
+    )
+  File "C:\Users\manoj\access_hub\backend\app\services\auth_service.py", line 35, in login
+    ).first()
+      ~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 2759, in first
+    return self.limit(1)._iter().first()  # type: ignore
+           ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ~~~~~~~~~~~~~~~~~~~~^
+        statement,
+        ^^^^^^^^^^
+        params,
+        ^^^^^^^
+        execution_options={"_sa_orm_load_options": self.load_options},
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+           ~~~~~~~~~~~~~~~~~~~~~~^
+        statement,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        _add_event=_add_event,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2239, in _execute_internal
+    conn = self._connection_for_bind(bind)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2108, in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2, in _connection_for_bind
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 1187, in _connection_for_bind
+    conn = bind.connect()
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 3285, in connect
+    return self._connection_cls(self)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 145, in __init__
+    Connection._handle_dbapi_exception_noconnection(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        err, dialect, engine
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2448, in _handle_dbapi_exception_noconnection
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 3309, in raw_connection
+    return self.pool.connect()
+           ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 447, in connect
+    return _ConnectionFairy._checkout(self)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 1264, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 711, in checkout
+    rec = pool._do_get()
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\impl.py", line 177, in _do_get
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\impl.py", line 175, in _do_get
+    return self._create_connection()
+           ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 388, in _create_connection
+    return _ConnectionRecord(self)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 673, in __init__
+    self.__connect()
+    ~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 899, in __connect
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\pool\base.py", line 895, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\create.py", line 661, in connect
+    return dialect.connect(*cargs, **cparams)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "127.0.0.1", port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+[2026-02-24 15:18:25,995] ERROR in visitor_service: Failed to create visitor history record
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.ForeignKeyViolation: insert or update on table "visitor_history_details" violates foreign key constraint "visitor_history_details_visitor_id_fkey"
+DETAIL:  Key (visitor_id)=(string) is not present in table "visitors".
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\app\services\visitor_service.py", line 267, in create_visitor_history_record
+    db.session.commit()
+    ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\scoping.py", line 597, in commit
+    return self._proxied.commit()
+           ~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2030, in commit
+    trans.commit(_to_root=True)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "<string>", line 2, in commit
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 1311, in commit
+    self._prepare_impl()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "<string>", line 2, in _prepare_impl
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 1286, in _prepare_impl
+    self.session.flush()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4331, in flush
+    self._flush(objects)
+    ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4466, in _flush
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4427, in _flush
+    flush_context.execute()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\unitofwork.py", line 466, in execute
+    rec.execute(self)
+    ~~~~~~~~~~~^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self.mapper,
+        ^^^^^^^^^^^^
+        uow.states_for_mapper_hierarchy(self.mapper, False, False),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        uow,
+        ^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        base_mapper,
+        ^^^^^^^^^^^^
+    ...<3 lines>...
+        insert,
+        ^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\persistence.py", line 1048, in _emit_insert_statements
+    result = connection.execute(
+        statement, multiparams, execution_options=execution_options
+    )
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<8 lines>...
+        cache_hit=cache_hit,
+    )
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.IntegrityError: (psycopg2.errors.ForeignKeyViolation) insert or update on table "visitor_history_details" violates foreign key constraint "visitor_history_details_visitor_id_fkey"
+DETAIL:  Key (visitor_id)=(string) is not present in table "visitors".
+
+[SQL: INSERT INTO visitor_history_details (id, organization_id, visitor_id, visitor_type, host_name, host_number, purpose_of_visit, allowed_floor, allowed_tower, duration_date_from, duration_date_to, visit_metadata, created_at) VALUES (%(id)s, %(organization_id)s, %(visitor_id)s, %(visitor_type)s, %(host_name)s, %(host_number)s, %(purpose_of_visit)s, %(allowed_floor)s, %(allowed_tower)s, %(duration_date_from)s, %(duration_date_to)s, %(visit_metadata)s::JSON, %(created_at)s)]
+[parameters: {'id': 'ad0e8eef-9124-4455-8bb3-14b0fd629fe4', 'organization_id': '276af55b-187d-4a7a-905c-bddd7c7af16a', 'visitor_id': 'string', 'visitor_type': 'guest', 'host_name': 'string', 'host_number': 'string', 'purpose_of_visit': 'meeting', 'allowed_floor': 'Floor 2', 'allowed_tower': 'Tower A', 'duration_date_from': datetime.datetime(2026, 2, 24, 9, 47, 58, 397000, tzinfo=datetime.timezone.utc), 'duration_date_to': datetime.datetime(2026, 2, 24, 9, 47, 58, 397000, tzinfo=datetime.timezone.utc), 'visit_metadata': '{"is_recurring": false}', 'created_at': datetime.datetime(2026, 2, 24, 9, 48, 25, 962110)}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2026-02-24 15:22:38,124] ERROR in visitor_service: Failed to create visitor history record
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.ForeignKeyViolation: insert or update on table "visitor_history_details" violates foreign key constraint "visitor_history_details_visitor_id_fkey"
+DETAIL:  Key (visitor_id)=(string) is not present in table "visitors".
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\app\services\visitor_service.py", line 267, in create_visitor_history_record
+    db.session.commit()
+    ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\scoping.py", line 597, in commit
+    return self._proxied.commit()
+           ~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2030, in commit
+    trans.commit(_to_root=True)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "<string>", line 2, in commit
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 1311, in commit
+    self._prepare_impl()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "<string>", line 2, in _prepare_impl
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 1286, in _prepare_impl
+    self.session.flush()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4331, in flush
+    self._flush(objects)
+    ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4466, in _flush
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4427, in _flush
+    flush_context.execute()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\unitofwork.py", line 466, in execute
+    rec.execute(self)
+    ~~~~~~~~~~~^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self.mapper,
+        ^^^^^^^^^^^^
+        uow.states_for_mapper_hierarchy(self.mapper, False, False),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        uow,
+        ^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        base_mapper,
+        ^^^^^^^^^^^^
+    ...<3 lines>...
+        insert,
+        ^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\persistence.py", line 1048, in _emit_insert_statements
+    result = connection.execute(
+        statement, multiparams, execution_options=execution_options
+    )
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<8 lines>...
+        cache_hit=cache_hit,
+    )
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.IntegrityError: (psycopg2.errors.ForeignKeyViolation) insert or update on table "visitor_history_details" violates foreign key constraint "visitor_history_details_visitor_id_fkey"
+DETAIL:  Key (visitor_id)=(string) is not present in table "visitors".
+
+[SQL: INSERT INTO visitor_history_details (id, organization_id, visitor_id, visitor_type, host_name, host_number, purpose_of_visit, allowed_floor, allowed_tower, duration_date_from, duration_date_to, visit_metadata, created_at) VALUES (%(id)s, %(organization_id)s, %(visitor_id)s, %(visitor_type)s, %(host_name)s, %(host_number)s, %(purpose_of_visit)s, %(allowed_floor)s, %(allowed_tower)s, %(duration_date_from)s, %(duration_date_to)s, %(visit_metadata)s::JSON, %(created_at)s)]
+[parameters: {'id': '5360665c-14b0-4d0a-bb3c-c6fe316e2c4a', 'organization_id': 'c31983cc-7490-4b83-977f-9a86b6465ba5', 'visitor_id': 'string', 'visitor_type': 'guest', 'host_name': 'string', 'host_number': 'string', 'purpose_of_visit': 'meeting', 'allowed_floor': 'Floor 2', 'allowed_tower': 'Tower A', 'duration_date_from': datetime.datetime(2026, 2, 24, 9, 49, 17, 590000, tzinfo=datetime.timezone.utc), 'duration_date_to': datetime.datetime(2026, 2, 24, 9, 49, 17, 590000, tzinfo=datetime.timezone.utc), 'visit_metadata': '{"is_recurring": false}', 'created_at': datetime.datetime(2026, 2, 24, 9, 52, 38, 108967)}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2026-02-24 15:57:15,014] ERROR in visitor_service: Failed to create visitor history record
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.ForeignKeyViolation: insert or update on table "visitor_history_details" violates foreign key constraint "visitor_history_details_organization_id_fkey"
+DETAIL:  Key (organization_id)=(fef3b2e0-d2ce-453d-95b9-4cd49429a9a8) is not present in table "organizations".
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\app\services\visitor_service.py", line 267, in create_visitor_history_record
+    db.session.commit()
+    ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\scoping.py", line 597, in commit
+    return self._proxied.commit()
+           ~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2030, in commit
+    trans.commit(_to_root=True)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "<string>", line 2, in commit
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 1311, in commit
+    self._prepare_impl()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "<string>", line 2, in _prepare_impl
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 1286, in _prepare_impl
+    self.session.flush()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4331, in flush
+    self._flush(objects)
+    ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4466, in _flush
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4427, in _flush
+    flush_context.execute()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\unitofwork.py", line 466, in execute
+    rec.execute(self)
+    ~~~~~~~~~~~^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self.mapper,
+        ^^^^^^^^^^^^
+        uow.states_for_mapper_hierarchy(self.mapper, False, False),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        uow,
+        ^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        base_mapper,
+        ^^^^^^^^^^^^
+    ...<3 lines>...
+        insert,
+        ^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\persistence.py", line 1048, in _emit_insert_statements
+    result = connection.execute(
+        statement, multiparams, execution_options=execution_options
+    )
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<8 lines>...
+        cache_hit=cache_hit,
+    )
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.IntegrityError: (psycopg2.errors.ForeignKeyViolation) insert or update on table "visitor_history_details" violates foreign key constraint "visitor_history_details_organization_id_fkey"
+DETAIL:  Key (organization_id)=(fef3b2e0-d2ce-453d-95b9-4cd49429a9a8) is not present in table "organizations".
+
+[SQL: INSERT INTO visitor_history_details (id, organization_id, visitor_id, visitor_type, host_name, host_number, purpose_of_visit, allowed_floor, allowed_tower, duration_date_from, duration_date_to, visit_metadata, created_at) VALUES (%(id)s, %(organization_id)s, %(visitor_id)s, %(visitor_type)s, %(host_name)s, %(host_number)s, %(purpose_of_visit)s, %(allowed_floor)s, %(allowed_tower)s, %(duration_date_from)s, %(duration_date_to)s, %(visit_metadata)s::JSON, %(created_at)s)]
+[parameters: {'id': 'aba9e371-c8ec-4649-97c1-e21a8750e7f8', 'organization_id': 'fef3b2e0-d2ce-453d-95b9-4cd49429a9a8', 'visitor_id': 'fef3b2e0-d2ce-453d-95b9-4cd49429a9a8', 'visitor_type': 'guest', 'host_name': 'string', 'host_number': 'string', 'purpose_of_visit': 'meeting', 'allowed_floor': 'Floor 2', 'allowed_tower': 'Tower A', 'duration_date_from': datetime.datetime(2026, 2, 24, 10, 26, 42, 886000, tzinfo=datetime.timezone.utc), 'duration_date_to': datetime.datetime(2026, 2, 24, 10, 26, 42, 886000, tzinfo=datetime.timezone.utc), 'visit_metadata': '{"is_recurring": false}', 'created_at': datetime.datetime(2026, 2, 24, 10, 27, 15, 3720)}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2026-02-24 15:58:08,221] ERROR in visitor_service: Failed to create visitor history record
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.ForeignKeyViolation: insert or update on table "visitor_history_details" violates foreign key constraint "visitor_history_details_organization_id_fkey"
+DETAIL:  Key (organization_id)=(fef3b2e0-d2ce-453d-95b9-4cd49429a9a8) is not present in table "organizations".
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\app\services\visitor_service.py", line 267, in create_visitor_history_record
+    db.session.commit()
+    ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\scoping.py", line 597, in commit
+    return self._proxied.commit()
+           ~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2030, in commit
+    trans.commit(_to_root=True)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "<string>", line 2, in commit
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 1311, in commit
+    self._prepare_impl()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "<string>", line 2, in _prepare_impl
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 1286, in _prepare_impl
+    self.session.flush()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4331, in flush
+    self._flush(objects)
+    ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4466, in _flush
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4427, in _flush
+    flush_context.execute()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\unitofwork.py", line 466, in execute
+    rec.execute(self)
+    ~~~~~~~~~~~^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self.mapper,
+        ^^^^^^^^^^^^
+        uow.states_for_mapper_hierarchy(self.mapper, False, False),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        uow,
+        ^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        base_mapper,
+        ^^^^^^^^^^^^
+    ...<3 lines>...
+        insert,
+        ^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\persistence.py", line 1048, in _emit_insert_statements
+    result = connection.execute(
+        statement, multiparams, execution_options=execution_options
+    )
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<8 lines>...
+        cache_hit=cache_hit,
+    )
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.IntegrityError: (psycopg2.errors.ForeignKeyViolation) insert or update on table "visitor_history_details" violates foreign key constraint "visitor_history_details_organization_id_fkey"
+DETAIL:  Key (organization_id)=(fef3b2e0-d2ce-453d-95b9-4cd49429a9a8) is not present in table "organizations".
+
+[SQL: INSERT INTO visitor_history_details (id, organization_id, visitor_id, visitor_type, host_name, host_number, purpose_of_visit, allowed_floor, allowed_tower, duration_date_from, duration_date_to, visit_metadata, created_at) VALUES (%(id)s, %(organization_id)s, %(visitor_id)s, %(visitor_type)s, %(host_name)s, %(host_number)s, %(purpose_of_visit)s, %(allowed_floor)s, %(allowed_tower)s, %(duration_date_from)s, %(duration_date_to)s, %(visit_metadata)s::JSON, %(created_at)s)]
+[parameters: {'id': 'a9f47a02-120e-4bde-a6b2-404834142e98', 'organization_id': 'fef3b2e0-d2ce-453d-95b9-4cd49429a9a8', 'visitor_id': 'string', 'visitor_type': 'guest', 'host_name': 'string', 'host_number': 'string', 'purpose_of_visit': 'meeting', 'allowed_floor': 'Floor 2', 'allowed_tower': 'Tower A', 'duration_date_from': datetime.datetime(2026, 2, 24, 10, 26, 42, 886000, tzinfo=datetime.timezone.utc), 'duration_date_to': datetime.datetime(2026, 2, 24, 10, 26, 42, 886000, tzinfo=datetime.timezone.utc), 'visit_metadata': '{"is_recurring": false}', 'created_at': datetime.datetime(2026, 2, 24, 10, 28, 8, 214635)}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2026-02-24 16:01:00,889] ERROR in visitor_service: Failed to create visitor history record
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.ForeignKeyViolation: insert or update on table "visitor_history_details" violates foreign key constraint "visitor_history_details_visitor_id_fkey"
+DETAIL:  Key (visitor_id)=(string) is not present in table "visitors".
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\app\services\visitor_service.py", line 267, in create_visitor_history_record
+    db.session.commit()
+    ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\scoping.py", line 597, in commit
+    return self._proxied.commit()
+           ~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2030, in commit
+    trans.commit(_to_root=True)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "<string>", line 2, in commit
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 1311, in commit
+    self._prepare_impl()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "<string>", line 2, in _prepare_impl
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 1286, in _prepare_impl
+    self.session.flush()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4331, in flush
+    self._flush(objects)
+    ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4466, in _flush
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4427, in _flush
+    flush_context.execute()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\unitofwork.py", line 466, in execute
+    rec.execute(self)
+    ~~~~~~~~~~~^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self.mapper,
+        ^^^^^^^^^^^^
+        uow.states_for_mapper_hierarchy(self.mapper, False, False),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        uow,
+        ^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        base_mapper,
+        ^^^^^^^^^^^^
+    ...<3 lines>...
+        insert,
+        ^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\persistence.py", line 1048, in _emit_insert_statements
+    result = connection.execute(
+        statement, multiparams, execution_options=execution_options
+    )
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<8 lines>...
+        cache_hit=cache_hit,
+    )
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.IntegrityError: (psycopg2.errors.ForeignKeyViolation) insert or update on table "visitor_history_details" violates foreign key constraint "visitor_history_details_visitor_id_fkey"
+DETAIL:  Key (visitor_id)=(string) is not present in table "visitors".
+
+[SQL: INSERT INTO visitor_history_details (id, organization_id, visitor_id, visitor_type, host_name, host_number, purpose_of_visit, allowed_floor, allowed_tower, duration_date_from, duration_date_to, visit_metadata, created_at) VALUES (%(id)s, %(organization_id)s, %(visitor_id)s, %(visitor_type)s, %(host_name)s, %(host_number)s, %(purpose_of_visit)s, %(allowed_floor)s, %(allowed_tower)s, %(duration_date_from)s, %(duration_date_to)s, %(visit_metadata)s::JSON, %(created_at)s)]
+[parameters: {'id': 'dd176144-0eec-4fe8-8c10-32affcdd6d83', 'organization_id': '304e5f19-d792-4b9a-b7a0-34c567a7c54b', 'visitor_id': 'string', 'visitor_type': 'guest', 'host_name': 'string', 'host_number': 'string', 'purpose_of_visit': 'meeting', 'allowed_floor': 'Floor 2', 'allowed_tower': 'Tower A', 'duration_date_from': datetime.datetime(2026, 2, 24, 10, 26, 42, 886000, tzinfo=datetime.timezone.utc), 'duration_date_to': datetime.datetime(2026, 2, 24, 10, 26, 42, 886000, tzinfo=datetime.timezone.utc), 'visit_metadata': '{"is_recurring": false}', 'created_at': datetime.datetime(2026, 2, 24, 10, 31, 0, 886259)}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[2026-02-24 16:01:14,165] ERROR in visitor_service: Failed to create visitor history record
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.ForeignKeyViolation: insert or update on table "visitor_history_details" violates foreign key constraint "visitor_history_details_visitor_id_fkey"
+DETAIL:  Key (visitor_id)=(304e5f19-d792-4b9a-b7a0-34c567a7c54b) is not present in table "visitors".
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\manoj\access_hub\backend\app\services\visitor_service.py", line 267, in create_visitor_history_record
+    db.session.commit()
+    ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\scoping.py", line 597, in commit
+    return self._proxied.commit()
+           ~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2030, in commit
+    trans.commit(_to_root=True)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "<string>", line 2, in commit
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 1311, in commit
+    self._prepare_impl()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "<string>", line 2, in _prepare_impl
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 1286, in _prepare_impl
+    self.session.flush()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4331, in flush
+    self._flush(objects)
+    ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4466, in _flush
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 4427, in _flush
+    flush_context.execute()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\unitofwork.py", line 466, in execute
+    rec.execute(self)
+    ~~~~~~~~~~~^^^^^^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self.mapper,
+        ^^^^^^^^^^^^
+        uow.states_for_mapper_hierarchy(self.mapper, False, False),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        uow,
+        ^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        base_mapper,
+        ^^^^^^^^^^^^
+    ...<3 lines>...
+        insert,
+        ^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\orm\persistence.py", line 1048, in _emit_insert_statements
+    result = connection.execute(
+        statement, multiparams, execution_options=execution_options
+    )
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<8 lines>...
+        cache_hit=cache_hit,
+    )
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\manoj\access_hub\backend\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.IntegrityError: (psycopg2.errors.ForeignKeyViolation) insert or update on table "visitor_history_details" violates foreign key constraint "visitor_history_details_visitor_id_fkey"
+DETAIL:  Key (visitor_id)=(304e5f19-d792-4b9a-b7a0-34c567a7c54b) is not present in table "visitors".
+
+[SQL: INSERT INTO visitor_history_details (id, organization_id, visitor_id, visitor_type, host_name, host_number, purpose_of_visit, allowed_floor, allowed_tower, duration_date_from, duration_date_to, visit_metadata, created_at) VALUES (%(id)s, %(organization_id)s, %(visitor_id)s, %(visitor_type)s, %(host_name)s, %(host_number)s, %(purpose_of_visit)s, %(allowed_floor)s, %(allowed_tower)s, %(duration_date_from)s, %(duration_date_to)s, %(visit_metadata)s::JSON, %(created_at)s)]
+[parameters: {'id': '4f30c392-91c4-4dfd-8988-8545f017477c', 'organization_id': '304e5f19-d792-4b9a-b7a0-34c567a7c54b', 'visitor_id': '304e5f19-d792-4b9a-b7a0-34c567a7c54b', 'visitor_type': 'guest', 'host_name': 'string', 'host_number': 'string', 'purpose_of_visit': 'meeting', 'allowed_floor': 'Floor 2', 'allowed_tower': 'Tower A', 'duration_date_from': datetime.datetime(2026, 2, 24, 10, 26, 42, 886000, tzinfo=datetime.timezone.utc), 'duration_date_to': datetime.datetime(2026, 2, 24, 10, 26, 42, 886000, tzinfo=datetime.timezone.utc), 'visit_metadata': '{"is_recurring": false}', 'created_at': datetime.datetime(2026, 2, 24, 10, 31, 14, 159293)}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)

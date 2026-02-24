@@ -18,11 +18,12 @@ from .attendance_change_request import AttendanceChangeRequest
 from .audit_log import AuditLog
 from .image import Image
 from .visitor import (
-    OrganizationVisitor, VisitorMovementLog, VisitorAlert,
-    VisitorBlacklist, VisitorPreRegistration, VisitorBadge, GroupVisit,
-    VisitorDocument, VisitorHealthScreening, VisitorAsset, ContractorTimeLog,
-    DeliveryLog, VIPVisitorPreference
+    OrganizationVisitor,
+    VisitorHistoryDetail
 )
+
+# from .visitor import Visitor
+from .organization import Organization
 from .lpr import LPRLog, LPRHotlist, LPRWhitelist
 
 __all__ = [
@@ -42,21 +43,10 @@ __all__ = [
     "AuditLog",
     "Image",
     "OrganizationVisitor",
-    "VisitorMovementLog",
-    "VisitorAlert",
-    "VisitorBlacklist",
-    "VisitorPreRegistration",
-    "VisitorBadge",
-    "GroupVisit",
-    "VisitorDocument",
-    "VisitorHealthScreening",
-    "VisitorAsset",
-    "ContractorTimeLog",
-    "DeliveryLog",
-    "VIPVisitorPreference",
+    "VisitorHistoryDetail",
     "LPRLog",
     "LPRHotlist",
-    "LPRWhitelist",
+    "LPRWhitelist"
 ]
 
 # Backwards-compat: some older code and migrations expect legacy models

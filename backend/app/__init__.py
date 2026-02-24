@@ -42,7 +42,7 @@ def create_app():
     jwt.init_app(app)
     cache.init_app(app)
     
-    # Initialize Swagger
+    # Swagger configuration (initialized after blueprints are registered)
     swagger_config = {
         "headers": [],
         "specs": [
@@ -57,13 +57,13 @@ def create_app():
         "swagger_ui": True,
         "specs_route": "/api/docs/",
     }
-    
+
     # Parse SWAGGER_HOST to separate scheme and host for Swagger config
     raw_swagger_host = app.config.get("SWAGGER_HOST", "localhost:5001")
     swagger_host_domain = raw_swagger_host
     if "://" in raw_swagger_host:
         _, swagger_host_domain = raw_swagger_host.split("://", 1)
-    
+
     swagger_template = {
         "swagger": "2.0",
         "info": {
@@ -304,18 +304,7 @@ def create_app():
         }
     }
     
-    Swagger(app, config=swagger_config, template=swagger_template)
-
-    # Log swagger URLs for developers to easily open docs from console
-    try:
-        host = app.config.get("SWAGGER_HOST", "localhost:5001")
-        if not str(host).startswith("http"):
-            host = f"http://{host}"
-        swagger_url = f"{host.rstrip('/')}/api/docs/"
-        app.logger.info(f"Swagger UI available at: {swagger_url} (spec: /apispec.json)")
-    except Exception:
-        # Never fail app startup due to logging
-        pass
+    # Swagger will be initialized after blueprints are registered below
 
     # Import models to ensure they're registered with SQLAlchemy
     with app.app_context():
@@ -441,8 +430,38 @@ def create_app():
     # from .api.health.routes import register_health_routes
     # register_health_routes(app)
     
-    # Register documentation routes
+    # Register documentation routes and initialize Swagger now that all blueprints are registered
     from .utils.documentation import create_documentation_routes
+    swagger_initialized = False
+    # If a `flasgger` blueprint exists (possibly from an import), remove it
+    # so we can initialize Swagger here and let it generate an up-to-date spec
+    # including all blueprints registered above. This avoids the blueprint
+    # name collision: "The name 'flasgger' is already registered...".
+    if 'flasgger' in app.blueprints:
+        try:
+            del app.blueprints['flasgger']
+        except Exception:
+            pass
+
+    try:
+        Swagger(app, config=swagger_config, template=swagger_template)
+        swagger_initialized = True
+    except Exception as e:
+        try:
+            app.logger.exception("Failed to initialize Swagger: %s", e)
+        except Exception:
+            pass
+
+    if swagger_initialized:
+        try:
+            host = app.config.get("SWAGGER_HOST", "localhost:5001")
+            if not str(host).startswith("http"):
+                host = f"http://{host}"
+            swagger_url = f"{host.rstrip('/')}/api/docs/"
+            app.logger.info(f"Swagger UI available at: {swagger_url} (spec: /apispec.json)")
+        except Exception:
+            pass
+
     create_documentation_routes(app)
     
     # Setup logging and performance monitoring
