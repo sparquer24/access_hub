@@ -22,20 +22,8 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
     visitor_type: 'guest',
     host_name: '',
     host_phone: '',
-    company_name: '',
-    company_address: '',
     is_recurring: false,
     expected_duration_hours: '',
-
-    // Contractor-specific
-    work_description: '',
-
-    // Delivery-specific
-    delivery_package_count: '',
-    delivery_recipient_name: '',
-
-    // VIP-specific
-    special_instructions: '',
 
     // Vehicle specific - RE MOVED to LPR Module
     // has_vehicle: false, ...
@@ -110,32 +98,6 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
       newErrors.image_base64 = 'Please confirm existing image or click retake';
     }
 
-    if (formData.visitor_type === 'contractor' || formData.visitor_type === 'vendor') {
-      if (!formData.company_name.trim()) {
-        newErrors.company_name = 'Company name is required';
-      }
-      if (!formData.company_address.trim()) {
-        newErrors.company_address = 'Company address is required';
-      }
-    }
-
-    if (formData.visitor_type === 'contractor' && !formData.work_description.trim()) {
-      newErrors.work_description = 'Work description is required';
-    }
-
-    if (formData.visitor_type === 'delivery') {
-      if (!formData.delivery_package_count) {
-        newErrors.delivery_package_count = 'Package count is required';
-      }
-      if (!formData.delivery_recipient_name.trim()) {
-        newErrors.delivery_recipient_name = 'Recipient name is required';
-      }
-    }
-
-    if (formData.visitor_type === 'vip' && !formData.special_instructions.trim()) {
-      newErrors.special_instructions = 'Special instructions are required';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -205,8 +167,6 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
           purpose_of_visit: visitor.purpose_of_visit || prev.purpose_of_visit,
           host_name: visitor.host_name || prev.host_name,
           host_phone: visitor.host_phone || prev.host_phone,
-          company_name: visitor.company_name || prev.company_name,
-          company_address: visitor.company_address || prev.company_address,
           from_date: visitor.from_date || prev.from_date,
           to_date: visitor.to_date || prev.to_date,
           allowed_floor: visitor.allowed_floor || prev.allowed_floor,
@@ -420,33 +380,22 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
     try {
       setLoading(true);
 
-      const parseOptionalInt = (value) => {
-        if (value === '' || value === null || value === undefined) {
-          return null;
-        }
-        const parsed = Number.parseInt(value, 10);
-        return Number.isNaN(parsed) ? null : parsed;
-      };
-
-      // Build API payload with only schema-supported fields
+      // Build API payload with only UI fields and user-entered values
       const sanitizedData = {
-        name: formData.name.trim(),
-        mobile_number: formData.mobile_number.trim(),
-        email: formData.email.trim() || null,
-        purpose_of_visit: formData.purpose_of_visit.trim(),
+        name: formData.name,
+        mobile_number: formData.mobile_number,
+        email: formData.email,
+        gender: formData.gender,
+        purpose_of_visit: formData.purpose_of_visit,
+        from_date: formData.from_date,
+        to_date: formData.to_date || null,
         allowed_floor: formData.allowed_floor,
-        image_base64: formData.image_base64 || null,
-        visitor_type: formData.visitor_type || 'guest',
-        host_name: formData.host_name.trim() || null,
-        host_phone: formData.host_phone.trim() || null,
-        company_name: formData.company_name.trim() || null,
-        company_address: formData.company_address.trim() || null,
-        is_recurring: Boolean(formData.is_recurring),
-        work_description: formData.work_description.trim() || null,
-        expected_duration_hours: parseOptionalInt(formData.expected_duration_hours),
-        delivery_package_count: parseOptionalInt(formData.delivery_package_count),
-        delivery_recipient_name: formData.delivery_recipient_name.trim() || null,
-        special_instructions: formData.special_instructions.trim() || null,
+        allowed_towers: formData.allowed_towers,
+        image_base64: formData.image_base64,
+        visitor_type: formData.visitor_type,
+        host_name: formData.host_name,
+        host_phone: formData.host_phone,
+        is_recurring: formData.is_recurring,
       };
 
       const response = await visitorService.createVisitor(organizationId, sanitizedData);
@@ -804,145 +753,6 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
 
 
           </div>
-
-          {/* Conditional Fields for Contractors/Vendors */}
-          {(formData.visitor_type === 'contractor' || formData.visitor_type === 'vendor') && (
-            <div className="bg-blue-50 p-6 rounded-lg border-2 border-blue-200">
-              <h4 className="font-semibold text-blue-900 mb-4 flex items-center gap-2">
-                📝 Additional Details
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Company Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="company_name"
-                    value={formData.company_name}
-                    onChange={handleInputChange}
-                    placeholder="Company name"
-                    required
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  {errors.company_name && (
-                    <p className="mt-1 text-sm text-red-600">{errors.company_name}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Company Address *
-                  </label>
-                  <input
-                    type="text"
-                    name="company_address"
-                    value={formData.company_address}
-                    onChange={handleInputChange}
-                    placeholder="Company address"
-                    required
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  {errors.company_address && (
-                    <p className="mt-1 text-sm text-red-600">{errors.company_address}</p>
-                  )}
-                </div>
-
-                {formData.visitor_type === 'contractor' && (
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Work Description *
-                    </label>
-                    <textarea
-                      name="work_description"
-                      value={formData.work_description}
-                      onChange={handleInputChange}
-                      placeholder="Brief description of work to be performed"
-                      rows="2"
-                      required
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    {errors.work_description && (
-                      <p className="mt-1 text-sm text-red-600">{errors.work_description}</p>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Conditional Fields for Delivery */}
-          {formData.visitor_type === 'delivery' && (
-            <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200">
-              <h4 className="font-semibold text-green-900 mb-4 flex items-center gap-2">
-                📦 Delivery Information
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Package Count *
-                  </label>
-                  <input
-                    type="number"
-                    name="delivery_package_count"
-                    value={formData.delivery_package_count}
-                    onChange={handleInputChange}
-                    placeholder="Number of packages"
-                    min="1"
-                    required
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                  {errors.delivery_package_count && (
-                    <p className="mt-1 text-sm text-red-600">{errors.delivery_package_count}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Recipient Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="delivery_recipient_name"
-                    value={formData.delivery_recipient_name}
-                    onChange={handleInputChange}
-                    placeholder="Package recipient"
-                    required
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                  {errors.delivery_recipient_name && (
-                    <p className="mt-1 text-sm text-red-600">{errors.delivery_recipient_name}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Conditional Fields for VIP */}
-          {formData.visitor_type === 'vip' && (
-            <div className="bg-teal-50 p-6 rounded-lg border-2 border-purple-200">
-              <h4 className="font-semibold text-teal-900 mb-4 flex items-center gap-2">
-                👑 VIP Visitor
-              </h4>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Special Instructions *
-                </label>
-                <textarea
-                  name="special_instructions"
-                  value={formData.special_instructions}
-                  onChange={handleInputChange}
-                  placeholder="Any special requirements or preferences for this VIP visitor"
-                  rows="3"
-                  required
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-                {errors.special_instructions && (
-                  <p className="mt-1 text-sm text-red-600">{errors.special_instructions}</p>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* Duration of Visit */}
           <div className="bg-teal-50 p-6 rounded-lg border-2 border-teal-200">
