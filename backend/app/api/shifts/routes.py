@@ -20,7 +20,7 @@ from ...schemas.shift import (
     ShiftListSchema
 )
 from ...services.shift_service import ShiftService
-from ...middlewares.rbac_middleware import require_permission
+from ...middleware import require_permission
 
 bp = Blueprint('shifts_api', __name__, url_prefix='/api/v2/shifts')
 

@@ -21,7 +21,7 @@ from ...schemas.camera import (
     CameraHeartbeatSchema
 )
 from ...services.camera_service import CameraService
-from ...middlewares.rbac_middleware import require_permission
+from ...middleware import require_permission
 
 bp = Blueprint('cameras_api', __name__, url_prefix='/api/v2/cameras')
 

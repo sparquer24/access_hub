@@ -20,7 +20,7 @@ from ...schemas.organization import (
     OrganizationListSchema
 )
 from ...services.organization_service import OrganizationService
-from ...middlewares.rbac_middleware import require_permission
+from ...middleware import require_permission
 
 bp = Blueprint('organizations_api', __name__, url_prefix='/api/v2/organizations')
 

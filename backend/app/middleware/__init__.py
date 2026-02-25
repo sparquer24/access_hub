@@ -3,12 +3,14 @@ Middleware modules for authentication, authorization, and tenant isolation.
 """
 
 from .auth_middleware import jwt_required_middleware, create_jwt_payload
-from .rbac_middleware import RBACMiddleware
+from .rbac_middleware import RBACMiddleware, require_permission
 from .tenant_middleware import TenantMiddleware
 
 # Backwards compatibility: re-export helpers defined in the top-level
 # `app/middleware.py` file. Load that file by path under a unique module
 # name to avoid circular import / name collisions with this package.
+require_login = require_role = require_csrf = None
+
 try:
     import importlib.util
     import os
@@ -30,6 +32,7 @@ __all__ = [
     "create_jwt_payload",
     "RBACMiddleware",
     "TenantMiddleware",
+    "require_permission",
 ]
 
 if require_login:

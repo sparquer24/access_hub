@@ -20,7 +20,7 @@ from ...schemas.visitor import (
     CheckInSchema
 )
 from ...services.visitor_service import VisitorService
-from ...middlewares.rbac_middleware import require_permission
+from ...middleware import require_permission
 
 bp = Blueprint('visitors_api', __name__, url_prefix='/api/v2/organizations')
 

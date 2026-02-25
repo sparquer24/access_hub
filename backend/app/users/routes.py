@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flasgger import swag_from
 from ..extensions import db, bcrypt
 from ..models import UserDetails
-from ..middlewares import require_csrf, require_login
+from ..middleware import require_csrf, require_login
 from ..utils.decorators import permission_required
 from ..utils.audit import log_audit
 

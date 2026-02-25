@@ -21,7 +21,7 @@ from ...schemas.leave_request import (
     LeaveRequestListSchema
 )
 from ...services.leave_service import LeaveService
-from ...middlewares.rbac_middleware import require_permission
+from ...middleware import require_permission
 from ...utils.decorators import role_required
 
 bp = Blueprint('leaves_api', __name__, url_prefix='/api/v2/leaves')

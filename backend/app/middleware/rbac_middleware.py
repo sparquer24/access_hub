@@ -146,3 +146,45 @@ class RBACMiddleware:
             return g.current_department_id
             
         return None
+
+
+def require_permission(permission):
+    """
+    Decorator to check if user has required permission.
+    
+    Args:
+        permission: Permission string in format 'resource:action' or 'resource.*'
+    
+    Returns:
+        Decorated function that checks permission before executing
+    """
+    from functools import wraps
+    
+    def decorator(fn):
+        @wraps(fn)
+        def decorated_function(*args, **kwargs):
+            # Skip permission check for super_admin
+            if RBACMiddleware.is_super_admin():
+                return fn(*args, **kwargs)
+            
+            if '*' in permission:
+                # Wildcard permission - just check resource
+                resource = permission.split(':')[0]
+                if not hasattr(g, 'current_user_claims'):
+                    raise AuthorizationError("User claims not found in request context")
+                permissions = g.current_user_claims.get('permissions', {})
+                if resource not in permissions:
+                    raise AuthorizationError(f"Access denied. Missing permission: {permission}")
+            else:
+                # Specific resource:action permission
+                if ':' in permission:
+                    resource, action = permission.split(':', 1)
+                    RBACMiddleware.check_permission(resource, action)
+                else:
+                    raise AuthorizationError(f"Invalid permission format: {permission}")
+            
+            return fn(*args, **kwargs)
+        
+        return decorated_function
+    
+    return decorator

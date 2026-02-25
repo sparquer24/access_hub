@@ -21,7 +21,7 @@ from ...schemas.role import (
     RolePermissionsSchema
 )
 from ...services.role_service import RoleService
-from ...middlewares.rbac_middleware import require_permission
+from ...middleware import require_permission
 
 bp = Blueprint('roles_api', __name__, url_prefix='/api/v2/roles')
 

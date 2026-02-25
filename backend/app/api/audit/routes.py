@@ -20,7 +20,7 @@ from ...schemas.audit import (
     EntityAuditLogListSchema
 )
 from ...services.audit_service import AuditService
-from ...middlewares.rbac_middleware import require_permission
+from ...middleware import require_permission
 
 bp = Blueprint('audit_api', __name__, url_prefix='/api/v2/audit')
 

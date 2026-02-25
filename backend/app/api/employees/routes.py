@@ -22,7 +22,7 @@ from ...schemas.employee import (
 )
 from ...schemas.attendance import AttendanceRecordSchema
 from ...services.employee_service import EmployeeService
-from ...middlewares.rbac_middleware import require_permission
+from ...middleware import require_permission
 
 bp = Blueprint('employees_api', __name__, url_prefix='/api/v2/employees')
 

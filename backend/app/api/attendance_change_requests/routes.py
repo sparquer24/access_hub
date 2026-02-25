@@ -19,7 +19,7 @@ from ...schemas.attendance_change_request import (
     ATTENDANCE_CHANGE_REQUEST_LIST_SCHEMA
 )
 from ...services.attendance_change_request_service import AttendanceChangeRequestService
-from ...middlewares.rbac_middleware import require_permission
+from ...middleware import require_permission
 
 bp = Blueprint('attendance_change_requests_api', __name__, url_prefix='/api/v2/attendance-change-requests')
 

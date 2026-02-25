@@ -22,7 +22,7 @@ from ...schemas.attendance import (
     AttendanceApprovalSchema
 )
 from ...services.attendance_service import AttendanceService
-from ...middlewares.rbac_middleware import require_permission
+from ...middleware import require_permission
 
 bp = Blueprint('attendance_api', __name__, url_prefix='/api/v2/attendance')
 

@@ -20,7 +20,7 @@ from ...schemas.location import (
     LocationListSchema
 )
 from ...services.location_service import LocationService
-from ...middlewares.rbac_middleware import require_permission
+from ...middleware import require_permission
 
 bp = Blueprint('locations_api', __name__, url_prefix='/api/v2/locations')
 

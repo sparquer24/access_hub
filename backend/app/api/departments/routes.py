@@ -20,7 +20,7 @@ from ...schemas.department import (
     DepartmentListSchema
 )
 from ...services.department_service import DepartmentService
-from ...middlewares.rbac_middleware import require_permission
+from ...middleware import require_permission
 
 bp = Blueprint('departments_api', __name__, url_prefix='/api/v2/departments')
 
