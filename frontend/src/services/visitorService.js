@@ -115,7 +115,50 @@ export const visitorService = {
   },
 
   /**
-   * Check in a visitor
+   * Check in a visitor (New API v2)
+   * Creates or updates visitor record and records entry time
+   * @param {string} organizationId - Organization ID
+   * @param {Object} visitorData - Check-in information {name, phone, email, gender, visitor_type, host_name, host_phone, purpose_of_visit, allowed_floor, allowed_tower, from_date, to_date}
+   * @returns {Promise}
+   */
+  checkInNewVisitor: async (organizationId, visitorData) => {
+    try {
+      console.log('📋 Checking in visitor:', { organizationId, visitorData });
+      const response = await api.post(
+        `${ORG_VISITOR_API_BASE}/${organizationId}/visitors/check-in`,
+        visitorData
+      );
+      console.log('✅ Check-in successful:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Check-in failed:', error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  /**
+   * Check out a visitor (New API v2)
+   * Records visitor's departure and check-out time
+   * @param {string} organizationId - Organization ID
+   * @param {string} historyId - Visit history ID (returned from check-in)
+   * @returns {Promise}
+   */
+  checkOutVisitorNew: async (organizationId, historyId) => {
+    try {
+      console.log('🚪 Checking out visitor:', { organizationId, historyId });
+      const response = await api.post(
+        `${ORG_VISITOR_API_BASE}/${organizationId}/visitors/${historyId}/check-out`
+      );
+      console.log('✅ Check-out successful:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Check-out failed:', error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  /**
+   * Check in a visitor (Legacy API)
    * @param {string} organizationId - Organization ID
    * @param {string} visitorId - Visitor ID
    * @param {Object} checkInData - Check-in information
@@ -134,7 +177,7 @@ export const visitorService = {
   },
 
   /**
-   * Check out a visitor
+   * Check out a visitor (Legacy API)
    * @param {string} organizationId - Organization ID
    * @param {string} visitorId - Visitor ID
    * @param {Object} checkOutData - Check-out information
@@ -210,7 +253,7 @@ export const visitorService = {
     try {
       const response = await api.get(
         `${ORG_VISITOR_API_BASE}/${organizationId}/visitors/search`,
-        { params: { mobile_number: mobileNumber } }
+        { params: { query: mobileNumber, limit: 1 } }
       );
       
       // Return first match if exists
@@ -278,19 +321,119 @@ export const visitorService = {
   },
 
   /**
-   * Get all visitor alerts for an organization
+   * Get active (checked-in) visitors for an organization
    * @param {string} organizationId - Organization ID
-   * @param {Object} params - Query parameters
    * @returns {Promise}
    */
-  getVisitorAlerts: async (organizationId, params = {}) => {
+  getActiveVisitors: async (organizationId) => {
     try {
+      const response = await api.get(
+        `${ORG_VISITOR_API_BASE}/${organizationId}/visitors/active`
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get all visitor alerts (New API v2)
+   * @param {string} organizationId - Organization ID
+   * @param {Object} params - Query parameters {unacknowledged_only, alert_type, date_from, date_to, limit, offset}
+   * @returns {Promise}
+   */
+  getVisitorAlertsNew: async (organizationId, params = {}) => {
+    try {
+      console.log('🚨 Fetching visitor alerts:', { organizationId, params });
       const response = await api.get(
         `${ORG_VISITOR_API_BASE}/${organizationId}/visitors/alerts`,
         { params }
       );
+      console.log('✅ Alerts fetched:', { count: response.data?.data?.alerts?.length });
       return response.data;
     } catch (error) {
+      console.error('❌ Failed to fetch alerts:', error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  /**
+   * Get visitor movement logs / logs (New API v2)
+   * @param {string} organizationId - Organization ID
+   * @param {Object} params - Query parameters {visitor_id, floor, date_from, date_to, limit, offset}
+   * @returns {Promise}
+   */
+  getVisitorLogsNew: async (organizationId, params = {}) => {
+    try {
+      console.log('📊 Fetching visitor logs:', { organizationId, params });
+      const response = await api.get(
+        `${ORG_VISITOR_API_BASE}/${organizationId}/visitors/logs`,
+        { params }
+      );
+      console.log('✅ Logs fetched:', { count: response.data?.data?.logs?.length });
+      return response.data;
+    } catch (error) {
+      console.error('❌ Failed to fetch logs:', error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  /**
+   * Get overview statistics (New API v2)
+   * Dashboard stats including active visitors, entries, alerts, etc.
+   * @param {string} organizationId - Organization ID
+   * @returns {Promise}
+   */
+  getOverviewStats: async (organizationId) => {
+    try {
+      console.log('📈 Fetching overview statistics:', { organizationId });
+      const response = await api.get(
+        `${ORG_VISITOR_API_BASE}/${organizationId}/visitors/overview`
+      );
+      console.log('✅ Overview stats fetched:', response.data?.data?.overview);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Failed to fetch overview:', error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  /**
+   * Get complete visitor history (New API v2)
+   * @param {string} organizationId - Organization ID
+   * @param {string} visitorId - Visitor ID
+   * @returns {Promise}
+   */
+  getVisitorHistoryNew: async (organizationId, visitorId) => {
+    try {
+      console.log('📋 Fetching visitor history:', { organizationId, visitorId });
+      const response = await api.get(
+        `${ORG_VISITOR_API_BASE}/${organizationId}/visitors/${visitorId}/history`
+      );
+      console.log('✅ History fetched:', { visits: response.data?.data?.history?.length });
+      return response.data;
+    } catch (error) {
+      console.error('❌ Failed to fetch history:', error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  /**
+   * Acknowledge / mark alert as read (New API v2)
+   * @param {string} organizationId - Organization ID
+   * @param {string} alertId - Alert ID
+   * @returns {Promise}
+   */
+  acknowledgeAlert: async (organizationId, alertId) => {
+    try {
+      console.log('✅ Acknowledging alert:', { organizationId, alertId });
+      const response = await api.post(
+        `${ORG_VISITOR_API_BASE}/${organizationId}/alerts/${alertId}/acknowledge`
+      );
+      console.log('✅ Alert acknowledged');
+      return response.data;
+    } catch (error) {
+      console.error('❌ Failed to acknowledge alert:', error.response?.data || error.message);
       throw error;
     }
   },

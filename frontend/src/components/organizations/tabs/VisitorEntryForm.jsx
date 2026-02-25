@@ -8,24 +8,24 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
   const { success, error: showError } = useToast();
   const initialFormData = {
     name: '',
-    mobile_number: '',
+    phone: '',
     email: '',
     gender: '',
     purpose_of_visit: '',
     from_date: '',
     to_date: '',
     allowed_floor: '',
-    allowed_towers: '',
+    allowed_tower: '',
     image_base64: '',
 
     // New fields
     visitor_type: 'guest',
     host_name: '',
-    host_phone: '',
+    host_number: '',
     is_recurring: false,
     expected_duration_hours: '',
 
-    // Vehicle specific - RE MOVED to LPR Module
+    // Vehicle specific - REMOVED to LPR Module
     // has_vehicle: false, ...
 
   };
@@ -50,10 +50,10 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
       newErrors.name = 'Visitor name is required';
     }
 
-    if (!formData.mobile_number.trim()) {
-      newErrors.mobile_number = 'Mobile number is required';
-    } else if (!/^[6-9]\d{9}$/.test(formData.mobile_number.trim())) {
-      newErrors.mobile_number = 'Please enter a valid 10-digit mobile number';
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Mobile number is required';
+    } else if (!/^[6-9]\d{9}$/.test(formData.phone.trim())) {
+      newErrors.phone = 'Please enter a valid 10-digit mobile number';
     }
 
     if (!formData.email.trim()) {
@@ -76,8 +76,8 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
       newErrors.host_name = 'Host name is required';
     }
 
-    if (!formData.host_phone.trim()) {
-      newErrors.host_phone = 'Host phone is required';
+    if (!formData.host_number.trim()) {
+      newErrors.host_number = 'Host number is required';
     }
 
     if (!formData.from_date) {
@@ -133,7 +133,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
   };
 
   useEffect(() => {
-    const mobile = formData.mobile_number.trim();
+    const mobile = formData.phone.trim();
     const isValidMobile = /^[6-9]\d{9}$/.test(mobile);
 
     if (!isValidMobile) {
@@ -166,7 +166,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
           visitor_type: visitor.visitor_type || prev.visitor_type,
           purpose_of_visit: visitor.purpose_of_visit || prev.purpose_of_visit,
           host_name: visitor.host_name || prev.host_name,
-          host_phone: visitor.host_phone || prev.host_phone,
+          host_number: visitor.host_number || prev.host_number,
           from_date: visitor.from_date || prev.from_date,
           to_date: visitor.to_date || prev.to_date,
           allowed_floor: visitor.allowed_floor || prev.allowed_floor,
@@ -185,7 +185,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
     }, 400);
 
     return () => clearTimeout(timer);
-  }, [formData.mobile_number, organizationId, lastCheckedMobile]);
+  }, [formData.phone, organizationId, lastCheckedMobile]);
 
   const handleImageCapture = (base64Image) => {
     console.log('🎯 handleImageCapture CALLED!', {
@@ -383,37 +383,61 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
       // Build API payload with only UI fields and user-entered values
       const sanitizedData = {
         name: formData.name,
-        mobile_number: formData.mobile_number,
+        phone: formData.phone,
         email: formData.email,
         gender: formData.gender,
         purpose_of_visit: formData.purpose_of_visit,
         from_date: formData.from_date,
         to_date: formData.to_date || null,
         allowed_floor: formData.allowed_floor,
-        allowed_towers: formData.allowed_towers,
+        allowed_tower: formData.allowed_tower,
         image_base64: formData.image_base64,
         visitor_type: formData.visitor_type,
         host_name: formData.host_name,
-        host_phone: formData.host_phone,
+        host_number: formData.host_number,
         is_recurring: formData.is_recurring,
       };
 
-      const response = await visitorService.createVisitor(organizationId, sanitizedData);
+      console.log('📝 Submitting check-in form with data:', sanitizedData);
+      const response = await visitorService.checkInNewVisitor(organizationId, sanitizedData);
+      console.log('✅ Check-in API response:', response);
+
+      if (!response.success) {
+        showError(response.message || 'Check-in failed');
+        setIsSubmitting(false);
+        return;
+      }
 
       success('Visitor check-in successful!');
 
+      // Extract visitor_id and history_id from response
+      const { visitor_id, history_id, check_in_time } = response.data;
+      console.log('📋 Check-in data:', { visitor_id, history_id, check_in_time });
+
       // Enroll visitor face using unified /api/v1/face/enroll endpoint
       try {
-        await faceService.enrollFace(response.data.id, formData.image_base64);
+        await faceService.enrollFace(visitor_id, formData.image_base64);
+        console.log('✅ Face enrollment successful');
       } catch (enrollmentError) {
         // Non-blocking error - visitor check-in still successful
+        console.warn('⚠️ Face enrollment failed (non-blocking):', enrollmentError);
       }
 
       // Store visitor data for slip generation
       setCheckedInVisitor({
-        ...response.data,
+        id: visitor_id,
+        history_id: history_id,
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        gender: formData.gender,
+        visitor_type: formData.visitor_type,
+        purpose_of_visit: formData.purpose_of_visit,
+        allowed_floor: formData.allowed_floor,
+        allowed_tower: formData.allowed_tower,
+        host_name: formData.host_name,
         organization_name: organization?.name || 'Organization',
-        check_in_time: new Date().toISOString(),
+        check_in_time: check_in_time,
         visitor_image: formData.image_base64
       });
 
@@ -488,22 +512,22 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
               </label>
               <input
                 type="tel"
-                name="mobile_number"
-                value={formData.mobile_number}
+                name="phone"
+                value={formData.phone}
                 onChange={handleInputChange}
                 placeholder="Enter mobile number"
                 required
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.mobile_number
+                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.phone
                   ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
                   : 'border-gray-300 focus:ring-teal-500'
                   }`}
               />
-              {errors.mobile_number && (
+              {errors.phone && (
                 <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                  {errors.mobile_number}
+                  {errors.phone}
                 </p>
               )}
             </div>
@@ -642,22 +666,22 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
               </label>
               <input
                 type="tel"
-                name="host_phone"
-                value={formData.host_phone}
+                name="host_number"
+                value={formData.host_number}
                 onChange={handleInputChange}
                 placeholder="Host contact number"
                 required
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.host_phone
+                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.host_number
                   ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
                   : 'border-gray-300 focus:ring-teal-500'
                   }`}
               />
-              {errors.host_phone && (
+              {errors.host_number && (
                 <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                  {errors.host_phone}
+                  {errors.host_number}
                 </p>
               )}
             </div>
@@ -1038,7 +1062,7 @@ const VisitorSlipModal = ({ visitor, onClose, onPrint }) => {
             </div>
             <div className="flex justify-between items-center py-2 border-b border-gray-100">
               <span className="font-semibold text-gray-700">Mobile:</span>
-              <span className="text-gray-900">{visitor.mobile_number}</span>
+              <span className="text-gray-900">{visitor.phone}</span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-gray-100">
               <span className="font-semibold text-gray-700">Purpose:</span>
