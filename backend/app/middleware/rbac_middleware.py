@@ -159,27 +159,43 @@ def require_permission(permission):
         Decorated function that checks permission before executing
     """
     from functools import wraps
+    from flask_jwt_extended import verify_jwt_in_request
     
     def decorator(fn):
         @wraps(fn)
         def decorated_function(*args, **kwargs):
+            # First ensure JWT token is valid
+            try:
+                verify_jwt_in_request()
+            except Exception as e:
+                raise AuthorizationError("Authentication required")
+            
             # Skip permission check for super_admin
             if RBACMiddleware.is_super_admin():
                 return fn(*args, **kwargs)
             
+            # Get user claims from g
+            claims = getattr(g, 'current_user_claims', {})
+            
+            if not claims:
+                raise AuthorizationError("User claims not found in request context")
+            
+            permissions = claims.get('permissions', {})
+            
             if '*' in permission:
                 # Wildcard permission - just check resource
                 resource = permission.split(':')[0]
-                if not hasattr(g, 'current_user_claims'):
-                    raise AuthorizationError("User claims not found in request context")
-                permissions = g.current_user_claims.get('permissions', {})
                 if resource not in permissions:
                     raise AuthorizationError(f"Access denied. Missing permission: {permission}")
             else:
                 # Specific resource:action permission
                 if ':' in permission:
                     resource, action = permission.split(':', 1)
-                    RBACMiddleware.check_permission(resource, action)
+                    resource_permissions = permissions.get(resource, [])
+                    
+                    # Check for wildcard or specific permission
+                    if '*' not in resource_permissions and action not in resource_permissions:
+                        raise AuthorizationError(f"Access denied. Missing permission: {resource}.{action}")
                 else:
                     raise AuthorizationError(f"Invalid permission format: {permission}")
             

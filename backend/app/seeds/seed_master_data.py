@@ -547,6 +547,7 @@ def create_users_and_employees(organizations, departments, roles, shifts):
         
         if existing_user:
             logger.debug(f"User already exists: {emp_data['full_name']} ({emp_data['email']})")
+            user = existing_user
             created_users.append(existing_user)
         else:
             # Create user
@@ -562,8 +563,14 @@ def create_users_and_employees(organizations, departments, roles, shifts):
             db.session.flush()
             logger.debug(f"Created user: {emp_data['full_name']} (Role: {role.name})")
             created_users.append(user)
-            
-            # Create employee linked to user
+        
+        # Create or get employee linked to user
+        existing_employee = Employee.query.filter_by(user_id=user.id).first()
+        
+        if existing_employee:
+            logger.debug(f"Employee already exists for user: {emp_data['full_name']}")
+            created_employees.append(existing_employee)
+        else:
             employee = Employee(
                 user_id=user.id,
                 organization_id=org.id,
@@ -661,6 +668,176 @@ def create_attendance_records(employees):
     
     db.session.flush()
     logger.info(f"Total attendance records created: {total_records_created}")
+
+
+def create_locations(organizations):
+    """Create office locations/buildings"""
+    
+    logger.info("Creating locations...")
+    
+    org = organizations[0]
+    
+    locations_data = [
+        {"name": "Tower A Entrance", "location_type": "ENTRY", "building": "Tower A", "floor": "Ground"},
+        {"name": "Tower B Entrance", "location_type": "ENTRY", "building": "Tower B", "floor": "Ground"},
+        {"name": "Parking Area", "location_type": "BOTH", "building": "Parking", "floor": "Level 1"},
+    ]
+    
+    created_locations = []
+    
+    for loc_data in locations_data:
+        existing_loc = Location.query.filter_by(
+            organization_id=org.id,
+            name=loc_data["name"]
+        ).first()
+        
+        if existing_loc:
+            logger.debug(f"Location already exists: {loc_data['name']}")
+            created_locations.append(existing_loc)
+        else:
+            location = Location(
+                organization_id=org.id,
+                name=loc_data["name"],
+                location_type=loc_data["location_type"],
+                building=loc_data["building"],
+                floor=loc_data["floor"],
+                is_active=True
+            )
+            db.session.add(location)
+            db.session.flush()
+            logger.debug(f"Created location: {loc_data['name']}")
+            created_locations.append(location)
+    
+    return created_locations
+
+
+def create_cameras(organizations, locations):
+    """Create cameras for monitoring"""
+    
+    logger.info("Creating cameras...")
+    
+    org = organizations[0]
+    
+    cameras_data = [
+        {
+            "name": "Camera_Tower_A_Entrance",
+            "location_index": 0,
+            "camera_type": "CHECK_IN",
+            "source_type": "IP_CAMERA",
+            "source_url": "192.168.1.100:8080"
+        },
+        {
+            "name": "Camera_Tower_A_Main_Hall",
+            "location_index": 0,
+            "camera_type": "CHECK_OUT",
+            "source_type": "IP_CAMERA",
+            "source_url": "192.168.1.101:8080"
+        },
+        {
+            "name": "Camera_Tower_B_Entrance",
+            "location_index": 1,
+            "camera_type": "CHECK_IN",
+            "source_type": "IP_CAMERA",
+            "source_url": "192.168.1.102:8080"
+        },
+        {
+            "name": "Camera_Tower_B_Main_Hall",
+            "location_index": 1,
+            "camera_type": "CHECK_OUT",
+            "source_type": "IP_CAMERA",
+            "source_url": "192.168.1.103:8080"
+        },
+        {
+            "name": "Camera_Parking_Area",
+            "location_index": 2,
+            "camera_type": "CCTV",
+            "source_type": "RTSP_STREAM",
+            "source_url": "rtsp://192.168.1.104:554/stream"
+        },
+    ]
+    
+    created_cameras = []
+    
+    for cam_data in cameras_data:
+        if cam_data["location_index"] < len(locations):
+            location = locations[cam_data["location_index"]]
+        else:
+            location = locations[0]
+        
+        existing_cam = Camera.query.filter_by(
+            organization_id=org.id,
+            name=cam_data["name"]
+        ).first()
+        
+        if existing_cam:
+            logger.debug(f"Camera already exists: {cam_data['name']}")
+            created_cameras.append(existing_cam)
+        else:
+            camera = Camera(
+                organization_id=org.id,
+                location_id=location.id,
+                name=cam_data["name"],
+                camera_type=cam_data["camera_type"],
+                source_type=cam_data["source_type"],
+                source_url=cam_data["source_url"],
+                fps=15,
+                resolution="1920x1080",
+                confidence_threshold=0.7,
+                liveness_check_enabled=True,
+                attendance_enabled=True,
+                visitor_tracking_enabled=True,
+                people_logs_enabled=True,
+                management_type="ATTENDANCE",
+                auto_check_out_hours=12,
+                require_manual_approval=False,
+                notification_enabled=True,
+                is_active=True,
+                status="online"
+            )
+            db.session.add(camera)
+            db.session.flush()
+            logger.debug(f"Created camera: {cam_data['name']}")
+            created_cameras.append(camera)
+    
+    return created_cameras
+
+
+def create_leave_requests(users, employees):
+    """Create sample leave requests"""
+    
+    logger.info("Creating sample leave requests...")
+    
+    if not employees:
+        logger.warning("No employees found to create leave requests")
+        return []
+    
+    import random
+    
+    created_leaves = []
+    today = date.today()
+    
+    # Create leave requests for a few employees
+    for employee in employees[:5]:  # Only for first 5 employees
+        # Create 1-2 leave requests per employee
+        for _ in range(random.randint(1, 2)):
+            leave_start = today + timedelta(days=random.randint(5, 30))
+            leave_end = leave_start + timedelta(days=random.randint(1, 5))
+            
+            leave_request = LeaveRequest(
+                employee_id=employee.id,
+                organization_id=employee.organization_id,
+                leave_type="sick_leave" if random.random() > 0.6 else "casual_leave",
+                start_date=leave_start,
+                end_date=leave_end,
+                reason="Personal reasons",
+                status="pending"
+            )
+            db.session.add(leave_request)
+            db.session.flush()
+            logger.debug(f"Created leave request for {employee.full_name}")
+            created_leaves.append(leave_request)
+    
+    return created_leaves
 
 
 def seed_all_master_data():

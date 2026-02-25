@@ -8,7 +8,7 @@ sys.path.append(os.path.join(os.getcwd(), 'backend'))
 sys.path.append(os.path.join(os.getcwd(), 'backend'))
 
 # Set env vars from .env (hardcoded for simplicity/safety)
-os.environ['DATABASE_URL'] = 'postgresql+psycopg2://postgres:pg1234@127.0.0.1:5432/access_hub'
+os.environ['DATABASE_URL'] = 'postgresql+psycopg2://postgres:pg1234@127.0.0.1:5432/visitor_db '
 os.environ['JWT_SECRET_KEY'] = 'dummy'
 os.environ['SECRET_KEY'] = 'dummy'
 
