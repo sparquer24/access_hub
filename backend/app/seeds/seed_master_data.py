@@ -2,6 +2,9 @@
 Comprehensive Master/Test Data Seeding Script for Single Organization
 Creates roles with permissions, one primary organization, departments, employees, shifts, test users,
 and 2 months of detailed attendance logs for testing and analytics.
+
+This script is designed to run as a standalone ECS task.
+All database operations include proper error handling and transactional support.
 """
 
 from datetime import datetime, date, time, timedelta
@@ -11,12 +14,23 @@ from ..models import (
     Location, Camera, LeaveRequest
 )
 import uuid
+import logging
+import os
+
+# Configure logger
+logger = logging.getLogger(__name__)
+if not logger.handlers:
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
 
 
 def create_roles():
     """Create comprehensive role structure with detailed permissions"""
     
-    print("\n--- Creating Roles ---")
+    logger.info("Creating roles...")
     
     roles_data = [
         {
@@ -108,7 +122,7 @@ def create_roles():
         existing_role = Role.query.filter_by(name=role_data["name"]).first()
         
         if existing_role:
-            print(f"  [INFO] Role already exists: {role_data['name']}")
+            logger.debug(f"Role already exists: {role_data['name']}")
             created_roles.append(existing_role)
         else:
             role = Role(
@@ -118,7 +132,7 @@ def create_roles():
             )
             db.session.add(role)
             db.session.flush()
-            print(f"  [SUCCESS] Created role: {role_data['name']}")
+            logger.debug(f"Created role: {role_data['name']}")
             created_roles.append(role)
     
     return {role.name: role for role in created_roles}
@@ -127,7 +141,7 @@ def create_roles():
 def create_organizations():
     """Create primary test organization"""
     
-    print("\n--- Creating Primary Organization ---")
+    logger.info("Creating primary organization...")
     
     # Focus on one comprehensive organization
     org_data = {
@@ -145,7 +159,7 @@ def create_organizations():
     existing_org = Organization.query.filter_by(code=org_data["code"]).first()
     
     if existing_org:
-        print(f"  [INFO] Organization already exists: {org_data['name']}")
+        logger.debug(f"Organization already exists: {org_data['name']}")
         created_org = existing_org
     else:
         org = Organization(
@@ -166,7 +180,7 @@ def create_organizations():
         )
         db.session.add(org)
         db.session.flush()
-        print(f"  [SUCCESS] Created organization: {org_data['name']}")
+        logger.info(f"Created organization: {org_data['name']}")
         created_org = org
     
     return [created_org]
@@ -175,7 +189,7 @@ def create_organizations():
 def create_departments(organizations):
     """Create departments for primary organization"""
     
-    print("\n--- Creating Departments ---")
+    logger.info("Creating departments...")
     
     departments_structure = {
         "Engineering": "Department for all engineering work",
@@ -190,7 +204,7 @@ def create_departments(organizations):
     
     # Create departments only for the primary organization
     org = organizations[0]
-    print(f"\n  Creating departments for {org.name}:")
+    logger.info(f"Creating departments for {org.name}:")
     
     for idx, (dept_name, dept_desc) in enumerate(departments_structure.items(), 1):
         dept_code = f"{dept_name.upper()[:3]}"  # First 3 letters
@@ -201,7 +215,7 @@ def create_departments(organizations):
         ).first()
         
         if existing_dept:
-            print(f"    [INFO] Department already exists: {dept_name}")
+            logger.debug(f"Department already exists: {dept_name}")
             created_depts.append(existing_dept)
         else:
             dept = Department(
@@ -213,7 +227,7 @@ def create_departments(organizations):
             )
             db.session.add(dept)
             db.session.flush()
-            print(f"    [SUCCESS] Created department: {dept_name}")
+            logger.debug(f"Created department: {dept_name}")
             created_depts.append(dept)
     
     return created_depts
@@ -222,7 +236,7 @@ def create_departments(organizations):
 def create_shifts(organizations):
     """Create work shifts for primary organization"""
     
-    print("\n--- Creating Shifts ---")
+    logger.info("Creating shifts...")
     
     shifts_data = [
         {
@@ -259,7 +273,7 @@ def create_shifts(organizations):
     
     # Create shifts only for the primary organization
     org = organizations[0]
-    print(f"\n  Creating shifts for {org.name}:")
+    logger.info(f"Creating shifts for {org.name}:")
     
     for shift_data in shifts_data:
         existing_shift = Shift.query.filter_by(
@@ -268,7 +282,7 @@ def create_shifts(organizations):
         ).first()
         
         if existing_shift:
-            print(f"    [INFO] Shift already exists: {shift_data['name']}")
+            logger.debug(f"Shift already exists: {shift_data['name']}")
             created_shifts.append(existing_shift)
         else:
             shift = Shift(
@@ -282,7 +296,7 @@ def create_shifts(organizations):
             )
             db.session.add(shift)
             db.session.flush()
-            print(f"    [SUCCESS] Created shift: {shift_data['name']}")
+            logger.debug(f"Created shift: {shift_data['name']}")
             created_shifts.append(shift)
     
     return created_shifts
@@ -336,7 +350,7 @@ def create_super_admin_user(roles):
 def create_users_and_employees(organizations, departments, roles, shifts):
     """Create test users and linked employees for primary organization"""
     
-    print("\n--- Creating Users and Employees ---")
+    logger.info("Creating users and employees...")
     
     org = organizations[0]  # Primary organization
     
@@ -516,7 +530,7 @@ def create_users_and_employees(organizations, departments, roles, shifts):
         # Find department
         dept = next((d for d in departments if d.organization_id == org.id and d.code == emp_data["dept_code"]), None)
         if not dept:
-            print(f"  [WARNING] Department {emp_data['dept_code']} not found, skipping employee {emp_data['full_name']}")
+            logger.warning(f"Department {emp_data['dept_code']} not found, skipping employee {emp_data['full_name']}")
             continue
         
         # Find shift
@@ -525,14 +539,14 @@ def create_users_and_employees(organizations, departments, roles, shifts):
         # Find role
         role = roles.get(emp_data["role"])
         if not role:
-            print(f"  [WARNING] Role {emp_data['role']} not found, skipping employee {emp_data['full_name']}")
+            logger.warning(f"Role {emp_data['role']} not found, skipping employee {emp_data['full_name']}")
             continue
         
         # Check if user already exists
         existing_user = User.query.filter_by(email=emp_data["email"]).first()
         
         if existing_user:
-            print(f"  [INFO] User already exists: {emp_data['full_name']} ({emp_data['email']})")
+            logger.debug(f"User already exists: {emp_data['full_name']} ({emp_data['email']})")
             created_users.append(existing_user)
         else:
             # Create user
@@ -546,7 +560,7 @@ def create_users_and_employees(organizations, departments, roles, shifts):
             )
             db.session.add(user)
             db.session.flush()
-            print(f"  [SUCCESS] Created user: {emp_data['full_name']} (Role: {role.name})")
+            logger.debug(f"Created user: {emp_data['full_name']} (Role: {role.name})")
             created_users.append(user)
             
             # Create employee linked to user
@@ -565,7 +579,7 @@ def create_users_and_employees(organizations, departments, roles, shifts):
             )
             db.session.add(employee)
             db.session.flush()
-            print(f"    [SUCCESS] Created employee: {emp_data['full_name']}")
+            logger.debug(f"Created employee: {emp_data['full_name']}")
             created_employees.append(employee)
     
     return created_users, created_employees
@@ -574,17 +588,17 @@ def create_users_and_employees(organizations, departments, roles, shifts):
 def create_attendance_records(employees):
     """Create sample attendance records for the last 2 months (60 days)"""
     
-    print("\n--- Creating Sample Attendance Records (Last 2 Months) ---")
+    logger.info("Creating sample attendance records (last 2 months)...")
     
     if not employees:
-        print("  [WARNING] No employees found to create attendance records")
+        logger.warning("No employees found to create attendance records")
         return
     
     today = date.today()
     total_records_created = 0
     
     for employee in employees:
-        print(f"\n  Creating attendance for: {employee.full_name}")
+        logger.debug(f"Creating attendance for: {employee.full_name}")
         employee_records = 0
         
         # Create records for last 60 days (2 months)
@@ -643,274 +657,18 @@ def create_attendance_records(employees):
             employee_records += 1
             total_records_created += 1
         
-        print(f"    [SUCCESS] Created {employee_records} attendance records")
+        logger.debug(f"Created {employee_records} attendance records for {employee.full_name}")
     
     db.session.flush()
-    print(f"\n  [SUCCESS] Total Attendance Records Created: {total_records_created}")
-
-
-def create_locations(organizations):
-    """Create physical locations/entry points for organizations"""
-    
-    print("\n--- Creating Locations ---")
-    
-    locations_data = [
-        {
-            "name": "Main Gate",
-            "location_type": "BOTH",
-            "description": "Main entrance/exit point",
-            "building": "Main Building",
-            "floor": "Ground Floor",
-            "area": "Reception Area",
-            "latitude": 17.3850,
-            "longitude": 78.4867,
-        },
-        {
-            "name": "Tower A Entry",
-            "location_type": "ENTRY",
-            "description": "Tower A entrance for employees",
-            "building": "Tower A",
-            "floor": "Ground Floor",
-            "area": "North Side",
-            "latitude": 17.3851,
-            "longitude": 78.4868,
-        },
-        {
-            "name": "Tower A Exit",
-            "location_type": "EXIT",
-            "description": "Tower A exit point",
-            "building": "Tower A",
-            "floor": "Ground Floor",
-            "area": "North Side",
-            "latitude": 17.3852,
-            "longitude": 78.4869,
-        },
-        {
-            "name": "Tower B Entry",
-            "location_type": "ENTRY",
-            "description": "Tower B entrance",
-            "building": "Tower B",
-            "floor": "Ground Floor",
-            "area": "East Side",
-            "latitude": 17.3853,
-            "longitude": 78.4870,
-        },
-        {
-            "name": "Back Exit",
-            "location_type": "EXIT",
-            "description": "Emergency/back exit",
-            "building": "Main Building",
-            "floor": "Ground Floor",
-            "area": "South Side",
-            "latitude": 17.3849,
-            "longitude": 78.4866,
-        },
-        {
-            "name": "Parking Entry",
-            "location_type": "ENTRY",
-            "description": "Vehicle parking entrance",
-            "building": "Parking",
-            "floor": "Level 1",
-            "area": "Basement",
-            "latitude": 17.3848,
-            "longitude": 78.4865,
-        },
-    ]
-    
-    created_locations = []
-    org = organizations[0]
-    
-    for loc_data in locations_data:
-        existing_loc = Location.query.filter_by(
-            organization_id=org.id,
-            name=loc_data["name"]
-        ).first()
-        
-        if existing_loc:
-            print(f"  [INFO] Location already exists: {loc_data['name']}")
-            created_locations.append(existing_loc)
-        else:
-            location = Location(
-                organization_id=org.id,
-                name=loc_data["name"],
-                location_type=loc_data["location_type"],
-                description=loc_data["description"],
-                building=loc_data["building"],
-                floor=loc_data["floor"],
-                area=loc_data["area"],
-                latitude=loc_data["latitude"],
-                longitude=loc_data["longitude"],
-                is_active=True
-            )
-            db.session.add(location)
-            db.session.flush()
-            print(f"  [SUCCESS] Created location: {loc_data['name']}")
-            created_locations.append(location)
-    
-    return created_locations
-
-
-def create_cameras(organizations, locations):
-    """Create camera configurations for locations"""
-    
-    print("\n--- Creating Cameras ---")
-    
-    if not locations:
-        print("  [WARNING] No locations found to associate cameras")
-        return []
-    
-    cameras_config = [
-        {
-            "location_name": "Main Gate",
-            "cameras": [
-                {
-                    "name": "Main Gate Check-In Cam",
-                    "camera_type": "CHECK_IN",
-                    "source_type": "IP_CAMERA",
-                    "source_url": "192.168.1.100",
-                },
-                {
-                    "name": "Main Gate Check-Out Cam",
-                    "camera_type": "CHECK_OUT",
-                    "source_type": "IP_CAMERA",
-                    "source_url": "192.168.1.101",
-                },
-            ]
-        },
-        {
-            "location_name": "Tower A Entry",
-            "cameras": [
-                {
-                    "name": "Tower A Entry Cam",
-                    "camera_type": "CHECK_IN",
-                    "source_type": "IP_CAMERA",
-                    "source_url": "192.168.1.102",
-                },
-            ]
-        },
-        {
-            "location_name": "Tower B Entry",
-            "cameras": [
-                {
-                    "name": "Tower B Entry Cam",
-                    "camera_type": "CHECK_IN",
-                    "source_type": "IP_CAMERA",
-                    "source_url": "192.168.1.103",
-                },
-            ]
-        },
-    ]
-    
-    created_cameras = []
-    org = organizations[0]
-    
-    for config in cameras_config:
-        # Find location
-        location = next((l for l in locations if l.name == config["location_name"]), None)
-        if not location:
-            print(f"  [WARNING] Location not found: {config['location_name']}")
-            continue
-        
-        for cam_data in config["cameras"]:
-            existing_cam = Camera.query.filter_by(
-                organization_id=org.id,
-                location_id=location.id,
-                name=cam_data["name"]
-            ).first()
-            
-            if existing_cam:
-                print(f"  [INFO] Camera already exists: {cam_data['name']}")
-                created_cameras.append(existing_cam)
-            else:
-                camera = Camera(
-                    organization_id=org.id,
-                    location_id=location.id,
-                    name=cam_data["name"],
-                    camera_type=cam_data["camera_type"],
-                    source_type=cam_data["source_type"],
-                    source_url=cam_data["source_url"],
-                    is_active=True
-                )
-                db.session.add(camera)
-                db.session.flush()
-                print(f"  [SUCCESS] Created camera: {cam_data['name']} at {config['location_name']}")
-                created_cameras.append(camera)
-    
-    return created_cameras
-
-
-def create_leave_requests(users, employees):
-    """Create sample leave requests for testing"""
-    
-    print("\n--- Creating Sample Leave Requests ---")
-    
-    leave_types = ["casual", "sick", "earned", "unpaid"]
-    today = date.today()
-    
-    # Create leave requests for managers only (they can approve leaves)
-    managers = [emp for emp in employees if emp.user and emp.user.role and "manager" in emp.user.role.name.lower()]
-    
-    sample_leaves = []
-    for idx, employee in enumerate(employees[:10], 1):  # Create leaves for first 10 employees
-        # Random leave type
-        import random
-        leave_type = random.choice(leave_types[:3])  # casual, sick, earned
-        
-        # Future leave dates (next 2 months)
-        start_offset = random.randint(5, 20)
-        duration = random.randint(1, 5)
-        
-        start_date = today + timedelta(days=start_offset)
-        end_date = start_date + timedelta(days=duration)
-        
-        # Skip weekends
-        while start_date.weekday() >= 5:
-            start_date += timedelta(days=1)
-        
-        end_date = start_date + timedelta(days=duration)
-        
-        # Find a manager to approve
-        approver = random.choice(managers) if managers else None
-        status = random.choice(["pending", "approved", "rejected"])
-        
-        existing_leave = LeaveRequest.query.filter_by(
-            employee_id=employee.id,
-            start_date=start_date,
-            end_date=end_date
-        ).first()
-        
-        if existing_leave:
-            continue
-        
-        leave_request = LeaveRequest(
-            employee_id=employee.id,
-            organization_id=employee.organization_id,
-            leave_type=leave_type,
-            duration_type="full_day",
-            start_date=start_date,
-            end_date=end_date,
-            total_days=float(duration),
-            reason=f"Sample {leave_type.replace('_', ' ').title()} Leave Request",
-            status=status,
-            approved_by=approver.user_id if approver and approver.user else None,
-            approval_notes="Sample leave request created during seeding" if status != "pending" else None
-        )
-        db.session.add(leave_request)
-        sample_leaves.append(leave_request)
-    
-    db.session.flush()
-    print(f"  [SUCCESS] Created {len(sample_leaves)} sample leave requests")
-    
-    return sample_leaves
-
+    logger.info(f"Total attendance records created: {total_records_created}")
 
 
 def seed_all_master_data():
     """Main function to seed all master data for primary organization"""
     
-    print("\n" + "="*60)
-    print("Starting Master Data Seeding (Primary Organization)")
-    print("="*60)
+    logger.info("=" * 70)
+    logger.info("Starting Master Data Seeding (Primary Organization)")
+    logger.info("=" * 70)
     
     try:
         # Create roles
@@ -953,65 +711,57 @@ def seed_all_master_data():
         leave_requests = create_leave_requests(users, employees)
         db.session.commit()
         
-        print("\n" + "="*60)
-        print("[SUCCESS] Master Data Seeding Completed Successfully!")
-        print("="*60)
-        print("\nSummary:")
-        print(f"  • Roles: {len(roles)}")
-        print(f"  • Organizations: {len(organizations)}")
-        print(f"  • Departments: {len(departments)}")
-        print(f"  • Shifts: {len(shifts)}")
-        print(f"  • Super Admin Users: 1")
-        print(f"  • Organization Users: {len(users)}")
-        print(f"  • Employees: {len(employees)}")
-        print(f"  • Locations: {len(locations)}")
-        print(f"  • Cameras: {len(cameras)}")
-        print(f"  • Leave Requests: {len(leave_requests)}")
-        print(f"  • Attendance Records: ~{len(employees) * 42} (60 days - weekends, per employee)")
-        print("\n" + "-"*60)
-        print("SUPER ADMIN CREDENTIALS:")
-        print("-"*60)
-        print("  Email: superadmin@accesshub.com")
-        print("  Username: superadmin")
-        print("  Password: SuperAdmin@123")
-        print("  Role: Super Administrator (Full System Access)")
-        print("\nOrganization: India IT Park (IIT)")
-        print("  • Address: 789 IT Boulevard, Hyderabad, India")
-        print("  • Timezone: Asia/Kolkata")
-        print("  • Subscription Tier: Premium")
-        print("\nTest User Credentials (Organization Users):")
-        print("  • priya.sharma@indiaittpark.com (Manager)")
-        print("  • rajesh.kumar@indiaittpark.com (Team Lead)")
-        print("  • neha.gupta@indiaittpark.com (Org Admin)")
-        print("  • Password: Test@123 (for all organization users)")
-        print("\nLocations Setup:")
-        print("  • Main Gate (Entry & Exit)")
-        print("  • Tower A Entry/Exit Points")
-        print("  • Tower B Entry Point")
-        print("  • Back Emergency Exit")
-        print("  • Parking Entry")
-        print("\nAttendance Data: Last 60 days (2 months)")
-        print("  • Includes realistic patterns: 75% present, 15% half-day, 10% absent")
-        print("  • Working days only (Monday-Friday)")
-        print("\n" + "="*60 + "\n")
+        # Summary
+        logger.info("=" * 70)
+        logger.info("Master Data Seeding Completed Successfully!")
+        logger.info("=" * 70)
+        logger.info(f"\nSummary:")
+        logger.info(f"  Roles: {len(roles)}")
+        logger.info(f"  Organizations: {len(organizations)}")
+        logger.info(f"  Departments: {len(departments)}")
+        logger.info(f"  Shifts: {len(shifts)}")
+        logger.info(f"  Users: {len(users)}")
+        logger.info(f"  Employees: {len(employees)}")
+        logger.info(f"  Attendance Records: ~{len(employees) * 42} (60 days - weekends, per employee)")
+        logger.info(f"\nOrganization: India IT Park (IIT)")
+        logger.info(f"  Address: 789 IT Boulevard, Hyderabad, India")
+        logger.info(f"  Timezone: Asia/Kolkata")
+        logger.info(f"  Subscription Tier: Premium")
+        logger.info(f"\nTest Credentials (Sample Users):")
+        logger.info(f"  priya.sharma@indiaittpark.com (Manager)")
+        logger.info(f"  rajesh.kumar@indiaittpark.com (Team Lead)")
+        logger.info(f"  neha.gupta@indiaittpark.com (Org Admin)")
+        logger.info(f"  Password: Test@123 (for all test users)")
+        logger.info(f"\nAttendance Data: Last 60 days (2 months)")
+        logger.info(f"  Includes realistic patterns: 75% present, 15% half-day, 10% absent")
+        logger.info(f"  Working days only (Monday-Friday)")
+        logger.info("=" * 70)
         
         return True
         
     except Exception as e:
         db.session.rollback()
-        print(f"\n[ERROR] Error during seeding: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.error(f"Error during seeding: {str(e)}", exc_info=True)
         return False
 
 
 if __name__ == "__main__":
+    """
+    Standalone execution entry point for seed script.
+    Can be run as: python -m app.seeds.seed_master_data
+    """
+    import sys
     from flask import Flask
     from ..config import Config
     
-    app = Flask(__name__)
-    app.config.from_object(Config)
-    db.init_app(app)
-    
-    with app.app_context():
-        seed_all_master_data()
+    try:
+        app = Flask(__name__)
+        app.config.from_object(Config)
+        db.init_app(app)
+        
+        with app.app_context():
+            success = seed_all_master_data()
+            sys.exit(0 if success else 1)
+    except Exception as e:
+        logger.error(f"Failed to initialize Flask app: {str(e)}", exc_info=True)
+        sys.exit(1)
