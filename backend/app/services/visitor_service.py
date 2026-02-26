@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import func, and_, or_, distinct, case, desc
+
 from ..extensions import db
 from ..models import (
     OrganizationVisitor, VisitorAlert, VisitorMovementLog, VisitorHistoryDetails
@@ -104,6 +105,90 @@ class VisitorService:
         except Exception as e:
             db.session.rollback()
             raise Exception(f"Check-out failed: {str(e)}")
+        
+
+    @staticmethod
+    def get_dashboard_stats(org_id):
+        """
+        Get dashboard statistics for visitors.
+        
+        Args:
+            org_id: Organization ID
+        
+        Returns:
+            Dict with stats {
+                active_visitors: int,
+                total_entries_today: int,
+                total_visitors: int,
+                active_alerts: int,
+                logged_movements: int
+            }
+        """
+        try:
+            active_visitors = db.session.query(func.count(VisitorHistoryDetails.id)).filter(
+                VisitorHistoryDetails.organization_id == org_id,    
+                VisitorHistoryDetails.is_checked_in == True
+            ).scalar() or 0
+            print("Active Visitors:", active_visitors)
+            
+            return {
+                'active_visitors': active_visitors,
+                # 'total_entries_today': total_entries_today,
+                # 'total_visitors': total_visitors,
+                # 'active_alerts': active_alerts,
+                # 'logged_movements': logged_movements
+            }
+            
+        except Exception as e:
+            print(f"Error getting dashboard stats: {e}")
+            raise Exception(f"Failed to get dashboard stats: {str(e)}")
+
+    @staticmethod
+    def get_visitor_trends(org_id):
+        """
+        Get visitor trends data for the last 30 days.
+        
+        Args:
+            org_id: Organization ID
+        Returns:
+            Dict with trends data {
+                daily_entries: list of {date, count},
+                visitor_type_breakdown: dict of {visitor_type: count}
+            }
+        """
+        try:
+            today = datetime.utcnow().date()
+            thirty_days_ago = today - timedelta(days=30)
+            
+            # Daily entries for last 30 days
+            daily_entries = db.session.query(
+                func.date(VisitorHistoryDetails.check_in_time).label('date'),
+                func.count(VisitorHistoryDetails.id).label('count')
+            ).filter(
+                VisitorHistoryDetails.organization_id == org_id,
+                VisitorHistoryDetails.check_in_time >= thirty_days_ago
+            ).group_by(func.date(VisitorHistoryDetails.check_in_time)).order_by(func.date(VisitorHistoryDetails.check_in_time)).all()
+            
+            daily_entries_data = [{'date': str(date), 'count': count} for date, count in daily_entries]
+            
+            # Visitor type breakdown for last 30 days
+            visitor_type_breakdown = db.session.query(
+                VisitorHistoryDetails.visitor_type,
+                func.count(VisitorHistoryDetails.id)
+            ).filter(
+                VisitorHistoryDetails.organization_id == org_id,
+                VisitorHistoryDetails.check_in_time >= thirty_days_ago
+            ).group_by(VisitorHistoryDetails.visitor_type).all()
+            
+            visitor_type_data = {vtype: count for vtype, count in visitor_type_breakdown}
+            
+            return {
+                'daily_entries': daily_entries_data,
+                'visitor_type_breakdown': visitor_type_data
+            }
+            
+        except Exception as e:
+            raise Exception(f"Failed to get visitor trends: {str(e)}")
 
     @staticmethod
     def create_alert(org_id, visitor_id, alert_type, current_floor, allowed_floor, details=None):
