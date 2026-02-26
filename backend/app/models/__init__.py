@@ -18,10 +18,7 @@ from .attendance_change_request import AttendanceChangeRequest
 from .audit_log import AuditLog
 from .image import Image
 from .visitor import (
-    OrganizationVisitor, VisitorMovementLog, VisitorAlert,
-    VisitorBlacklist, VisitorPreRegistration, VisitorBadge, GroupVisit,
-    VisitorDocument, VisitorHealthScreening, VisitorAsset, ContractorTimeLog,
-    DeliveryLog, VIPVisitorPreference
+    OrganizationVisitor, VisitorHistoryDetails, VisitorMovementLog, VisitorAlert
 )
 from .lpr import LPRLog, LPRHotlist, LPRWhitelist
 
@@ -42,18 +39,9 @@ __all__ = [
     "AuditLog",
     "Image",
     "OrganizationVisitor",
+    "VisitorHistoryDetails",
     "VisitorMovementLog",
     "VisitorAlert",
-    "VisitorBlacklist",
-    "VisitorPreRegistration",
-    "VisitorBadge",
-    "GroupVisit",
-    "VisitorDocument",
-    "VisitorHealthScreening",
-    "VisitorAsset",
-    "ContractorTimeLog",
-    "DeliveryLog",
-    "VIPVisitorPreference",
     "LPRLog",
     "LPRHotlist",
     "LPRWhitelist",
