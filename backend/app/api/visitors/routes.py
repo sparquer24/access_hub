@@ -40,7 +40,6 @@ bp = Blueprint('visitors_api', __name__, url_prefix='/api/v2/organizations')
 
 @bp.route('/<org_id>/visitors/check-in', methods=['POST'])
 @jwt_required()
-@require_permission('visitor_management')
 def check_in_visitor(org_id):
     """
     Check-in a visitor.
@@ -97,7 +96,6 @@ def check_in_visitor(org_id):
 
 @bp.route('/<org_id>/visitors/<history_id>/check-out', methods=['POST'])
 @jwt_required()
-@require_permission('visitor_management')
 def check_out_visitor(org_id, history_id):
     """
     Check-out a visitor.
@@ -123,7 +121,6 @@ def check_out_visitor(org_id, history_id):
 
 @bp.route('/<org_id>/visitors/active', methods=['GET'])
 @jwt_required()
-@require_permission('visitor_management')
 def get_active_visitors(org_id):
     """
     Get all currently active (checked-in) visitors for the organization.
@@ -155,7 +152,6 @@ def get_active_visitors(org_id):
 
 @bp.route('/<org_id>/visitors/alerts', methods=['GET'])
 @jwt_required()
-@require_permission('visitor_management')
 def get_alerts(org_id):
     """
     Get all visitor alerts for the organization.
@@ -229,7 +225,6 @@ def get_alerts(org_id):
 
 @bp.route('/<org_id>/visitors/logs', methods=['GET'])
 @jwt_required()
-@require_permission('visitor_management')
 def get_logs(org_id):
     """
     Get visitor movement logs.
@@ -300,7 +295,6 @@ def get_logs(org_id):
 
 @bp.route('/<org_id>/visitors/overview', methods=['GET'])
 @jwt_required()
-@require_permission('visitor_management')
 def get_overview(org_id):
     """
     Get visitor management overview statistics.
@@ -332,7 +326,6 @@ def get_overview(org_id):
 
 @bp.route('/<org_id>/visitors/<visitor_id>/history', methods=['GET'])
 @jwt_required()
-@require_permission('visitor_management')
 def get_visitor_history(org_id, visitor_id):
     """
     Get complete visit history for a specific visitor.
@@ -388,7 +381,6 @@ def get_visitor_history(org_id, visitor_id):
 
 @bp.route('/<org_id>/alerts/<alert_id>/acknowledge', methods=['POST'])
 @jwt_required()
-@require_permission('visitor_management')
 def acknowledge_alert(org_id, alert_id):
     """
     Acknowledge/mark as read a specific alert.
@@ -414,7 +406,6 @@ def acknowledge_alert(org_id, alert_id):
 
 @bp.route('/<org_id>/visitors', methods=['GET'])
 @jwt_required()
-@require_permission('visitor_management')
 def list_visitors(org_id):
     """
     Get paginated list of all visitors in the organization.
@@ -436,7 +427,6 @@ def list_visitors(org_id):
 
 @bp.route('/<org_id>/visitors/search', methods=['GET'])
 @jwt_required()
-@require_permission('visitor_management')
 def search_visitors(org_id):
     """
     Search visitors by name, phone, or email.
@@ -456,7 +446,6 @@ def search_visitors(org_id):
 
 @bp.route('/<org_id>/visitors/<visitor_id>', methods=['GET'])
 @jwt_required()
-@require_permission('visitor_management')
 def get_visitor(org_id, visitor_id):
     """
     Get a specific visitor profile.
@@ -478,7 +467,6 @@ def get_visitor(org_id, visitor_id):
 
 @bp.route('/<org_id>/visitors/<visitor_id>', methods=['PUT'])
 @jwt_required()
-@require_permission('visitor_management')
 def update_visitor(org_id, visitor_id):
     """
     Update visitor profile data.
@@ -495,7 +483,6 @@ def update_visitor(org_id, visitor_id):
 
 @bp.route('/<org_id>/visitors/<visitor_id>', methods=['DELETE'])
 @jwt_required()
-@require_permission('visitor_management')
 def delete_visitor(org_id, visitor_id):
     """
     Delete a visitor record.
