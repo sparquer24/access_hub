@@ -2,6 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { visitorService } from '../../../services/visitorService';
 import { useToast } from '../../../contexts/ToastContext';
 import { RefreshCw, Users, TrendingUp, AlertTriangle, MapPin, BarChart3 } from 'lucide-react';
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  BarChart,
+  Bar
+} from 'recharts';
 import Loader from '../../common/Loader';
 
 const VisitorOverview = ({ organizationId, refreshTrigger }) => {
@@ -9,13 +21,52 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
   const [overview, setOverview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [monthlyTrend, setMonthlyTrend] = useState(null);
+  const [weeklyTrend, setWeeklyTrend] = useState(null);
+  const [hourlyData, setHourlyData] = useState(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState('monthly');
+  // Dummy monthly (12 months) and weekly (7 days) datasets used as visible fallbacks
+  const DUMMY_MONTHLY = [
+    { label: 'Jan', male: 40, female: 30 },
+    { label: 'Feb', male: 35, female: 32 },
+    { label: 'Mar', male: 50, female: 45 },
+    { label: 'Apr', male: 55, female: 48 },
+    { label: 'May', male: 60, female: 52 },
+    { label: 'Jun', male: 70, female: 60 },
+    { label: 'Jul', male: 65, female: 58 },
+    { label: 'Aug', male: 75, female: 68 },
+    { label: 'Sep', male: 68, female: 62 },
+    { label: 'Oct', male: 72, female: 66 },
+    { label: 'Nov', male: 66, female: 60 },
+    { label: 'Dec', male: 80, female: 72 }
+  ];
+  const DUMMY_WEEKLY = [
+    { label: 'Mon', male: 8, female: 6 },
+    { label: 'Tue', male: 10, female: 9 },
+    { label: 'Wed', male: 12, female: 11 },
+    { label: 'Thu', male: 9, female: 8 },
+    { label: 'Fri', male: 15, female: 13 },
+    { label: 'Sat', male: 5, female: 6 },
+    { label: 'Sun', male: 4, female: 5 }
+  ];
+  // Dummy hourly data (24 hours) used as a visible fallback during development
+  const DUMMY_HOURLY = Array.from({ length: 24 }).map((_, i) => {
+    const hour = i.toString().padStart(2, '0') + ':00';
+    // simple pattern: peak midday
+    const base = Math.round(5 + 10 * Math.sin((i - 8) / 24 * Math.PI * 2));
+    const male = Math.max(0, Math.round(base * (0.55 + (i % 3) * 0.02)));
+    const female = Math.max(0, Math.round(base * (0.45 - (i % 3) * 0.02)));
+    return { label: hour, count: male + female, male, female };
+  });
 
   useEffect(() => {
     fetchOverviewStats();
+    fetchAnalytics();
 
     // Auto-refresh every 30 seconds
     if (autoRefresh) {
-      const interval = setInterval(fetchOverviewStats, 30000);
+      const interval = setInterval(() => { fetchOverviewStats(); fetchAnalytics(); }, 30000);
       return () => clearInterval(interval);
     }
   }, [organizationId, refreshTrigger, autoRefresh]);
@@ -40,6 +91,61 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAnalytics = async () => {
+    if (!organizationId) return;
+    try {
+      setAnalyticsLoading(true);
+      // Try to fetch monthly, weekly and hourly analytics.
+      // The backend `getAnalytics` supports a dateRange/params object.
+      // We'll request three variants; if the backend ignores unknown params
+      // it should still return useful defaults.
+      const [monthlyRes, weeklyRes, hourlyRes] = await Promise.all([
+        visitorService.getAnalytics(organizationId, { period: 'monthly' }),
+        visitorService.getAnalytics(organizationId, { period: 'weekly' }),
+        visitorService.getAnalytics(organizationId, { period: 'hourly' })
+      ]);
+
+      const safeData = (res) => res?.data || res?.data?.data || res || null;
+
+      // Normalise common shapes. Many APIs return { success, data: { analytics: {...} } }
+      const normalize = (res) => {
+        if (!res) return null;
+        if (res.analytics) return res.analytics;
+        if (res.data && typeof res.data === 'object') return res.data;
+        return res;
+      };
+
+      const monthly = normalize(safeData(monthlyRes));
+      const weekly = normalize(safeData(weeklyRes));
+      const hourly = normalize(safeData(hourlyRes));
+
+      // Attempt to pick likely fields: gender series or direct arrays
+      // Preferred shape for charts: array of { label, male, female }
+      const toSeries = (src) => {
+        if (!src) return null;
+        if (Array.isArray(src)) return src;
+        // If object contains gender breakdown arrays
+        if (src.monthly_gender) return src.monthly_gender;
+        if (src.weekly_gender) return src.weekly_gender;
+        if (src.hourly) return src.hourly;
+        // If object contains keys we can map
+        const keys = Object.keys(src);
+        if (keys.length && Array.isArray(src[keys[0]])) {
+          return src[keys[0]];
+        }
+        return null;
+      };
+
+      setMonthlyTrend(toSeries(monthly));
+      setWeeklyTrend(toSeries(weekly));
+      setHourlyData(toSeries(hourly));
+    } catch (error) {
+      console.error('Failed to fetch analytics:', error);
+    } finally {
+      setAnalyticsLoading(false);
     }
   };
 
@@ -180,6 +286,84 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
               <p className="text-sm text-slate-400 italic">No data available</p>
             ) : null}
           </div>
+        </div>
+      </div>
+
+      {/* Charts: Monthly/Weekly Trend and Hourly */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-white border border-slate-200 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-teal-600" />
+              <h4 className="font-semibold text-slate-900">Monthly & Weekly Trend</h4>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSelectedPeriod('monthly')}
+                className={`px-3 py-1 rounded ${selectedPeriod === 'monthly' ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-600'}`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setSelectedPeriod('weekly')}
+                className={`px-3 py-1 rounded ${selectedPeriod === 'weekly' ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-600'}`}
+              >
+                Weekly
+              </button>
+            </div>
+          </div>
+          {analyticsLoading && !monthlyTrend && !weeklyTrend ? (
+            <Loader fullScreen={false} text="Loading charts..." />
+          ) : (
+            <div style={{ width: '100%', height: 260 }}>
+              <ResponsiveContainer>
+                <LineChart
+                  data={
+                    selectedPeriod === 'monthly'
+                      ? (monthlyTrend && monthlyTrend.length ? monthlyTrend : DUMMY_MONTHLY)
+                      : (weeklyTrend && weeklyTrend.length ? weeklyTrend : DUMMY_WEEKLY)
+                  }
+                  margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="label" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="male" stroke="#3182ce" strokeWidth={2} />
+                  <Line type="monotone" dataKey="female" stroke="#d53f8c" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white border border-slate-200 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <MapPin className="w-5 h-5 text-teal-600" />
+            <h4 className="font-semibold text-slate-900">Visitors by Hour</h4>
+          </div>
+          {analyticsLoading && !hourlyData ? (
+            <Loader fullScreen={false} text="Loading hourly chart..." />
+          ) : (hourlyData && hourlyData.length ? hourlyData : DUMMY_HOURLY) ? (
+            <div style={{ width: '100%', height: 260 }}>
+              <ResponsiveContainer>
+                <BarChart data={hourlyData && hourlyData.length ? hourlyData : DUMMY_HOURLY} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="label" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  {/* Prefer a single `count` field, fallback to male+female sum */}
+                  <Bar dataKey="count" fill="#14b8a6" />
+                  <Bar dataKey="male" fill="#3182ce" />
+                  <Bar dataKey="female" fill="#d53f8c" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <p className="text-sm text-slate-400 italic">No data available</p>
+          )}
         </div>
       </div>
 

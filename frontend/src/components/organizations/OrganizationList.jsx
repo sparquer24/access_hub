@@ -193,7 +193,18 @@ const OrganizationList = ({ showCreateButton = true, basePath = '/super-admin/or
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-200">
                   {filteredOrganizations.map((org, index) => (
-                    <tr key={org.id} className="hover:bg-slate-50 transition-colors">
+                    <tr
+                      key={org.id}
+                      className="hover:bg-slate-50 transition-colors cursor-pointer"
+                      onClick={() => handleViewOrganization(org.id)}
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleViewOrganization(org.id);
+                        }
+                      }}
+                    >
                       <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold text-slate-600">
                         {index + 1}
                       </td>
@@ -230,14 +241,14 @@ const OrganizationList = ({ showCreateButton = true, basePath = '/super-admin/or
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-3">
                           <button
-                            onClick={() => handleViewOrganization(org.id)}
+                            onClick={(e) => { e.stopPropagation(); handleViewOrganization(org.id); }}
                             className="text-teal-600 hover:text-teal-900 font-semibold hover:underline"
                           >
                             View
                           </button>
-                          <span className="text-slate-300">|</span>
+                          <span className="text-slate-300">&nbsp;</span>
                           <button
-                            onClick={() => handleDeleteOrganization(org.id, org.name)}
+                            onClick={(e) => { e.stopPropagation(); handleDeleteOrganization(org.id, org.name); }}
                             className="text-red-600 hover:text-red-900 font-semibold hover:underline"
                           >
                             Delete
