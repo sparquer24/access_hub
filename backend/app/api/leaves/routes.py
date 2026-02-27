@@ -34,6 +34,49 @@ bp = Blueprint('leaves_api', __name__, url_prefix='/api/v2/leaves')
 def create_leave_request():
     """
     Create a new leave request
+    ---
+    tags:
+      - Leave Requests
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - start_date
+            - end_date
+            - leave_type
+          properties:
+            start_date:
+              type: string
+              format: date
+              example: "2026-03-01"
+            end_date:
+              type: string
+              format: date
+              example: "2026-03-05"
+            leave_type:
+              type: string
+              enum: [casual, sick, personal, unpaid]
+            reason:
+              type: string
+            duration_type:
+              type: string
+              enum: [full_day, half_day, multiple_days]
+    responses:
+      201:
+        description: Leave request created successfully
+        schema:
+          $ref: '#/definitions/Success'
+      400:
+        $ref: '#/responses/BadRequestError'
+      401:
+        $ref: '#/responses/UnauthorizedError'
+      404:
+        description: Employee profile not found
     """
     import logging
     logger = logging.getLogger(__name__)

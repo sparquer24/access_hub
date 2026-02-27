@@ -1,17 +1,3 @@
-"""
-Visitor Management API routes (v2).
-Organization-level visitor tracking with movement and alerts.
-
-API Endpoints:
-- POST /api/v2/organizations/<org_id>/visitors/check-in - Check-in a visitor
-- POST /api/v2/organizations/<org_id>/visitors/<history_id>/check-out - Check-out a visitor
-- GET /api/v2/organizations/<org_id>/visitors/alerts - Get all alerts
-- GET /api/v2/organizations/<org_id>/visitors/logs - Get visitor logs (movement logs)
-- GET /api/v2/organizations/<org_id>/visitors/overview - Get overview statistics
-- GET /api/v2/organizations/<org_id>/visitors/<visitor_id>/history - Get visitor history
-- POST /api/v2/organizations/<org_id>/alerts/<alert_id>/acknowledge - Acknowledge an alert
-"""
-
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from datetime import datetime
@@ -35,30 +21,57 @@ from ...middlewares.rbac_middleware import require_permission
 from ...models import OrganizationVisitor, VisitorHistoryDetails, VisitorMovementLog, VisitorAlert
 from ...extensions import db
 
-bp = Blueprint('visitors_api', __name__, url_prefix='/api/v2/organizations')
+bp = Blueprint('Visitors', __name__, url_prefix='/api/v2/organizations')
 
 
 @bp.route('/<org_id>/visitors/check-in', methods=['POST'])
 @jwt_required()
 def check_in_visitor(org_id):
     """
-    Check-in a visitor.
-    
-    Request Body:
-    {
-        "name": "John Doe",
-        "phone": "9876543210",
-        "email": "john@example.com",
-        "gender": "Male",
-        "visitor_type": "guest",
-        "host_name": "Jane Smith",
-        "host_number": "9876543209",
-        "purpose_of_visit": "Meeting",
-        "allowed_floor": "2",
-        "allowed_tower": "Tower A",
-        "from_date": "2026-02-25",
-        "to_date": "2026-02-25"
-    }
+    Check in a visitor
+    ---
+    tags:
+      - Visitors
+    security:
+      - Bearer: []
+    parameters:
+      - name: org_id
+        in: path
+        type: string
+        required: true
+        description: Organization ID
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - visitor_id
+          properties:
+            visitor_id:
+              type: string
+              example: "visitor-uuid-123"
+            check_in_location:
+              type: string
+              example: "Main Gate"
+    responses:
+      200:
+        description: Visitor checked in successfully
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            message:
+              type: string
+              example: "Visitor checked in successfully"
+      400:
+        description: Invalid request data
+      401:
+        description: Unauthorized
+      404:
+        description: Visitor not found
     """
     try:
         data = request.get_json()
@@ -443,6 +456,76 @@ def search_visitors(org_id):
     except Exception as e:
         return error_response(str(e), 400)
 
+@bp.route('/<org_id>/visitors/overview', methods=['GET'])
+@jwt_required()
+@require_permission('visitors:read')
+def get_visitors_overview(org_id):
+    """
+    Visitors Overview for Dashboard Statistics
+
+    ---
+    tags:
+        - Visitors
+    security:
+        - Bearer: []
+    parameters:
+      - name: org_id
+        in: path
+        type: string
+        required: true
+        description: Organization ID
+    responses:
+      200:
+        description: Visitors overview retrieved successfully
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            message:
+              type: string
+              example: "Visitors overview retrieved successfully"
+            data:
+              type: object
+              properties:
+                total_visitors:
+                  type: integer
+                  example: 100
+                today_visitors:
+                  type: integer
+                  example: 10
+      401:
+        description: Unauthorized - Invalid or missing token
+        schema:
+          $ref: "#/definitions/Error"
+      403:
+        description: Forbidden - Insufficient permissions
+        schema:
+          $ref: "#/definitions/Error"
+      404:
+        description: Organization not found
+        schema:
+          $ref: "#/definitions/Error"
+      500:
+        description: Internal server error
+        schema:
+          $ref: "#/definitions/Error"
+    """
+    try:
+        user = get_current_user()
+        overview = VisitorService.get_visitors_overview(org_id)
+        print(overview, '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
+        
+        return success_response(
+            data=overview,
+            message='Visitors overview retrieved successfully',
+            status_code=200
+        )
+    except ValueError as e:
+        return error_response(str(e), 404)
+    except Exception as e:
+        return error_response(f'Failed to retrieve visitors overview: {str(e)}', 500)   
 
 @bp.route('/<org_id>/visitors/<visitor_id>', methods=['GET'])
 @jwt_required()
