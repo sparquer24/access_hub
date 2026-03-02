@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import func, and_, or_, distinct, case
 from ..extensions import db
-from ..models import OrganizationVisitor, AttendanceRecord, Employee, Shift, VisitorHistoryDetails, Image
+from ..models import OrganizationVisitor, AttendanceRecord, Employee, Shift, VisitorHistoryDetails, Image, VisitorMovementLog
 import uuid
 from flask import current_app
 
@@ -35,6 +35,99 @@ class VisitorService:
             'entries_today': entries_today,
             'active_visitors': active_visitors
         }
+    @staticmethod
+    def check_in_visitor(org_id, visitor_data):
+        """
+        Check-in a visitor. Creates visitor record if new, and creates history record.
+        
+        Args:
+            org_id: Organization ID
+            visitor_data: Dict with visitor info {
+                name, phone, email, gender, 
+                visitor_type, host_name, host_phone, 
+                purpose_of_visit, allowed_floor, allowed_tower,
+                from_date, to_date
+            }
+        
+        Returns:
+            Tuple of (visitor, history_record) or raises exception
+        """
+        try:
+            # Check if visitor already exists (by phone and org)
+            visitor = OrganizationVisitor.query.filter_by(
+                organization_id=org_id,
+                phone=visitor_data['phone']
+            ).first()
+            
+            # Create new visitor if doesn't exist
+            if not visitor:
+                visitor = OrganizationVisitor(
+                    organization_id=org_id,
+                    name=visitor_data['name'],
+                    phone=visitor_data['phone'],
+                    email=visitor_data.get('email'),
+                    gender=visitor_data.get('gender')
+                )
+                db.session.add(visitor)
+                db.session.flush()  # Get the visitor ID
+            
+            # Create history record for this visit
+            history = VisitorHistoryDetails(
+                visitor_id=visitor.id,
+                organization_id=org_id,
+                visitor_type=visitor_data.get('visitor_type', 'guest'),
+                host_name=visitor_data.get('host_name'),
+                host_number=visitor_data.get('host_phone'),
+                purpose_of_visit=visitor_data['purpose_of_visit'],
+                allowed_floor=visitor_data['allowed_floor'],
+                allowed_tower=visitor_data.get('allowed_tower'),
+                from_date=visitor_data['from_date'],
+                to_date=visitor_data.get('to_date'),
+                check_in_time=datetime.utcnow(),
+                is_checked_in=True
+            )
+            db.session.add(history)
+            db.session.commit()
+            
+            return visitor, history
+            
+        except Exception as e:
+            db.session.rollback()
+            raise Exception(f"Check-in failed: {str(e)}")
+
+    @staticmethod
+    def check_out_visitor(org_id, visit_history_id):
+        """
+        Check-out a visitor.
+        
+        Args:
+            org_id: Organization ID
+            visit_history_id: History record ID
+        
+        Returns:
+            Updated history record or raises exception
+        """
+        try:
+            history = VisitorHistoryDetails.query.filter_by(
+                id=visit_history_id,
+                organization_id=org_id
+            ).first()
+            
+            if not history:
+                raise Exception("Visit history not found")
+            
+            if history.check_out_time:
+                raise Exception("Visitor already checked out")
+            
+            history.check_out_time = datetime.utcnow()
+            history.is_checked_in = False
+            db.session.commit()
+            
+            return history
+            
+        except Exception as e:
+            db.session.rollback()
+            raise Exception(f"Check-out failed: {str(e)}")
 
     @staticmethod
     def get_visitor_trends(organization_id):
@@ -136,34 +229,18 @@ class VisitorService:
                 VisitorHistoryDetails.organization_id == org_id,
                 VisitorHistoryDetails.check_out_time.is_(None)
             ).scalar() or 0
-
         # 2️ Total Entries Today
         total_entries_today = db.session.query(func.count(VisitorHistoryDetails.id)) \
             .filter(
                 VisitorHistoryDetails.organization_id == org_id,
                 func.date(VisitorHistoryDetails.created_at) == today
             ).scalar() or 0
-
-        # 3️ Active Alerts
-        active_alerts = db.session.query(func.count(active_visitors.id)) \
-            .filter(
-                active_visitors.organization_id == org_id,
-                active_visitors.status == "active"
-            ).scalar() or 0
-
+ 
         # 4️ Total Visitors (master count)
         total_visitors = db.session.query(func.count(OrganizationVisitor.id)) \
             .filter(
                 OrganizationVisitor.organization_id == org_id
             ).scalar() or 0
-
-        # 5️ Logged Movements Today
-        logged_movements = db.session.query(func.count(total_entries_today.id)) \
-            .filter(
-                VisitorMovementLog.organization_id == org_id,
-                func.date(VisitorMovementLog.created_at) == today
-            ).scalar() or 0
-
         # 6️ Visitor Type Breakdown (active visitors only)
         visitor_type_rows = db.session.query(
             VisitorHistoryDetails.visitor_type,
@@ -182,11 +259,10 @@ class VisitorService:
         return {
             "active_visitors": active_visitors,
             "total_entries_today": total_entries_today,
-            "active_alerts": active_alerts,
             "total_visitors": total_visitors,
-            "logged_movements": logged_movements,
             "visitor_types_breakdown": visitor_types_breakdown
         }
+    
 
     @staticmethod
     def create_visitor(organization_id, data):
@@ -623,3 +699,202 @@ class VisitorService:
             visitor_id, 
             data
         )
+    @staticmethod
+    def get_visitor_analytics(organization_id, period='monthly'):  # monthly|weekly|hourly
+        """
+        Get visitor analytics for dashboard charts.
+        
+        Args:
+            organization_id: Organization ID
+            period: 'monthly' | 'weekly' | 'hourly'
+        
+        Returns:
+            Dictionary with analytics data based on period
+        """
+        if period == 'monthly':
+            return VisitorService._get_monthly_analytics(organization_id)
+        elif period == 'weekly':
+            return VisitorService._get_weekly_analytics(organization_id)
+        elif period == 'hourly':
+            return VisitorService._get_hourly_analytics(organization_id)
+        else:
+            raise ValueError(f"Invalid period: {period}. Must be 'monthly', 'weekly', or 'hourly'")
+
+    @staticmethod
+    def _get_monthly_analytics(organization_id):
+        """
+        Get monthly visitor analytics for the last 12 months.
+        
+        Returns:
+            {
+                "monthly_gender": [
+                    { "label": "Jan", "male": 40, "female": 30 },
+                    { "label": "Feb", "male": 35, "female": 32 },
+                    ...
+                ]
+            }
+        """
+        today = datetime.utcnow()
+        months_data = []
+        
+        # Get data for last 12 months
+        for i in range(11, -1, -1):
+            month_start = today.replace(day=1) - relativedelta(months=i)
+            if i == 0:
+                month_end = today
+            else:
+                month_end = (today.replace(day=1) - relativedelta(months=i-1)).replace(day=1) - timedelta(days=1)
+            
+            month_label = month_start.strftime('%b')
+            
+            # Gender analytics
+            gender_data = db.session.query(
+                OrganizationVisitor.gender,
+                func.count(OrganizationVisitor.id).label('count')
+            ).join(
+                VisitorHistoryDetails,
+                OrganizationVisitor.id == VisitorHistoryDetails.visitor_id
+            ).filter(
+                OrganizationVisitor.organization_id == organization_id,
+                VisitorHistoryDetails.check_in_time >= month_start,
+                VisitorHistoryDetails.check_in_time <= month_end
+            ).group_by(OrganizationVisitor.gender).all()
+            
+            gender_dict = {row[0] or 'unknown': row[1] for row in gender_data}
+            
+            months_data.append({
+                'label': month_label,
+                'gender': gender_dict
+            })
+        
+        # Transform data for front-end
+        monthly_gender = []
+        
+        for data in months_data:
+            monthly_gender.append({
+                'label': data['label'],
+                'male': data['gender'].get('male', 0),
+                'female': data['gender'].get('female', 0)
+            })
+        
+        return {
+            'monthly_gender': monthly_gender
+        }
+
+    @staticmethod
+    def _get_weekly_analytics(organization_id):
+        """
+        Get weekly visitor analytics by day of week (last 7 days).
+        
+        Returns:
+            {
+                "weekly_gender": [
+                    { "label": "Mon", "male": 10, "female": 8 },
+                    { "label": "Tue", "male": 12, "female": 11 },
+                    ...
+                ]
+            }
+        """
+        today = datetime.utcnow()
+        days_data = []
+        day_names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        
+        # Get data for last 7 days
+        for i in range(6, -1, -1):
+            day = today - timedelta(days=i)
+            day_start = day.replace(hour=0, minute=0, second=0, microsecond=0)
+            day_end = day.replace(hour=23, minute=59, second=59, microsecond=999999)
+            
+            day_label = day_names[day.weekday()]
+            
+            # Gender analytics
+            gender_data = db.session.query(
+                OrganizationVisitor.gender,
+                func.count(OrganizationVisitor.id).label('count')
+            ).join(
+                VisitorHistoryDetails,
+                OrganizationVisitor.id == VisitorHistoryDetails.visitor_id
+            ).filter(
+                OrganizationVisitor.organization_id == organization_id,
+                VisitorHistoryDetails.check_in_time >= day_start,
+                VisitorHistoryDetails.check_in_time <= day_end
+            ).group_by(OrganizationVisitor.gender).all()
+            
+            gender_dict = {row[0] or 'unknown': row[1] for row in gender_data}
+            
+            days_data.append({
+                'label': day_label,
+                'gender': gender_dict
+            })
+        
+        # Transform data for front-end
+        weekly_gender = []
+        
+        for data in days_data:
+            weekly_gender.append({
+                'label': data['label'],
+                'male': data['gender'].get('male', 0),
+                'female': data['gender'].get('female', 0)
+            })
+        
+        return {
+            'weekly_gender': weekly_gender
+        }
+
+    @staticmethod
+    def _get_hourly_analytics(organization_id):
+        """
+        Get hourly visitor analytics for the last 24 hours.
+        
+        Returns:
+            {
+                "hourly_gender": [
+                    { "label": "00:00", "male": 2, "female": 1 },
+                    { "label": "01:00", "male": 3, "female": 2 },
+                    ...
+                ]
+            }
+        """
+        today = datetime.utcnow()
+        hours_data = []
+        
+        # Get data for last 24 hours
+        for i in range(23, -1, -1):
+            hour_start = today.replace(minute=0, second=0, microsecond=0) - timedelta(hours=i)
+            hour_end = hour_start + timedelta(hours=1) - timedelta(seconds=1)
+            
+            hour_label = hour_start.strftime('%H:%M')
+            
+            # Gender analytics
+            gender_data = db.session.query(
+                OrganizationVisitor.gender,
+                func.count(OrganizationVisitor.id).label('count')
+            ).join(
+                VisitorHistoryDetails,
+                OrganizationVisitor.id == VisitorHistoryDetails.visitor_id
+            ).filter(
+                OrganizationVisitor.organization_id == organization_id,
+                VisitorHistoryDetails.check_in_time >= hour_start,
+                VisitorHistoryDetails.check_in_time <= hour_end
+            ).group_by(OrganizationVisitor.gender).all()
+            
+            gender_dict = {row[0] or 'unknown': row[1] for row in gender_data}
+            
+            hours_data.append({
+                'label': hour_label,
+                'gender': gender_dict
+            })
+        
+        # Transform data for front-end
+        hourly_gender = []
+        
+        for data in hours_data:
+            hourly_gender.append({
+                'label': data['label'],
+                'male': data['gender'].get('male', 0),
+                'female': data['gender'].get('female', 0)
+            })
+        
+        return {
+            'hourly_gender': hourly_gender
+        }

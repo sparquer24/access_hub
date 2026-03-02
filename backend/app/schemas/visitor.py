@@ -224,24 +224,6 @@ class VisitorMovementLogSchema(Schema):
     class Meta:
         strict = True
 
-
-class VisitorAlertSchema(Schema):
-    """Schema for visitor alerts"""
-    id = fields.String()
-    visitor_id = fields.String()
-    visitor_name = fields.String()
-    alert_type = fields.String()
-    current_floor = fields.String()
-    allowed_floor = fields.String()
-    alert_time = fields.DateTime()
-    acknowledged = fields.Boolean()
-    acknowledged_at = fields.DateTime(allow_none=True)
-    mobile_number = fields.String()
-
-    class Meta:
-        strict = True
-
-
 class CheckInSchema(Schema):
     """Schema for check-in request"""
     current_floor = fields.String()

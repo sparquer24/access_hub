@@ -23,7 +23,6 @@ class OrganizationVisitor(db.Model):
     organization = db.relationship('Organization', backref='visitors')
     visit_history = db.relationship('VisitorHistoryDetails', backref='visitor', cascade='all, delete-orphan')
     movement_logs = db.relationship('VisitorMovementLog', backref='visitor', cascade='all, delete-orphan')
-    alerts = db.relationship('VisitorAlert', backref='visitor', cascade='all, delete-orphan')
     
     # Methods to work with unified Image table
     def get_images(self):
@@ -113,39 +112,4 @@ class VisitorMovementLog(db.Model):
 
     def __repr__(self):
         return f"<VisitorMovementLog {self.visitor_id} -> {self.floor}>"
-
-
-class VisitorAlert(db.Model):
-    """
-    Tracks alerts triggered when visitor enters unauthorized floor.
-    """
-    __tablename__ = "visitor_alerts"
-
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    visitor_id = db.Column(db.String(36), db.ForeignKey('visitors.id'), nullable=False, index=True)
-    organization_id = db.Column(db.String(36), db.ForeignKey('organizations.id'), nullable=False, index=True)
-    
-    # Alert details
-    alert_type = db.Column(db.String(50), nullable=False, default='floor_violation')  # floor_violation, overstay, etc.
-    current_floor = db.Column(db.String(100), nullable=False)
-    allowed_floor = db.Column(db.String(100), nullable=False)
-    
-    # Alert timing
-    alert_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    acknowledged = db.Column(db.Boolean, default=False)
-    acknowledged_at = db.Column(db.DateTime, nullable=True)
-    
-    # Additional details
-    details = db.Column(db.JSON, default={})
-    
-    # Audit
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-
-    # Relationships
-    organization = db.relationship('Organization', backref='visitor_alerts')
-
-    def __repr__(self):
-        return f"<VisitorAlert {self.visitor_id} - {self.alert_type}>"
-
-
 
