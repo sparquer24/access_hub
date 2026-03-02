@@ -17,12 +17,17 @@ else:
     ASYNC_DB_URL = SYNC_DB_URL
 
 # Engine is created once
+_connect_args = {}
+if ASYNC_DB_URL.startswith("postgresql+asyncpg"):
+    _connect_args = {"server_settings": {"search_path": "main"}}
+
 engine = create_async_engine(
     ASYNC_DB_URL,
     pool_pre_ping=True,
     pool_size=5,
     max_overflow=10,
     echo=False,
+    connect_args=_connect_args,
 )
 
 SessionLocal = async_sessionmaker(

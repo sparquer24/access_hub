@@ -52,6 +52,13 @@ def create_app():
                 "rule_filter": lambda rule: True,
                 "model_filter": lambda tag: True,
             }
+            ,
+            {
+                "endpoint": "autospec",
+                "route": "/api/docs/swagger2.json",
+                "rule_filter": lambda rule: True,
+                "model_filter": lambda tag: True,
+            }
         ],
         "static_url_path": "/flasgger_static",
         "swagger_ui": True,
@@ -394,6 +401,12 @@ def create_app():
     
     from .api.audit.routes import bp as audit_v2_bp
     app.register_blueprint(audit_v2_bp)
+    
+    from .api.stats.routes import bp as stats_bp
+    app.register_blueprint(stats_bp)
+    
+    from .users.routes import bp as users_v2_bp
+    app.register_blueprint(users_v2_bp)
     
     try:
         from .api.visitors.routes import bp as visitors_v2_bp
