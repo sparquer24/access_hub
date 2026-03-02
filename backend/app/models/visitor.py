@@ -25,6 +25,10 @@ class OrganizationVisitor(db.Model):
     movement_logs = db.relationship('VisitorMovementLog', backref='visitor', cascade='all, delete-orphan')
     alerts = db.relationship('VisitorAlert', backref='visitor', cascade='all, delete-orphan')
     
+    # Audit timestamps
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
     # Methods to work with unified Image table
     def get_images(self):
         """Get all images associated with this visitor"""

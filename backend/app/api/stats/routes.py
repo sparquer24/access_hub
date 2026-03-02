@@ -1,11 +1,11 @@
 # app/stats/routes.py
 from flask import Blueprint, jsonify, request
 from flasgger import swag_from
-from ..middleware import require_login
+from ...middlewares import require_login
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from datetime import datetime, timedelta
 # Import models used for analytics
-from ..models import (
+from ...models import (
     Organization,
     Employee,
     FaceEmbedding,
@@ -13,11 +13,11 @@ from ..models import (
     Camera,
 )
 # Legacy visitor models live in app/models.py and are available as module-level names
-from .. import models as legacy_models
-from ..extensions import db
+from app import models as legacy_models
+from ...extensions import db
 from sqlalchemy import func
 from sqlalchemy.exc import ProgrammingError
-from ..services.attendance_service import AttendanceService
+from ...services.attendance_service import AttendanceService
 
 bp = Blueprint("stats", __name__)
 
