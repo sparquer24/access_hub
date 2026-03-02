@@ -6,10 +6,11 @@ import os
 import psutil
 import time
 from datetime import datetime, timedelta
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, make_response
 from sqlalchemy import text
 from app import db
 from app.utils.responses import success_response, error_response
+from app.security import generate_csrf_token, get_csrf_cookie_name
 from flask_jwt_extended import jwt_required
 from app.utils.decorators import role_required
 from app.models.user import User
@@ -21,6 +22,55 @@ import logging
 logger = logging.getLogger(__name__)
 
 health_bp = Blueprint('health', __name__, url_prefix='/api/health')
+
+
+@health_bp.route('', methods=['GET'])
+def healthz():
+    """
+    Quick health check (no auth required)
+    ---
+    tags:
+      - Health
+    responses:
+      200:
+        description: System is healthy
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "ok"
+    """
+    return jsonify({"status": "ok"}), 200
+
+
+@health_bp.route('/csrf', methods=['GET'])
+def csrf():
+    """
+    Get CSRF token for session-based requests
+    ---
+    tags:
+      - Health
+    responses:
+      200:
+        description: CSRF token issued and set in cookie
+        schema:
+          type: object
+          properties:
+            csrfToken:
+              type: string
+              example: "csrf-token-value"
+    """
+    token = generate_csrf_token()
+    resp = make_response(jsonify({"csrfToken": token}))
+    resp.set_cookie(
+        get_csrf_cookie_name(),
+        token,
+        httponly=False,   # FE needs to read it and send X-CSRFToken
+        samesite="Lax",
+        secure=False      # set True behind HTTPS in prod
+    )
+    return resp
 
 
 @health_bp.route('/status', methods=['GET'])

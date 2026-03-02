@@ -15,10 +15,10 @@ from ...middleware.subscription_middleware import get_subscription_status
 from ...middleware.auth_middleware import require_auth, require_role
 
 
-bp = Blueprint("subscriptions", __name__)
+bp = Blueprint("subscriptions", __name__, url_prefix="/api/v2/subscriptions")
 
 
-@bp.route("/api/subscriptions/plans", methods=["GET"])
+@bp.route("/plans", methods=["GET"])
 def get_subscription_plans():
     """
     Get all available subscription plans
@@ -85,7 +85,7 @@ def get_subscription_plans():
     })
 
 
-@bp.route("/api/subscriptions/organization/<string:org_id>/status", methods=["GET"])
+@bp.route("/organization/<string:org_id>/status", methods=["GET"])
 @require_auth
 @require_role(['super_admin', 'org_admin'])
 def get_organization_subscription_status(org_id: str):
@@ -159,7 +159,7 @@ def get_organization_subscription_status(org_id: str):
     })
 
 
-@bp.route("/api/subscriptions/organization/<string:org_id>/upgrade", methods=["POST"])
+@bp.route("/organization/<string:org_id>/upgrade", methods=["POST"])
 @require_auth
 @require_role(['super_admin'])
 def upgrade_organization_subscription(org_id: str):
@@ -280,7 +280,7 @@ def upgrade_organization_subscription(org_id: str):
         }), 500
 
 
-@bp.route("/api/subscriptions/organization/<string:org_id>/accessible-tabs", methods=["GET"])
+@bp.route("/organization/<string:org_id>/accessible-tabs", methods=["GET"])
 @require_auth
 def get_organization_accessible_tabs(org_id: str):
     """Get accessible tabs for an organization based on subscription"""
@@ -321,7 +321,7 @@ def get_organization_accessible_tabs(org_id: str):
     })
 
 
-@bp.route("/api/subscriptions/features/<string:feature>/check", methods=["POST"])
+@bp.route("/features/<string:feature>/check", methods=["POST"])
 @require_auth
 def check_feature_access():
     """Check if current user's organization has access to a feature"""
@@ -370,7 +370,7 @@ def check_feature_access():
         }), 403
 
 
-@bp.route("/api/subscriptions/usage-summary", methods=["GET"])
+@bp.route("/usage-summary", methods=["GET"])
 @require_auth
 def get_usage_summary():
     """Get usage summary for current user's organization"""

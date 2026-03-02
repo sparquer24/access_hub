@@ -110,6 +110,11 @@ class Config:
     # Database
     SQLALCHEMY_DATABASE_URI = settings.db_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "connect_args": {
+            "options": "-csearch_path=main"
+        }
+    }
     
     # JWT
     JWT_SECRET_KEY = settings.jwt_secret_key
