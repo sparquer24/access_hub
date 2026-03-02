@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
-from sqlalchemy import func, and_, or_, distinct, case
+from sqlalchemy import func, and_, or_, distinct, case, desc
 from ..extensions import db
 from ..models import OrganizationVisitor, AttendanceRecord, Employee, Shift, VisitorHistoryDetails, Image, VisitorMovementLog
 import uuid
@@ -408,6 +408,78 @@ class VisitorService:
             current_app.logger.exception('Failed to create visitor history record')
             db.session.rollback()
             raise
+    @staticmethod
+    def get_visitor_logs(org_id, filters=None):
+        """
+        Get visitor movement logs (visitor_logs).
+        
+        Args:
+            org_id: Organization ID (for visitor filtering)
+            filters: Optional dict with filter criteria {
+                visitor_id: str,
+                floor: str,
+                date_from: date,
+                date_to: date,
+                limit: int,
+                offset: int
+            }
+        
+        Returns:
+            List of movement log records
+        """
+        # # Get all visitor IDs for this organization
+        # visitors = db.session.query(OrganizationVisitor.id).filter_by(
+        #     organization_id=org_id
+        # ).all()
+        # visitor_ids = [v[0] for v in visitors]
+        
+        # query = VisitorMovementLog.query.filter(
+        #     VisitorMovementLog.visitor_id.in_(visitor_ids)
+        # )
+        
+        # if filters:
+        #     if filters.get('visitor_id'):
+        #         query = query.filter_by(visitor_id=filters['visitor_id'])
+            
+        #     if filters.get('floor'):
+        #         query = query.filter_by(floor=filters['floor'])
+            
+        #     if filters.get('date_from'):
+        #         query = query.filter(VisitorMovementLog.entry_time >= filters['date_from']) # type: ignore
+            
+        #     if filters.get('date_to'):
+        #         query = query.filter(VisitorMovementLog.entry_time <= filters['date_to'])
+        
+        # # Order by most recent first
+        # query = query.order_by(desc(VisitorMovementLog.entry_time))
+        
+        # # Apply pagination
+        # offset = filters.get('offset', 0) if filters else 0
+        # limit = filters.get('limit', 50) if filters else 50
+        
+        return {
+                # 'total': query.count(),
+                # 'logs': query.offset(offset).limit(limit).all()
+            
+        }    
+    @staticmethod
+    def get_active_visitors(org_id):
+        """
+        Get list of currently checked-in visitors for an organization.
+        
+        Args:
+            org_id: Organization ID
+            
+        Returns:
+            List of active visitor history records with visitor details.
+        """
+        try:
+            return VisitorHistoryDetails.query.filter_by(
+                organization_id=org_id,
+                is_checked_in=True
+            ).order_by(desc(VisitorHistoryDetails.check_in_time)).all()
+        except Exception as e:
+            raise Exception(f"Failed to get active visitors: {str(e)}")
 
     @staticmethod
     def get_visitor(organization_id, visitor_id):
@@ -666,11 +738,11 @@ class VisitorService:
             return []
         
         # Join visitor and history records
-        records = db.session.query(VisitorHistoryDetail, OrganizationVisitor).filter(
-            VisitorHistoryDetail.organization_id == organization_id,
-            VisitorHistoryDetail.visitor_id == OrganizationVisitor.id,
+        records = db.session.query(VisitorHistoryDetails, OrganizationVisitor).filter(
+            VisitorHistoryDetails.organization_id == organization_id,
+            VisitorHistoryDetails.visitor_id == OrganizationVisitor.id,
             OrganizationVisitor.mobile_number == phone_number
-        ).order_by(VisitorHistoryDetail.created_at.desc()).limit(limit).all()
+        ).order_by(VisitorHistoryDetails.created_at.desc()).limit(limit).all()
         
         return records
 
@@ -690,7 +762,7 @@ class VisitorService:
           - duration_date_to (optional)
         
         Returns:
-            VisitorHistoryDetail object
+            VisitorHistoryDetails object
         """
         # This is essentially same as create_visitor_history_record
         # Provided as an alias for consistency

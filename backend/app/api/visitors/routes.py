@@ -803,7 +803,6 @@ def get_visitors_overview(org_id):
     """
     try:
         overview = VisitorService.get_visitors_overview(org_id)
-        print(overview, '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
         
         return success_response(
             data=overview,
