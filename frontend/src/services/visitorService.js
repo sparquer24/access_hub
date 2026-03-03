@@ -390,8 +390,15 @@ export const visitorService = {
       const response = await api.get(
         `${ORG_VISITOR_API_BASE}/${organizationId}/visitors/overview`
       );
-      console.log('✅ Overview stats fetched:', response.data?.data?.overview);
-      return response.data;
+      const overview = response.data?.data?.overview || response.data?.data;
+      console.log('✅ Overview stats fetched:', overview);
+      return {
+        ...response.data,
+        data: {
+          ...response.data?.data,
+          overview
+        }
+      };
     } catch (error) {
       console.error('❌ Failed to fetch overview:', error.response?.data || error.message);
       throw error;
