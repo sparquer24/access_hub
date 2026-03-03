@@ -18,15 +18,66 @@ from app.models.location import Location
 from app.utils.decorators import manager_required, team_access_required, tenant_required
 from flask_jwt_extended import jwt_required
 
-bp = Blueprint('manager', __name__)
+bp = Blueprint('manager', __name__, url_prefix='/api/v2/manager')
 
-@bp.route('/api/manager/team/members', methods=['GET'])
+@bp.route('/team/members', methods=['GET'])
 @jwt_required()
 @tenant_required
 @manager_required
 def get_team_members():
     """
     Get team members under the manager's supervision with attendance status
+    ---
+    tags:
+      - Manager
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: List of team members with attendance status
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: success
+            data:
+              type: object
+              properties:
+                team_members:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      employee_code:
+                        type: string
+                      name:
+                        type: string
+                      email:
+                        type: string
+                      designation:
+                        type: string
+                      status:
+                        type: string
+                        enum: [active, inactive, on_leave]
+                      attendance_status:
+                        type: string
+                        enum: [present, absent, on_leave]
+                      last_seen:
+                        type: string
+                        format: datetime
+                      profile_image:
+                        type: string
+                      department:
+                        type: string
+                total_count:
+                  type: integer
+      401:
+        $ref: '#/responses/UnauthorizedError'
+      403:
+        $ref: '#/responses/ForbiddenError'
     """
     try:
         from flask_jwt_extended import get_jwt_identity, get_jwt
@@ -148,13 +199,23 @@ def get_team_members():
             'message': 'Failed to fetch team members'
         }), 500
 
-@bp.route('/api/manager/dashboard/activities', methods=['GET'])
+@bp.route('/dashboard/activities', methods=['GET'])
 @jwt_required()
 @tenant_required
 @manager_required
 def get_dashboard_activities():
     """
     Get recent activities for manager dashboard
+    ---
+    tags:
+      - Manager
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: Recent dashboard activities
+      401:
+        $ref: '#/responses/UnauthorizedError'
     """
     try:
         from flask_jwt_extended import get_jwt
@@ -256,13 +317,25 @@ def get_dashboard_activities():
             'message': 'Failed to fetch dashboard activities'
         }), 500
 
-@bp.route('/api/manager/team/stats', methods=['GET'])
+@bp.route('/team/stats', methods=['GET'])
 @jwt_required()
 @tenant_required
 @manager_required
 def get_team_stats():
     """
-    Get team statistics for the manager's dashboard
+    Get team statistics and metrics
+    ---
+    tags:
+      - Manager
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: Team statistics
+        schema:
+          type: object
+      401:
+        $ref: '#/responses/UnauthorizedError'
     """
     try:
         from flask_jwt_extended import get_jwt
@@ -356,13 +429,23 @@ def get_team_stats():
             'message': 'Failed to fetch team statistics'
         }), 500
 
-@bp.route('/api/manager/leaves/pending', methods=['GET'])
+@bp.route('/leaves/pending', methods=['GET'])
 @jwt_required()
 @tenant_required
 @manager_required
 def get_pending_leave_requests():
     """
     Get pending leave requests for approval
+    ---
+    tags:
+      - Manager
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: List of pending leave requests
+      401:
+        $ref: '#/responses/UnauthorizedError'
     """
     try:
         from flask_jwt_extended import get_jwt
@@ -430,7 +513,7 @@ def get_pending_leave_requests():
             'message': 'Failed to fetch leave requests'
         }), 500
 
-@bp.route('/api/manager/leaves/<leave_id>/approve', methods=['POST'])
+@bp.route('/leaves/<leave_id>/approve', methods=['POST'])
 @jwt_required()
 @tenant_required
 @manager_required
@@ -494,7 +577,7 @@ def approve_leave_request(leave_id):
             'message': 'Failed to approve leave request'
         }), 500
 
-@bp.route('/api/manager/leaves/<leave_id>/reject', methods=['POST'])
+@bp.route('/leaves/<leave_id>/reject', methods=['POST'])
 @jwt_required()
 @tenant_required
 @manager_required
@@ -564,13 +647,32 @@ def reject_leave_request(leave_id):
             'message': 'Failed to reject leave request'
         }), 500
 
-@bp.route('/api/manager/reports/attendance', methods=['GET'])
+@bp.route('/reports/attendance', methods=['GET'])
 @jwt_required()
 @tenant_required
 @manager_required
 def get_attendance_report():
     """
-    Get attendance report for team members
+    Get team attendance report
+    ---
+    tags:
+      - Manager
+    security:
+      - Bearer: []
+    parameters:
+      - name: start_date
+        in: query
+        type: string
+        format: date
+      - name: end_date
+        in: query
+        type: string
+        format: date
+    responses:
+      200:
+        description: Attendance report
+      401:
+        $ref: '#/responses/UnauthorizedError'
     """
     try:
         from flask_jwt_extended import get_jwt
@@ -668,13 +770,32 @@ def get_attendance_report():
             'message': 'Failed to generate attendance report'
         }), 500
 
-@bp.route('/api/manager/reports/leaves', methods=['GET'])
+@bp.route('/reports/leaves', methods=['GET'])
 @jwt_required()
 @tenant_required
 @manager_required
 def get_leaves_report():
     """
-    Get leaves report for team members
+    Get team leave requests report
+    ---
+    tags:
+      - Manager
+    security:
+      - Bearer: []
+    parameters:
+      - name: start_date
+        in: query
+        type: string
+        format: date
+      - name: end_date
+        in: query
+        type: string
+        format: date
+    responses:
+      200:
+        description: Leave requests report
+      401:
+        $ref: '#/responses/UnauthorizedError'
     """
     try:
         from flask_jwt_extended import get_jwt
@@ -757,13 +878,23 @@ def get_leaves_report():
         }), 500
 
 
-@bp.route('/api/manager/cameras', methods=['GET'])
+@bp.route('/cameras', methods=['GET'])
 @jwt_required()
 @tenant_required
 @manager_required
 def get_manager_cameras():
     """
-    Get cameras for the manager's organization
+    Get cameras accessible to manager
+    ---
+    tags:
+      - Manager
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: List of accessible cameras
+      401:
+        $ref: '#/responses/UnauthorizedError'
     """
     try:
         organization_id = g.organization_id
@@ -805,13 +936,23 @@ def get_manager_cameras():
         }), 500
 
 
-@bp.route('/api/manager/locations', methods=['GET'])
+@bp.route('/locations', methods=['GET'])
 @jwt_required()
 @tenant_required
 @manager_required
 def get_manager_locations():
     """
-    Get locations for the manager's organization
+    Get locations accessible to manager
+    ---
+    tags:
+      - Manager
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: List of accessible locations
+      401:
+        $ref: '#/responses/UnauthorizedError'
     """
     try:
         organization_id = g.organization_id
@@ -858,14 +999,23 @@ def get_manager_locations():
         }), 500
 
 
-@bp.route('/api/manager/reports/team-performance', methods=['GET'])
+@bp.route('/reports/team-performance', methods=['GET'])
 @jwt_required()
 @tenant_required
 @manager_required
 def get_team_performance_report():
     """
-    Generate comprehensive team performance report
-    Includes attendance, leaves, demographics, and overall team statistics
+    Get team performance metrics and analysis
+    ---
+    tags:
+      - Manager
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: Team performance report
+      401:
+        $ref: '#/responses/UnauthorizedError'
     """
     try:
         from flask_jwt_extended import get_jwt
@@ -1076,7 +1226,7 @@ def get_team_performance_report():
             'message': 'Failed to generate team performance report'
         }), 500
 
-@bp.route('/api/manager/reports/attendance/download', methods=['GET'])
+@bp.route('/reports/attendance/download', methods=['GET'])
 @jwt_required()
 @tenant_required
 @manager_required
@@ -1135,7 +1285,7 @@ def download_attendance_report():
         }), 500
 
 
-@bp.route('/api/manager/reports/leaves/download', methods=['GET'])
+@bp.route('/reports/leaves/download', methods=['GET'])
 @jwt_required()
 @tenant_required
 @manager_required
