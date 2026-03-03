@@ -27,7 +27,7 @@ const OrganizationDetail = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const [organization, setOrganization] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isAlertSidebarOpen, setIsAlertSidebarOpen] = useState(false);
+  const [isAlertSidebarOpen, setIsAlertSidebarOpen] = useState(true);
   const { hasFeature } = useSubscription();
   const { user } = useAuth();
 

@@ -24,6 +24,7 @@ const OrganizationCameras = ({ organizationId, organization }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
+  const [headerFilter, setHeaderFilter] = useState('all');
   const [hasCreatePermission, setHasCreatePermission] = useState(true);
   const [selectedManagementType, setSelectedManagementType] = useState('ATTENDANCE');
 
@@ -213,6 +214,39 @@ const OrganizationCameras = ({ organizationId, organization }) => {
     return matchesSearch && matchesStatus && matchesType;
   });
 
+  const handleHeaderFilterChange = (value) => {
+    setHeaderFilter(value);
+
+    switch (value) {
+      case 'active':
+        setFilterStatus('active');
+        setFilterType('all');
+        break;
+      case 'inactive':
+        setFilterStatus('inactive');
+        setFilterType('all');
+        break;
+      case 'check_in':
+        setFilterStatus('all');
+        setFilterType(CAMERA_TYPES.CHECK_IN);
+        break;
+      case 'check_out':
+        setFilterStatus('all');
+        setFilterType(CAMERA_TYPES.CHECK_OUT);
+        break;
+      case 'cctv':
+        setFilterStatus('all');
+        setFilterType(CAMERA_TYPES.CCTV);
+        break;
+      case 'atypes':
+      case 'all':
+      default:
+        setFilterStatus('all');
+        setFilterType('all');
+        break;
+    }
+  };
+
   const getStatusBadge = (status) => {
     const statusConfig = {
       [CAMERA_STATUS.ONLINE]: {
@@ -277,116 +311,84 @@ const OrganizationCameras = ({ organizationId, organization }) => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center flex-wrap gap-4 bg-gradient-to-r from-pink-50 to-rose-50 p-6 rounded-xl border border-pink-200">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-            <svg className="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-            Camera Management
-          </h2>
-          <p className="text-gray-600 mt-1 text-sm">Manage cameras and devices for <span className="font-semibold">{organization?.name}</span></p>
-        </div>
-        <div className="group relative">
-          <button
-            onClick={handleCreateCamera}
-            disabled={!hasCreatePermission}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${hasCreatePermission
-              ? 'bg-gradient-to-r from-teal-600 to-teal-600 text-white hover:shadow-lg hover:-translate-y-0.5 cursor-pointer'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
-              }`}
-          >
-            ➕ Add Camera
-          </button>
-          {!hasCreatePermission && (
-            <div className="absolute bottom-full right-0 mb-2 w-max bg-gray-900 text-white text-xs py-2 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-              🔒 You don't have permission to create cameras
+      <div className="p-4 rounded-xl border border-gray-200 hover:border-teal-300 transition-colors duration-200 ease-out">
+        <div className="flex flex-wrap lg:flex-nowrap items-center justify-between gap-3">
+          <div className="shrink-0 min-w-[240px]">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <svg className="w-7 h-7 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              Camera Management
+            </h2>
+            <p className="text-xs text-gray-600 mt-1">Manage cameras and monitor live status efficiently</p>
+          </div>
+
+          <div className="flex flex-wrap lg:flex-nowrap items-center justify-end gap-2.5 w-full lg:w-auto">
+            <div className="relative w-full sm:w-64 md:w-72">
+              <svg className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M16 10.5A5.5 5.5 0 115 10.5a5.5 5.5 0 0111 0z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search by camera name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full h-10 pl-9 pr-3 text-sm border border-gray-300 rounded-lg bg-white hover:border-teal-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 ease-out"
+              />
             </div>
-          )}
+
+            <div className="relative min-w-[180px]">
+              <svg className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h18M6 10h12M10 16h4" />
+              </svg>
+              <Select
+                value={headerFilter}
+                onChange={handleHeaderFilterChange}
+                className="camera-filter-ant-select w-[190px]"
+                dropdownClassName="camera-filter-ant-dropdown"
+                suffixIcon={(
+                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                )}
+                options={[
+                  { value: 'all', label: 'All' },
+                  { value: 'active', label: 'Active' },
+                  { value: 'inactive', label: 'Inactive' },
+                  { value: 'check_in', label: 'Check-in' },
+                  { value: 'check_out', label: 'Checkout' },
+                  { value: 'cctv', label: 'CCTV' },
+                ]}
+              />
+            </div>
+
+            <div className="group relative shrink-0">
+              <button
+                onClick={handleCreateCamera}
+                disabled={!hasCreatePermission}
+                className={`px-4 py-2.5 text-sm rounded-lg font-semibold transition-all duration-200 ease-out border ${hasCreatePermission
+                  ? 'bg-gradient-to-r from-teal-600 to-teal-600 text-white border-teal-600 hover:border-teal-700 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+                  }`}
+              >
+                <span className="inline-flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add Camera
+                </span>
+              </button>
+              {!hasCreatePermission && (
+                <div className="absolute bottom-full right-0 mb-2 w-max bg-gray-900 text-white text-xs py-2 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                  🔒 You don't have permission to create cameras
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <input
-          type="text"
-          placeholder="Search by camera name..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-        />
-        <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={() => setFilterStatus('all')}
-            className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterStatus === 'all'
-              ? 'bg-teal-600 text-white'
-              : 'bg-teal-100 text-gray-700 hover:bg-gray-200'
-              }`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setFilterStatus('active')}
-            className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterStatus === 'active'
-              ? 'bg-green-600 text-white'
-              : 'bg-teal-100 text-gray-700 hover:bg-gray-200'
-              }`}
-          >
-            Active
-          </button>
-          <button
-            onClick={() => setFilterStatus('inactive')}
-            className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterStatus === 'inactive'
-              ? 'bg-orange-600 text-white'
-              : 'bg-teal-100 text-gray-700 hover:bg-gray-200'
-              }`}
-          >
-            Inactive
-          </button>
-        </div>
-      </div>
-
-      {/* Type Filters */}
-      <div className="flex gap-2 flex-wrap">
-        <button
-          onClick={() => setFilterType('all')}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterType === 'all'
-            ? 'bg-teal-600 text-white'
-            : 'bg-teal-50/95 border-2 border-gray-200 text-gray-700 hover:border-teal-300'
-            }`}
-        >
-          All Types
-        </button>
-        <button
-          onClick={() => setFilterType(CAMERA_TYPES.CHECK_IN)}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterType === CAMERA_TYPES.CHECK_IN
-            ? 'bg-blue-600 text-white'
-            : 'bg-teal-50/95 border-2 border-gray-200 text-gray-700 hover:border-blue-300'
-            }`}
-        >
-          ← Check-In
-        </button>
-        <button
-          onClick={() => setFilterType(CAMERA_TYPES.CHECK_OUT)}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterType === CAMERA_TYPES.CHECK_OUT
-            ? 'bg-green-600 text-white'
-            : 'bg-teal-50/95 border-2 border-gray-200 text-gray-700 hover:border-green-300'
-            }`}
-        >
-          → Check-Out
-        </button>
-        <button
-          onClick={() => setFilterType(CAMERA_TYPES.CCTV)}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all ${filterType === CAMERA_TYPES.CCTV
-            ? 'bg-teal-600 text-white'
-            : 'bg-teal-50/95 border-2 border-gray-200 text-gray-700 hover:border-purple-300'
-            }`}
-        >
-          ⦿ CCTV
-        </button>
-      </div>
-
-      {/* Cameras Grid */}
+      {/* Cameras Table */}
       {filteredCameras.length === 0 ? (
         <div className="text-center py-12 bg-teal-50 rounded-xl">
           <div className="mb-4 flex justify-center">
@@ -413,84 +415,79 @@ const OrganizationCameras = ({ organizationId, organization }) => {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCameras.map((camera) => (
-            <div
-              key={camera.id}
-              className="bg-teal-50/95 rounded-xl border border-gray-200 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden"
-            >
-              {/* Card Header */}
-              <div className="bg-gradient-to-r from-teal-500/10 to-teal-500/10 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="text-teal-600">{getCameraTypeIcon(camera.camera_type)}</div>
-                  <div>
-                    <span className="font-bold text-gray-900 text-sm">
-                      {camera.camera_type?.replace('_', ' ')}
-                    </span>
-                  </div>
-                </div>
-                {getStatusBadge(camera.status)}
-              </div>
-
-              {/* Card Body */}
-              <div className="p-4">
-                <h3 className="text-lg font-bold text-gray-900 mb-2">{camera.name}</h3>
-                <div className="space-y-2 text-sm mb-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-500">Source:</span>
-                    <span className="font-semibold text-gray-700">
-                      {camera.source_type?.replace('_', ' ')}
-                    </span>
-                  </div>
-                  {camera.source_url && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500">URL:</span>
-                      <span className="font-mono text-xs text-gray-700 truncate">
-                        {camera.source_url}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-500">Resolution:</span>
-                    <span className="font-semibold text-gray-700">{camera.resolution || 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-500">FPS:</span>
-                    <span className="font-semibold text-gray-700">{camera.fps || 'N/A'}</span>
-                  </div>
-                </div>
-
-                {/* Active Status Badge */}
-                <div className="mb-4">
-                  <button
-                    onClick={() => handleToggleStatus(camera)}
-                    className={`w-full px-3 py-2 rounded-lg text-sm font-semibold cursor-pointer transition-all ${camera.is_active
-                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                      : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-                      }`}
-                  >
-                    {camera.is_active ? '● Enabled' : '○ Disabled'}
-                  </button>
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEditCamera(camera)}
-                    className="flex-1 px-3 py-2 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100 transition-all text-sm font-semibold"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteCamera(camera.id, camera.name)}
-                    className="flex-1 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all text-sm font-semibold"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="bg-teal-50/95 rounded-xl border border-gray-200 shadow-md overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead className="bg-gradient-to-r from-teal-500/10 to-teal-500/10 border-b border-gray-200">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">Name</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">Type</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">Source</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">URL</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">Resolution</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">FPS</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">Enabled</th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredCameras.map((camera) => (
+                  <tr key={camera.id} className="hover:bg-teal-500/5 transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="font-semibold text-gray-900">{camera.name}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="text-teal-600">{getCameraTypeIcon(camera.camera_type)}</div>
+                        <span className="text-sm font-medium text-gray-700">{camera.camera_type?.replace('_', ' ') || 'N/A'}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">{getStatusBadge(camera.status)}</td>
+                    <td className="px-4 py-3 text-gray-700 font-medium">{camera.source_type?.replace('_', ' ') || 'N/A'}</td>
+                    <td className="px-4 py-3 text-xs text-gray-700 max-w-xs truncate">{camera.source_url || 'N/A'}</td>
+                    <td className="px-4 py-3 text-gray-700 font-medium">{camera.resolution || 'N/A'}</td>
+                    <td className="px-4 py-3 text-gray-700 font-medium">{camera.fps || 'N/A'}</td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => handleToggleStatus(camera)}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-semibold cursor-pointer transition-all ${camera.is_active
+                          ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                          : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                          }`}
+                      >
+                        {camera.is_active ? '● Enabled' : '○ Disabled'}
+                      </button>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEditCamera(camera)}
+                          aria-label="Edit camera"
+                          title="Edit"
+                          className="p-2 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100 transition-all"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCamera(camera.id, camera.name)}
+                          aria-label="Delete camera"
+                          title="Delete"
+                          className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-7 0h8" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

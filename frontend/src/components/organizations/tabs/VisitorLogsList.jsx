@@ -9,16 +9,14 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
   const [visitors, setVisitors] = useState([]);
   const [activeVisitors, setActiveVisitors] = useState([]);
   const [logs, setLogs] = useState([]);
-  const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState('alerts');
+  const [selectedTab, setSelectedTab] = useState('logs');
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [fromDate, setFromDate] = useState(moment().format('YYYY-MM-DD'));
   const [toDate, setToDate] = useState(moment().format('YYYY-MM-DD'));
   const [showAllData, setShowAllData] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
-  const [acknowledgingId, setAcknowledgingId] = useState(null);
   const [checkingOutId, setCheckingOutId] = useState(null);
 
   const fetchVisitors = useCallback(async () => {
@@ -55,30 +53,6 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
     }
   }, [organizationId]);
 
-  const fetchAlerts = useCallback(async () => {
-    try {
-      setLoading(true);
-      const params = {
-        unacknowledged_only: true,
-        limit: pageSize,
-        offset: (page - 1) * pageSize,
-      };
-      if (!showAllData) {
-        params.date_from = fromDate;
-        params.date_to = toDate;
-      }
-      const response = await visitorService.getVisitorAlertsNew(organizationId, params);
-      if (response.success) {
-        setAlerts(response.data?.alerts || []);
-        setTotalCount(response.data?.total || 0);
-      }
-    } catch (error) {
-      showError('Failed to load visitor alerts');
-    } finally {
-      setLoading(false);
-    }
-  }, [organizationId, page, pageSize, fromDate, toDate, showAllData]);
-
   const fetchLogs = useCallback(async () => {
     try {
       setLoading(true);
@@ -103,8 +77,7 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
   }, [organizationId, page, pageSize, fromDate, toDate, showAllData]);
 
   useEffect(() => {
-    if (selectedTab === 'alerts') fetchAlerts();
-    else if (selectedTab === 'active') fetchActiveVisitors();
+    if (selectedTab === 'active') fetchActiveVisitors();
     else if (selectedTab === 'logs') fetchLogs();
     else fetchVisitors();
   }, [organizationId, refreshTrigger, selectedTab, page, fromDate, toDate, showAllData]);
@@ -161,24 +134,6 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
       showError(error.response?.data?.message || 'Failed to check out visitor');
     } finally {
       setCheckingOutId(null);
-    }
-  };
-
-  // --- Acknowledge alert ---
-  const handleAcknowledgeAlert = async (alertId) => {
-    setAcknowledgingId(alertId);
-    try {
-      const response = await visitorService.acknowledgeAlert(organizationId, alertId);
-      if (response.success) {
-        success('Alert acknowledged');
-        fetchAlerts();
-      } else {
-        showError(response.message || 'Failed to acknowledge alert');
-      }
-    } catch (error) {
-      showError(error.response?.data?.message || 'Failed to acknowledge alert');
-    } finally {
-      setAcknowledgingId(null);
     }
   };
 
@@ -246,7 +201,6 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
           {/* Tabs */}
           <div className="flex bg-gray-100 p-1 rounded-lg w-fit">
             {[
-              { key: 'alerts', label: '⚠️ Alerts' },
               { key: 'active', label: '👥 Active Visitors' },
               { key: 'logs', label: '📍 Floor Logs' },
             ].map(({ key, label }) => (
@@ -265,65 +219,8 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
         </div>
 
         {/* Date filter for tabs that support it */}
-        {(selectedTab === 'alerts' || selectedTab === 'logs') && <DateFilterBar />}
+        {selectedTab === 'logs' && <DateFilterBar />}
       </div>
-
-      {/* ===== ALERTS TAB ===== */}
-      {selectedTab === 'alerts' && (
-        <div className="bg-teal-50/95 rounded-xl shadow-md overflow-hidden">
-          {loading ? (
-            <div className="flex justify-center items-center py-12"><Loader size="large" /></div>
-          ) : alerts.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-2xl mb-2">✅</p>
-              <p className="text-gray-600 font-semibold">No unacknowledged alerts</p>
-              <p className="text-gray-500 text-sm mt-1">All alerts have been reviewed</p>
-            </div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-red-50 border-b border-red-200">
-                    <tr>
-                      {['Visitor Name', 'Phone', 'Alert Type', 'Unauthorized Floor', 'Allowed Floor', 'Alert Time', 'Action'].map((h) => (
-                        <th key={h} className="px-6 py-3 text-left text-xs font-bold text-red-700 uppercase tracking-wider">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-red-200">
-                    {alerts.map((alert) => (
-                      <tr key={alert.id} className="hover:bg-red-50 transition-colors duration-200">
-                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                          {alert.visitor_name || 'Unknown'}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">{alert.visitor_phone || '—'}</td>
-                        <td className="px-6 py-4 text-sm">
-                          <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold flex items-center gap-1 w-fit">
-                            ⚠️ {alert.alert_type?.replace(/_/g, ' ') || 'Floor Violation'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-sm font-semibold text-red-600">{alert.current_floor || '—'}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600">{alert.allowed_floor || '—'}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600">{formatDateTime(alert.alert_time)}</td>
-                        <td className="px-6 py-4 text-sm">
-                          <button
-                            onClick={() => handleAcknowledgeAlert(alert.id)}
-                            disabled={acknowledgingId === alert.id}
-                            className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-xs font-semibold disabled:opacity-50"
-                          >
-                            {acknowledgingId === alert.id ? '...' : '✓ Acknowledge'}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <Pagination />
-            </>
-          )}
-        </div>
-      )}
 
       {/* ===== ACTIVE VISITORS TAB ===== */}
       {selectedTab === 'active' && (
