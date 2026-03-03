@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { visitorService } from '../../../services/visitorService';
 import { useToast } from '../../../contexts/ToastContext';
-import { RefreshCw, Users, TrendingUp, MapPin, BarChart3 } from 'lucide-react';
+import { Users, TrendingUp, MapPin, BarChart3 } from 'lucide-react';
 import {
   ResponsiveContainer,
   LineChart,
@@ -20,7 +20,7 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
   const { error: showError, success } = useToast();
   const [overview, setOverview] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [autoRefresh] = useState(true);
   const [monthlyTrend, setMonthlyTrend] = useState(null);
   const [weeklyTrend, setWeeklyTrend] = useState(null);
   const [hourlyData, setHourlyData] = useState(null);
@@ -208,38 +208,6 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
 
   return (
     <div className="space-y-6 rounded-2xl border border-slate-200/80 bg-slate-100/60 p-4">
-      {/* Header with refresh button */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-teal-600" />
-            Visitor Overview Dashboard
-          </h3>
-          <p className="text-slate-500 text-sm mt-1">
-            Real-time visitor management statistics
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={autoRefresh}
-              onChange={(e) => setAutoRefresh(e.target.checked)}
-              className="w-4 h-4"
-            />
-            <span className="text-sm text-slate-600">Auto-refresh</span>
-          </label>
-          <button
-            onClick={fetchOverviewStats}
-            disabled={loading}
-            className="p-2 text-slate-500 hover:text-teal-600 hover:bg-slate-100 rounded transition-colors disabled:opacity-50"
-            title="Refresh Statistics"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
-        </div>
-      </div>
-
       {/* Top Summary Layout */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         <div className="xl:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -324,7 +292,7 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
           {analyticsLoading && !hasTrendData ? (
             <Loader fullScreen={false} text="Loading charts..." />
           ) : hasTrendData ? (
-            <div style={{ width: '100%', height: 260 }}>
+            <div style={{ width: '100%', height: 340 }}>
               <ResponsiveContainer>
                 <LineChart
                   data={activeTrendData}
@@ -376,7 +344,7 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
           {analyticsLoading && !hasHourlyData ? (
             <Loader fullScreen={false} text="Loading hourly chart..." />
           ) : hasHourlyData ? (
-            <div style={{ width: '100%', height: 260 }}>
+            <div style={{ width: '100%', height: 340 }}>
               <ResponsiveContainer>
                 <BarChart data={hourlyData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
