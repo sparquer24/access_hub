@@ -253,22 +253,7 @@ const OrganizationInfo = ({ organization, onUpdate }) => {
   return (
     <div className="space-y-6 animate-fadeIn bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen py-6">
 
-      {/* Header with Export Action */}
-      <div className="flex justify-between items-center mb-2 px-2">
-        <div>
-          {/* Placeholder for left content if needed */}
-        </div>
-        <button
-          onClick={handleExport}
-          className="flex items-center gap-2 px-4 py-2 bg-white text-indigo-600 rounded-lg shadow-sm border border-indigo-100 hover:bg-indigo-50 hover:shadow-md transition-all font-medium text-sm"
-        >
-          <Download className="w-4 h-4" />
-          Export Report
-        </button>
-
-      </div>
-
-      {/* AI Smart Summary Section */}
+      {/* AI Smart Summary Section
       <div className="px-2 mb-6">
         <div className="bg-gradient-to-r from-teal-900 via-cyan-900 to-slate-900 rounded-2xl p-6 shadow-2xl relative overflow-hidden group border border-teal-500/30">
           <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-30 transition-opacity duration-1000 pointer-events-none">
@@ -363,7 +348,8 @@ const OrganizationInfo = ({ organization, onUpdate }) => {
             )}
           </div>
         </div>
-      </div> */}
+      </div> 
+      */}
 
       {/* Resource Analysis - Professional Dashboard (Moved to Bottom) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6 mt-6">

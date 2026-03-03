@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import func, and_, or_, distinct, case, desc
 from ..extensions import db
-from ..models import OrganizationVisitor, AttendanceRecord, Employee, Shift, VisitorHistoryDetails, Image, VisitorMovementLog
+from ..models import OrganizationVisitor, AttendanceRecord, Employee, Shift, VisitorHistoryDetails, Image, VisitorMovementLog, Alert
 import uuid
 from flask import current_app
 
@@ -301,15 +301,116 @@ class VisitorService:
         return visitor
 
     @staticmethod
-    def get_visitor_alerts(organization_id, visitor_id=None, limit=100):
+    def get_visitor_alerts(organization_id, filters=None):
         """
-        Retrieve visitor alerts for an organization or a specific visitor.
+        Retrieve visitor alerts for an organization.
         
-        Note: Visitor alerts functionality has been removed from the schema.
-        This method returns an empty list for backward compatibility.
+        Uses the Alert model from alerts.py for unified platform alerts.
+        
+        Args:
+            organization_id: Organization ID
+            filters: Optional dict with filter criteria {
+                visitor_id: str,
+                unacknowledged_only: bool,
+                alert_type: str,
+                date_from: date,
+                date_to: date,
+                limit: int,
+                offset: int
+            }
+            
+        Returns:
+            List of Alert objects
         """
-        # Legacy method - VisitorAlert model no longer exists
-        return []
+        try:
+            if filters is None:
+                filters = {}
+            
+            # Build query for alerts
+            query = db.session.query(Alert).filter(
+                Alert.organization_id == organization_id
+            )
+            
+            # Filter by visitor if provided
+            if filters.get('visitor_id'):
+                query = query.filter(Alert.visitor_id == filters['visitor_id'])
+            
+            # Filter by acknowledgment status
+            if filters.get('unacknowledged_only'):
+                query = query.filter(Alert.alert_status == 'yet_to_handle')
+            
+            # Filter by alert type
+            if filters.get('alert_type'):
+                query = query.filter(Alert.alert_type == filters['alert_type'])
+            
+            # Filter by date range
+            if filters.get('date_from'):
+                query = query.filter(Alert.alert_time >= filters['date_from'])
+            
+            if filters.get('date_to'):
+                query = query.filter(Alert.alert_time <= filters['date_to'])
+            
+            # Order by most recent first
+            query = query.order_by(Alert.alert_time.desc())
+            
+            # Apply pagination
+            offset = filters.get('offset', 0)
+            limit = filters.get('limit', 50)
+            
+            alerts = query.offset(offset).limit(limit).all()
+            
+            return alerts
+            
+        except Exception as e:
+            current_app.logger.exception('Failed to get visitor alerts')
+            return []
+
+    @staticmethod
+    def acknowledge_alert(organization_id, alert_id, user_id):
+        """
+        Acknowledge a visitor alert.
+        
+        Args:
+            organization_id: Organization ID
+            alert_id: Alert ID to acknowledge
+            user_id: User ID who acknowledged the alert
+            
+        Returns:
+            Updated alert dictionary
+            
+        Raises:
+            ValueError: If alert not found or already handled
+        """
+        try:
+            alert = db.session.query(Alert).filter(
+                Alert.id == alert_id,
+                Alert.organization_id == organization_id
+            ).first()
+            
+            if not alert:
+                raise ValueError(f'Alert {alert_id} not found')
+            
+            if alert.alert_status == 'handled':
+                raise ValueError('Alert already handled')
+            
+            # Update alert status
+            alert.alert_status = 'handled'
+            alert.handled_by = user_id
+            alert.handled_at = datetime.utcnow()
+            
+            db.session.commit()
+            
+            return {
+                'id': alert.id,
+                'alert_status': alert.alert_status,
+                'handled_by': alert.handled_by,
+                'handled_at': alert.handled_at.isoformat()
+            }
+            
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.exception('Failed to acknowledge alert')
+            raise
 
     @staticmethod
     def create_visitor_history_record(organization_id, visitor_id, data):

@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime
 from ...utils.helpers import (
     success_response,
@@ -18,7 +18,7 @@ from ...schemas.visitor import (
 from ...services.visitor_service import VisitorService
 from ...middlewares.rbac_middleware import require_permission
 from ...models import OrganizationVisitor, VisitorHistoryDetails, VisitorMovementLog
-from ...extensions import db
+from ...extensions import db, socketio
 
 bp = Blueprint('Visitors', __name__, url_prefix='/api/v2/organizations')
 
