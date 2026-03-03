@@ -2,47 +2,130 @@ import React, { useState, useEffect } from 'react';
 import { auditAPI } from '../../../services/apiServices';
 import { useToast } from '../../../contexts/ToastContext';
 import Loader from '../../common/Loader';
+import { X } from 'lucide-react';
 
-const OrganizationAlerts = ({ organizationId }) => {
+const TAB_ALERTS = {
+  info: [
+    { id: 'info-1', type: 'critical', title: 'Server Down', message: 'Main access server is unreachable', relativeTime: '2 mins ago' },
+    { id: 'info-2', type: 'warning', title: 'Visitor Arrived', message: 'New visitor waiting at reception', relativeTime: '8 mins ago' },
+    { id: 'info-3', type: 'info', title: 'Low Productivity', message: 'Attendance efficiency dropped below threshold', relativeTime: '20 mins ago' }
+  ],
+  employees: [
+    { id: 'emp-1', type: 'warning', title: 'Late Check-in', message: 'Monika checked in at 9:45 AM', relativeTime: '2 mins ago' },
+    { id: 'emp-2', type: 'critical', title: 'Absent Today', message: 'Komal is absent today', relativeTime: '15 mins ago' },
+    { id: 'emp-3', type: 'info', title: 'Shift Changed', message: "XYZ's shift changed to 2:00 PM", relativeTime: '30 mins ago' }
+  ],
+  visitors: [
+    { id: 'vis-1', type: 'info', title: 'New Visitor', message: 'Rakesh Kumar checked in at Gate 2', relativeTime: '4 mins ago' },
+    { id: 'vis-2', type: 'success', title: 'Visitor Exit', message: 'Priya Shah exited successfully', relativeTime: '18 mins ago' },
+    { id: 'vis-3', type: 'warning', title: 'Visitor Waiting', message: 'One visitor is waiting for host approval', relativeTime: '25 mins ago' }
+  ],
+  lpr: [
+    { id: 'lpr-1', type: 'critical', title: 'Hotlist Match', message: 'Blacklisted plate detected at Entry Lane 1', relativeTime: '1 min ago' },
+    { id: 'lpr-2', type: 'warning', title: 'OCR Confidence Low', message: 'Plate read confidence fell below 75%', relativeTime: '10 mins ago' },
+    { id: 'lpr-3', type: 'info', title: 'LPR Synced', message: 'Latest recognition logs synced to server', relativeTime: '22 mins ago' }
+  ],
+  cameras: [
+    { id: 'cam-1', type: 'critical', title: 'Camera Offline', message: 'Camera Main Entrance is offline', relativeTime: '3 mins ago' },
+    { id: 'cam-2', type: 'warning', title: 'Storage High', message: 'NVR storage crossed 90% utilization', relativeTime: '14 mins ago' },
+    { id: 'cam-3', type: 'info', title: 'Stream Recovered', message: 'Parking camera stream restored', relativeTime: '28 mins ago' }
+  ],
+  locations: [
+    { id: 'loc-1', type: 'warning', title: 'Location Delay', message: 'Floor 3 sync delayed by 5 minutes', relativeTime: '6 mins ago' },
+    { id: 'loc-2', type: 'critical', title: 'Entry Breach', message: 'Unauthorized door access attempt detected', relativeTime: '17 mins ago' },
+    { id: 'loc-3', type: 'info', title: 'Zone Updated', message: 'Lobby zone schedule updated successfully', relativeTime: '33 mins ago' }
+  ],
+  rules: [
+    { id: 'rul-1', type: 'warning', title: 'Rule Conflict', message: 'Two active rules overlap for Gate 1', relativeTime: '7 mins ago' },
+    { id: 'rul-2', type: 'critical', title: 'Rule Failed', message: 'Auto-escalation rule failed to execute', relativeTime: '16 mins ago' },
+    { id: 'rul-3', type: 'info', title: 'Rule Applied', message: 'Visitor hold rule applied to all entries', relativeTime: '29 mins ago' }
+  ],
+  statistics: [
+    { id: 'sta-1', type: 'warning', title: 'Trend Drop', message: 'Attendance trend dropped 12% this week', relativeTime: '11 mins ago' },
+    { id: 'sta-2', type: 'info', title: 'Report Ready', message: 'Weekly analytics report is generated', relativeTime: '19 mins ago' },
+    { id: 'sta-3', type: 'success', title: 'KPI Target', message: 'Gate throughput reached target for today', relativeTime: '40 mins ago' }
+  ],
+  default: [
+    { id: 'def-1', type: 'info', title: 'No New Alerts', message: 'All systems are running normally', relativeTime: 'Just now' }
+  ]
+};
+
+const TAB_HEADERS = {
+  info: 'Organization Overview',
+  employees: 'Employees Attendance',
+  visitors: 'Visitor Management',
+  lpr: 'License Plate Recognition',
+  cameras: 'Cameras',
+  locations: 'Locations',
+  rules: 'Rules',
+  statistics: 'Analytics'
+};
+
+const OrganizationAlerts = ({ organizationId, activeTab = 'info', showActivityLog = true, onCloseSidebar }) => {
   const { success, error: showError } = useToast();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeAlerts, setActiveAlerts] = useState([]);
-  const [filter, setFilter] = useState('all'); // all, critical, warning, info
+  const activeHeader = TAB_HEADERS[activeTab] || 'Organization Overview';
+  const showScrollableAlerts = activeAlerts.length > 6;
 
   useEffect(() => {
-    fetchLogs();
-    // Simulate fetching active alerts
-    fetchActiveAlerts();
-  }, [organizationId]);
+    const loadLogs = async () => {
+      try {
+        setLoading(true);
+        const response = await auditAPI.getByEntity('organizations', organizationId);
+        setLogs(response.data || []);
+      } catch (error) {
+        console.error('Error fetching audit logs:', error);
+        showError('Failed to fetch audit logs');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const fetchActiveAlerts = () => {
-    // Mock data - in a real app, this would come from an API
-    const mockAlerts = [
-      { id: 1, type: 'critical', message: 'Camera "Main Entrance" is offline', timestamp: new Date().toISOString() },
-      { id: 2, type: 'warning', message: 'License expiring in 15 days', timestamp: new Date().toISOString() },
-      { id: 3, type: 'info', message: 'System maintenance scheduled for Sunday', timestamp: new Date().toISOString() },
-    ];
-    setActiveAlerts(mockAlerts);
-  };
+    if (showActivityLog) {
+      loadLogs();
+    }
+
+    const tabAlerts = TAB_ALERTS[activeTab] || TAB_ALERTS.default;
+    const ensureSixAlerts = (alerts) => {
+      if (alerts.length >= 6) {
+        return alerts.slice(0, 6);
+      }
+
+      const fallbackAlerts = [
+        {
+          id: `${activeTab}-extra-1`,
+          type: 'info',
+          title: 'System Update',
+          message: 'All monitored services are functioning normally',
+          relativeTime: '45 mins ago'
+        },
+        {
+          id: `${activeTab}-extra-2`,
+          type: 'warning',
+          title: 'Pending Review',
+          message: 'Two attendance logs are pending manager review',
+          relativeTime: '52 mins ago'
+        },
+        {
+          id: `${activeTab}-extra-3`,
+          type: 'info',
+          title: 'Sync Complete',
+          message: 'Background sync completed successfully',
+          relativeTime: '1 hr ago'
+        }
+      ];
+
+      return [...alerts, ...fallbackAlerts].slice(0, 6);
+    };
+
+    setActiveAlerts(ensureSixAlerts(tabAlerts));
+  }, [organizationId, activeTab, showActivityLog, showError]);
 
   const handleDismiss = (id) => {
     setActiveAlerts(prev => prev.filter(alert => alert.id !== id));
     success('Alert dismissed');
-  };
-
-  const fetchLogs = async () => {
-    try {
-      setLoading(true);
-      // Assuming 'organizations' is the entity type
-      const response = await auditAPI.getByEntity('organizations', organizationId);
-      setLogs(response.data || []);
-    } catch (error) {
-      console.error('Error fetching audit logs:', error);
-      showError('Failed to fetch audit logs');
-    } finally {
-      setLoading(false);
-    }
   };
 
   const formatDate = (dateString) => {
@@ -52,68 +135,155 @@ const OrganizationAlerts = ({ organizationId }) => {
     });
   };
 
-  const getAlertColor = (type) => {
-    switch (type) {
-      case 'critical': return 'bg-red-50 border-red-200 text-red-800';
-      case 'warning': return 'bg-yellow-50 border-yellow-200 text-yellow-800';
-      case 'info': return 'bg-blue-50 border-blue-200 text-blue-800';
-      default: return 'bg-teal-50 border-gray-200 text-gray-800';
-    }
-  };
-
   const getAlertIcon = (type) => {
     switch (type) {
-      case 'critical': return '🚨';
-      case 'warning': return '⚠️';
-      case 'info': return 'ℹ️';
-      default: return '🔔';
+      case 'critical':
+        return '!';
+      case 'warning':
+        return '△';
+      case 'success':
+        return '✓';
+      case 'info':
+      default:
+        return 'i';
     }
   };
 
-  const filteredAlerts = activeAlerts.filter(alert => filter === 'all' || alert.type === filter);
+  const getSidebarStyles = (type) => {
+    switch (type) {
+      case 'critical':
+        return {
+          border: 'border-l-red-400',
+          iconWrap: 'bg-red-100 text-red-600'
+        };
+      case 'warning':
+        return {
+          border: 'border-l-amber-400',
+          iconWrap: 'bg-amber-100 text-amber-700'
+        };
+      case 'success':
+      case 'info':
+      default:
+        return {
+          border: 'border-l-blue-400',
+          iconWrap: 'bg-blue-100 text-blue-700'
+        };
+    }
+  };
 
-  return (
-    <div className="space-y-6 animate-fadeIn">
-      {/* Active Alerts Section */}
-      <div className="bg-teal-50/95 rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="bg-teal-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center flex-wrap gap-4">
-          <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            🔔 Active Alerts
-          </h3>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${filter === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-            >
-              All
-            </button>
-            <button
-              onClick={() => setFilter('critical')}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${filter === 'critical' ? 'bg-red-600 text-white' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}
-            >
-              Critical
-            </button>
-            <button
-              onClick={() => setFilter('warning')}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${filter === 'warning' ? 'bg-yellow-500 text-white' : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'}`}
-            >
-              Warning
-            </button>
+  const getAlertTypeLabel = (type) => {
+    switch (type) {
+      case 'critical':
+        return 'Critical';
+      case 'warning':
+        return 'Warning';
+      case 'success':
+        return 'Success';
+      case 'info':
+      default:
+        return 'Info';
+    }
+  };
+
+  const getAlertTypeBadgeStyles = (type) => {
+    switch (type) {
+      case 'critical':
+        return 'bg-red-50 text-red-700 border-red-200';
+      case 'warning':
+        return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'success':
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'info':
+      default:
+        return 'bg-blue-50 text-blue-700 border-blue-200';
+    }
+  };
+
+  if (!showActivityLog) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-full flex flex-col">
+        <div className="px-3 py-2.5 border-b border-gray-200 flex items-center justify-between">
+          <div>
+            <p className="text-lg font-semibold text-red-800 leading-tight">Alerts {activeAlerts.length}</p>
+             <h3 className="text-sm font-medium text-slate-500 leading-tight mt-0.5">{activeHeader}</h3>
           </div>
+          <button
+            onClick={onCloseSidebar}
+            className="p-1.5 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            aria-label="Close alerts sidebar"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
-        {filteredAlerts.length > 0 ? (
+        <div className={`p-1.5 space-y-1.5 flex-1 ${showScrollableAlerts ? 'overflow-y-auto' : 'overflow-hidden'}`}>
+          {activeAlerts.length > 0 ? (
+            activeAlerts.map((alert) => {
+              const styles = getSidebarStyles(alert.type);
+              return (
+                <div
+                  key={alert.id}
+                  className={`h-[80px] p-1.5 rounded-lg border border-gray-100 border-l-4 ${styles.border} bg-white shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden`}
+                >
+                  <div className="flex items-start gap-2 h-full">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-semibold shrink-0 ${styles.iconWrap}`}>
+                      {getAlertIcon(alert.type)}
+                    </div>
+                    <div className="min-w-0 flex-1 overflow-hidden">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-semibold text-slate-800 truncate">{alert.title}</p>
+                        <span className={`text-[8px] px-1.5 py-0.5 rounded-full border font-semibold leading-none ${getAlertTypeBadgeStyles(alert.type)}`}>
+                          {getAlertTypeLabel(alert.type)}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-700 mt-0.5 truncate">{alert.message}</p>
+                      <p className="text-[9px] text-slate-400 mt-0.5 truncate">{alert.relativeTime}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="py-8 text-center text-slate-500">
+              No active alerts
+            </div>
+          )}
+        </div>
+
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 animate-fadeIn">
+      {/* Active Alerts Section */}
+      <div className="bg-teal-50/95 rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-teal-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center flex-wrap gap-3">
+          <div>
+            <h3 className="text-xs font-medium text-gray-500">{activeHeader}</h3>
+            <p className="text-base font-bold text-gray-900">Active Alerts</p>
+          </div>
+          <span className="text-xs font-medium text-gray-500">{activeAlerts.length} active</span>
+        </div>
+
+        {activeAlerts.length > 0 ? (
           <div className="divide-y divide-gray-100">
-            {filteredAlerts.map((alert) => (
-              <div key={alert.id} className={`p-4 border-l-4 ${alert.type === 'critical' ? 'border-l-red-500' :
-                  alert.type === 'warning' ? 'border-l-yellow-500' : 'border-l-blue-500'
-                } hover:bg-teal-50 transition-colors`}>
+            {activeAlerts.map((alert) => {
+              const styles = getSidebarStyles(alert.type);
+              return (
+              <div key={alert.id} className={`p-3 border-l-4 ${styles.border} hover:bg-teal-50 transition-colors`}>
                 <div className="flex justify-between items-start">
                   <div className="flex gap-3">
-                    <span className="text-xl">{getAlertIcon(alert.type)}</span>
+                    <span className="text-lg">{getAlertIcon(alert.type)}</span>
                     <div>
-                      <p className="font-bold text-gray-900">{alert.message}</p>
-                      <p className="text-xs text-gray-500 mt-1">{formatDate(alert.timestamp)}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-sm text-gray-900">{alert.title}</p>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${getAlertTypeBadgeStyles(alert.type)}`}>
+                          {getAlertTypeLabel(alert.type)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-700 mt-1">{alert.message}</p>
+                      <p className="text-xs text-gray-500 mt-1">{alert.relativeTime}</p>
                     </div>
                   </div>
                   <button
@@ -124,10 +294,10 @@ const OrganizationAlerts = ({ organizationId }) => {
                   </button>
                 </div>
               </div>
-            ))}
+            );})}
           </div>
         ) : (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-6 text-center text-gray-500">
             <div className="text-4xl mb-2">✅</div>
             <p>No active alerts at this time.</p>
           </div>
@@ -135,40 +305,42 @@ const OrganizationAlerts = ({ organizationId }) => {
       </div>
 
       {/* Activity Log / Audit Trail */}
-      <div className="bg-teal-50/95 rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="bg-teal-50 px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-bold text-gray-900">
-            Activity Log
-          </h3>
-        </div>
-
-        {loading ? (
-          <div className="p-8 flex justify-center">
-            <Loader size="medium" />
+      {showActivityLog && (
+        <div className="bg-teal-50/95 rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-teal-50 px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-bold text-gray-900">
+              Activity Log
+            </h3>
           </div>
-        ) : logs.length > 0 ? (
-          <div className="divide-y divide-gray-100">
-            {logs.map((log) => (
-              <div key={log.id} className="p-4 hover:bg-teal-50 transition-colors">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-medium text-gray-900">{log.action}</p>
-                    <p className="text-sm text-gray-600 mt-1">{log.details || 'No details provided'}</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xs text-gray-500 block">{formatDate(log.created_at)}</span>
-                    <span className="text-xs font-medium text-teal-600 block mt-1">{log.performed_by_username}</span>
+
+          {loading ? (
+            <div className="p-8 flex justify-center">
+              <Loader size="medium" />
+            </div>
+          ) : logs.length > 0 ? (
+            <div className="divide-y divide-gray-100">
+              {logs.map((log) => (
+                <div key={log.id} className="p-4 hover:bg-teal-50 transition-colors">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-medium text-gray-900">{log.action}</p>
+                      <p className="text-sm text-gray-600 mt-1">{log.details || 'No details provided'}</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs text-gray-500 block">{formatDate(log.created_at)}</span>
+                      <span className="text-xs font-medium text-teal-600 block mt-1">{log.performed_by_username}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="p-8 text-center text-gray-500">
-            <p>No activity logs found for this organization.</p>
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-8 text-center text-gray-500">
+              <p>No activity logs found for this organization.</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
