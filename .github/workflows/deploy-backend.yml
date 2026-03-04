@@ -1,27 +1,14 @@
 name: Deploy Backend
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "backend/**"
-
   workflow_dispatch:
-    inputs:
-      environment:
-        description: "Select Environment"
-        required: true
-        default: "dev"
-        type: choice
-        options:
-          - dev
-          - staging
-          - production
 
 env:
   AWS_REGION: ap-south-1
   ECR_REPOSITORY: access-hub-backend
+  ECS_CLUSTER: access-hub-preprod-cluster
+  ECS_SERVICE: access-hub-preprod-service
+  ECS_TASK_FAMILY: access-hub-preprod-task
 
 permissions:
   id-token: write
@@ -32,20 +19,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout Selected Branch
         uses: actions/checkout@v4
 
-      - name: Set Variables
-        id: vars
-        run: |
-          echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
-          echo "IMAGE_TAG=${GITHUB_REF##*/}-${GITHUB_SHA::7}" >> $GITHUB_ENV
-
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "ENVIRONMENT=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
-          else
-            echo "ENVIRONMENT=dev" >> $GITHUB_ENV
-          fi
+      - name: Show Selected Branch
+        run: echo "Deploying branch: ${{ github.ref_name }}"
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -60,10 +38,11 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build, Tag and Push Docker Image
+      - name: Build, Tag & Push Docker Image
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.ref_name }}-${{ github.sha }}
         run: |
           docker buildx build --platform linux/arm64 \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
@@ -74,11 +53,11 @@ jobs:
       - name: Download Current Task Definition
         run: |
           aws ecs describe-task-definition \
-            --task-definition access-hub-${ENVIRONMENT}-task \
+            --task-definition $ECS_TASK_FAMILY \
             --query taskDefinition \
             > task-definition.json
 
-      - name: Render New Task Definition
+      - name: Update Task Definition with New Image
         id: render-task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
@@ -90,12 +69,12 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.render-task-def.outputs.task-definition }}
-          service: access-hub-${{ env.ENVIRONMENT }}-service
-          cluster: access-hub-${{ env.ENVIRONMENT }}-cluster
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
 
       - name: Deployment Summary
         run: |
-          echo "Environment: $ENVIRONMENT"
-          echo "Branch: $BRANCH_NAME"
-          echo "Image Tag: $IMAGE_TAG"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Cluster: $ECS_CLUSTER"
+          echo "Service: $ECS_SERVICE"
