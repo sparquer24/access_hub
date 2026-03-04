@@ -1,5 +1,5 @@
 import uuid
-from typing import List
+from typing import List, Dict, Any
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 from qdrant_client.models import PointStruct
@@ -88,31 +88,39 @@ def add_data_AMS(collection_name: str, employee_id: str, vector: List[float], ti
             "status_code": status.HTTP_500_INTERNAL_SERVER_ERROR
         }
 
-def single_retrieval(collection_name: str, query_vector: List[float]) -> List[dict]:
-    """
-    Retrieve the most similar vector from the collection.
-    """
+
+def single_retrieval(collection_name: str, query_vector: List[float]) -> Dict[str, Any]:
     try:
         results = client.query_points(
             collection_name=collection_name,
             query=query_vector,
             limit=1,
-            score_threshold=0.5,
+            score_threshold=0.1,
             with_payload=True
         ).points
-        logger.info(f"Retrieved {results} points for single retrieval")
-        point = results[0] 
-        return{ 
-            
-                "id": point.id,
-                "score": point.score,
-                "payload": point.payload
+
+        logger.info(f"Retrieved {len(results)} points for single retrieval")
+
+        if not results:
+            return {
+                "match_found": False,
+                "id": None,
+                "score": None,
+                "payload": None
             }
-        
-        
-    except Exception as e:
-        logger.error(f"Single retrieval failed: {e}")
+
+        point = results[0]
+        return {
+            "match_found": True,
+            "id": point.id,
+            "score": point.score,
+            "payload": point.payload
+        }
+
+    except Exception:
+        logger.exception("Single retrieval failed")
         raise
+
 
 
 def batch_retrieval(collection_name: str, query_vectors: List[List[float]]) -> List[List[dict]]:

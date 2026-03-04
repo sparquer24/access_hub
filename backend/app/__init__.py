@@ -52,6 +52,13 @@ def create_app():
                 "rule_filter": lambda rule: True,
                 "model_filter": lambda tag: True,
             }
+            ,
+            {
+                "endpoint": "autospec",
+                "route": "/api/docs/swagger2.json",
+                "rule_filter": lambda rule: True,
+                "model_filter": lambda tag: True,
+            }
         ],
         "static_url_path": "/flasgger_static",
         "swagger_ui": True,
@@ -329,30 +336,12 @@ def create_app():
     # Register error handlers
     register_error_handlers(app)
 
-    # Register blueprints - Old routes (for backward compatibility)
-    from .common.routes import bp as common_bp
-    app.register_blueprint(common_bp)
+    # Register legacy API routes (v1 - for backward compatibility)
+    from .api.legacy.auth import bp as auth_legacy_bp
+    app.register_blueprint(auth_legacy_bp)
 
-    from .auth.routes import bp as auth_bp
-    app.register_blueprint(auth_bp)
-
-    from .users.routes import bp as users_bp
-    app.register_blueprint(users_bp)
-
-
-    # Register visitors blueprint if its optional ML deps are available
-    try:
-        from .visitors.routes import bp as visitors_bp
-        app.register_blueprint(visitors_bp)
-    except Exception as _err:
-        # Do not fail app startup for missing optional ML/image deps
-        try:
-            app.logger.warning(f"Visitors blueprint not registered: {_err}")
-        except Exception:
-            pass
-
-    from .stats.routes import bp as stats_bp
-    app.register_blueprint(stats_bp)
+    from .api.legacy.users import bp as users_legacy_bp
+    app.register_blueprint(users_legacy_bp)
 
     # Register new API v2 blueprints
     from .api.auth.routes import bp as auth_v2_bp
@@ -400,9 +389,9 @@ def create_app():
     from .api.roles.routes import bp as roles_v2_bp
     app.register_blueprint(roles_v2_bp)
 
-    # Temporarily disabled for testing PDF download without ML dependencies
-    # from .api.embedding_gen.routes import face_enroll_bp
-    # app.register_blueprint(face_enroll_bp)
+    # Face enrollment endpoint for both employees and visitors
+    from .api.embedding_gen.routes import face_enroll_bp
+    app.register_blueprint(face_enroll_bp)
     
     from .api.manager.routes import bp as manager_v2_bp
     app.register_blueprint(manager_v2_bp)
@@ -412,6 +401,12 @@ def create_app():
     
     from .api.audit.routes import bp as audit_v2_bp
     app.register_blueprint(audit_v2_bp)
+    
+    from .api.stats.routes import bp as stats_bp
+    app.register_blueprint(stats_bp)
+    
+    from .users.routes import bp as users_v2_bp
+    app.register_blueprint(users_v2_bp)
     
     try:
         from .api.visitors.routes import bp as visitors_v2_bp
@@ -434,13 +429,12 @@ def create_app():
     from .api.subscriptions.routes import bp as subscriptions_bp
     app.register_blueprint(subscriptions_bp)
 
+    from .api.reports.routes import bp as reports_bp
+    app.register_blueprint(reports_bp)
+
     from .api.lpr import bp as lpr_bp
     app.register_blueprint(lpr_bp, url_prefix='/api/v2/organizations')
 
-    # Register health check and monitoring routes
-    # from .api.health.routes import register_health_routes
-    # register_health_routes(app)
-    
     # Register documentation routes
     from .utils.documentation import create_documentation_routes
     create_documentation_routes(app)
@@ -449,6 +443,7 @@ def create_app():
     from .utils.logging_config import setup_logging
     from .utils.performance import setup_request_monitoring
     from .utils.errors import register_error_handlers as register_enhanced_error_handlers
+    
     
     # Initialize logging
     log_level = app.config.get('LOG_LEVEL', 'INFO')

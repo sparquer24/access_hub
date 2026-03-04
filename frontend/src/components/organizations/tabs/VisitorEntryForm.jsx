@@ -1,41 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useToast } from '../../../contexts/ToastContext';
 import { visitorService } from '../../../services/visitorService';
+import { faceService } from '../../../services/faceService';
 import WebcamCapture from '../../common/WebcamCapture.jsx';
 
 const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => {
   const { success, error: showError } = useToast();
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     name: '',
-    mobile_number: '',
+    phone: '',
     email: '',
+    gender: '',
     purpose_of_visit: '',
+    from_date: '',
+    to_date: '',
     allowed_floor: '',
+    allowed_tower: '',
     image_base64: '',
 
     // New fields
     visitor_type: 'guest',
     host_name: '',
-    host_phone: '',
-    company_name: '',
-    company_address: '',
+    host_number: '',
     is_recurring: false,
     expected_duration_hours: '',
 
-    // Contractor-specific
-    work_description: '',
-
-    // Delivery-specific
-    delivery_package_count: '',
-    delivery_recipient_name: '',
-
-    // VIP-specific
-    special_instructions: '',
-
-    // Vehicle specific - RE MOVED to LPR Module
+    // Vehicle specific - REMOVED to LPR Module
     // has_vehicle: false, ...
 
-  });
+  };
+  const [formData, setFormData] = useState(initialFormData);
   const [loading, setLoading] = useState(false);
   const [showWebcam, setShowWebcam] = useState(false);
   const [activePhotoSlot, setActivePhotoSlot] = useState(null); // 'visitor' or 'vehicle_front' etc.
@@ -44,6 +38,9 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
   const [checkedInVisitor, setCheckedInVisitor] = useState(null);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastCheckedMobile, setLastCheckedMobile] = useState('');
+  const [isUsingExistingImage, setIsUsingExistingImage] = useState(false);
+  const [isExistingImageConfirmed, setIsExistingImageConfirmed] = useState(false);
 
   // Form validation function
   const validateForm = () => {
@@ -53,14 +50,42 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
       newErrors.name = 'Visitor name is required';
     }
 
-    if (!formData.mobile_number.trim()) {
-      newErrors.mobile_number = 'Mobile number is required';
-    } else if (!/^[6-9]\d{9}$/.test(formData.mobile_number.trim())) {
-      newErrors.mobile_number = 'Please enter a valid 10-digit mobile number';
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Mobile number is required';
+    } else if (!/^[6-9]\d{9}$/.test(formData.phone.trim())) {
+      newErrors.phone = 'Please enter a valid 10-digit mobile number';
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    }
+
+    if (!formData.gender) {
+      newErrors.gender = 'Gender is required';
+    }
+
+    if (!formData.visitor_type) {
+      newErrors.visitor_type = 'Visitor type is required';
     }
 
     if (!formData.purpose_of_visit.trim()) {
       newErrors.purpose_of_visit = 'Purpose of visit is required';
+    }
+
+    if (!formData.host_name.trim()) {
+      newErrors.host_name = 'Host name is required';
+    }
+
+    if (!formData.host_number.trim()) {
+      newErrors.host_number = 'Host number is required';
+    }
+
+    if (!formData.from_date) {
+      newErrors.from_date = 'From date is required';
+    }
+
+    if (!formData.to_date) {
+      newErrors.to_date = 'To date is required';
     }
 
     if (!formData.allowed_floor) {
@@ -69,6 +94,8 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
 
     if (!formData.image_base64) {
       newErrors.image_base64 = 'Visitor photo is required';
+    } else if (isUsingExistingImage && !isExistingImageConfirmed) {
+      newErrors.image_base64 = 'Please confirm existing image or click retake';
     }
 
     setErrors(newErrors);
@@ -105,6 +132,61 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
     }
   };
 
+  useEffect(() => {
+    const mobile = formData.phone.trim();
+    const isValidMobile = /^[6-9]\d{9}$/.test(mobile);
+
+    if (!isValidMobile) {
+      setLastCheckedMobile('');
+      setIsUsingExistingImage(false);
+      setIsExistingImageConfirmed(false);
+      return;
+    }
+
+    if (mobile === lastCheckedMobile) {
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const visitor = await visitorService.getExistingVisitorByMobile(organizationId, mobile);
+        setLastCheckedMobile(mobile);
+
+        if (!visitor) {
+          setIsUsingExistingImage(false);
+          setIsExistingImageConfirmed(false);
+          return;
+        }
+
+        setFormData(prev => ({
+          ...prev,
+          name: visitor.name || prev.name,
+          email: visitor.email || prev.email,
+          gender: visitor.gender || prev.gender,
+          visitor_type: visitor.visitor_type || prev.visitor_type,
+          purpose_of_visit: visitor.purpose_of_visit || prev.purpose_of_visit,
+          host_name: visitor.host_name || prev.host_name,
+          host_number: visitor.host_number || prev.host_number,
+          from_date: visitor.from_date || prev.from_date,
+          to_date: visitor.to_date || prev.to_date,
+          allowed_floor: visitor.allowed_floor || prev.allowed_floor,
+          image_base64: visitor.image_base64 || prev.image_base64
+        }));
+
+        if (visitor.image_base64) {
+          setImagePreview(visitor.image_base64);
+          setIsUsingExistingImage(true);
+          setIsExistingImageConfirmed(false);
+          setShowWebcam(false);
+        }
+      } catch (lookupError) {
+        // Keep silent - no extra UI section for lookup state/errors.
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [formData.phone, organizationId, lastCheckedMobile]);
+
   const handleImageCapture = (base64Image) => {
     console.log('🎯 handleImageCapture CALLED!', {
       called: true,
@@ -126,6 +208,39 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
       return;
     }
 
+    // 🔴 LAYER 1: IMMEDIATE AGGRESSIVE CAMERA SHUTDOWN - BEFORE STATE UPDATE
+    console.log('🔴 LAYER 1: AGGRESSIVE IMMEDIATE SHUTDOWN STARTING');
+    const videoElements = document.querySelectorAll('video');
+    let stoppedTrackCount = 0;
+    videoElements.forEach((video, idx) => {
+      console.log(`Processing video element ${idx}:`, video.id || 'no-id');
+      
+      // Get and stop all tracks
+      const tracks = video.srcObject?.getTracks() || [];
+      tracks.forEach(track => {
+        console.log(`  🛑 Stopping ${track.kind} track (enabled: ${track.enabled}, readyState: ${track.readyState})`);
+        track.enabled = false;
+        track.stop();
+        stoppedTrackCount++;
+      });
+      
+      // Clear video element completely
+      if (video.srcObject) {
+        video.srcObject = null;
+      }
+      video.src = '';
+      video.pause();
+      video.muted = true;
+      video.autoplay = false;
+      video.controls = false;
+      video.style.display = 'none';
+      video.style.visibility = 'hidden';
+      video.style.opacity = '0';
+      
+      console.log(`  ✅ Video element ${idx} cleared (stopped ${tracks.length} tracks)`);
+    });
+    console.log(`🔴 LAYER 1 COMPLETE: Stopped ${stoppedTrackCount} total tracks`);
+
     // Update form data with the captured image based on active slot
     if (activePhotoSlot === 'visitor' || !activePhotoSlot) {
       setFormData(prev => ({
@@ -133,39 +248,86 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
         image_base64: base64Image
       }));
       setImagePreview(base64Image);
+      setIsUsingExistingImage(false);
+      setIsExistingImageConfirmed(true);
       if (errors.image_base64) {
         setErrors(prev => ({ ...prev, image_base64: '' }));
       }
     }
 
-    // Immediately hide webcam and stop camera stream
-    setShowWebcam(false);
-    setActivePhotoSlot(null);
-
-    // Additional cleanup - force stop any active media streams
+    // 🔴 CRITICAL: DELAY UNMOUNT to allow OS to release camera device
+    // The WebcamCapture component needs time to fully release hardware BEFORE unmounting
+    console.log('⏲️ Scheduling delayed unmount to allow device release...');
     setTimeout(() => {
-      // Get all video elements and stop their streams
+      console.log('⏲️ 250ms elapsed: NOW safe to hide webcam and unmount component');
+      setShowWebcam(false);
+      setActivePhotoSlot(null);
+    }, 250);
+
+    // 🟠 LAYER 2: DELAYED CLEANUP - Catch any streams that survived layer 1
+    setTimeout(() => {
+      console.log('🟠 LAYER 2: Running delayed camera cleanup (100ms)');
       const videoElements = document.querySelectorAll('video');
-      videoElements.forEach(video => {
+      videoElements.forEach((video, idx) => {
         if (video.srcObject) {
+          console.log(`  ⚠️ Video ${idx} STILL HAS STREAM! Force stopping...`);
           const stream = video.srcObject;
           if (stream && stream.getTracks) {
             stream.getTracks().forEach(track => {
+              console.log(`    🔴 Force stopping ${track.kind} track`);
               track.stop();
             });
           }
           video.srcObject = null;
         }
       });
+      console.log('🟠 LAYER 2 COMPLETE');
     }, 100);
 
-    console.log('✅ Webcam stopped automatically');
+    // 🟡 LAYER 3: FINAL VERIFICATION - Check if camera is really dead
+    setTimeout(() => {
+      console.log('🟡 LAYER 3: Running tertiary camera cleanup (200ms)');
+      const videoElements = document.querySelectorAll('video');
+      videoElements.forEach((video, idx) => {
+        const tracks = video.srcObject?.getTracks() || [];
+        if (tracks.length > 0) {
+          console.log(`  ⚠️ Video ${idx} FOUND ${tracks.length} ACTIVE TRACKS! FINAL SHUTDOWN...`);
+          tracks.forEach(track => {
+            console.log(`    🔴 FINAL: Stopping ${track.kind}`);
+            track.stop();
+          });
+          video.srcObject = null;
+        } else {
+          console.log(`  ✅ Video ${idx}: No active tracks - camera is OFF`);
+        }
+      });
+      console.log('🟡 LAYER 3 COMPLETE - CAMERA SHOULD NOW BE COMPLETELY OFF');
+    }, 200);
+
+    console.log('🎬 ✅ CAMERA SHUTDOWN HANDLERS QUEUED - Image capture complete');
   };
 
   const handleClearImage = () => {
     console.log('🗑️ Clearing captured image');
     setImagePreview(null);
     setFormData(prev => ({ ...prev, image_base64: '' }));
+    setIsUsingExistingImage(false);
+    setIsExistingImageConfirmed(false);
+  };
+
+  const handleConfirmExistingImage = () => {
+    setIsExistingImageConfirmed(true);
+    if (errors.image_base64) {
+      setErrors(prev => ({ ...prev, image_base64: '' }));
+    }
+  };
+
+  const handleRetakeImage = () => {
+    setImagePreview(null);
+    setFormData(prev => ({ ...prev, image_base64: '' }));
+    setIsUsingExistingImage(false);
+    setIsExistingImageConfirmed(false);
+    setShowWebcam(true);
   };
 
   const handleCloseWebcam = () => {
@@ -218,22 +380,64 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
     try {
       setLoading(true);
 
-      // Sanitize form data - convert empty strings to null for integer fields
+      // Build API payload with only UI fields and user-entered values
       const sanitizedData = {
-        ...formData,
-        delivery_package_count: formData.delivery_package_count === '' ? null : parseInt(formData.delivery_package_count) || null,
-        expected_duration_hours: formData.expected_duration_hours === '' ? null : parseInt(formData.expected_duration_hours) || null,
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        gender: formData.gender,
+        purpose_of_visit: formData.purpose_of_visit,
+        from_date: formData.from_date,
+        to_date: formData.to_date || null,
+        allowed_floor: formData.allowed_floor,
+        allowed_tower: formData.allowed_tower,
+        image_base64: formData.image_base64,
+        visitor_type: formData.visitor_type,
+        host_name: formData.host_name,
+        host_number: formData.host_number,
+        is_recurring: formData.is_recurring,
       };
 
-      const response = await visitorService.createVisitor(organizationId, sanitizedData);
+      console.log('📝 Submitting check-in form with data:', sanitizedData);
+      const response = await visitorService.checkInNewVisitor(organizationId, sanitizedData);
+      console.log('✅ Check-in API response:', response);
+
+      if (!response.success) {
+        showError(response.message || 'Check-in failed');
+        setIsSubmitting(false);
+        return;
+      }
 
       success('Visitor check-in successful!');
 
+      // Extract visitor_id and history_id from response
+      const { visitor_id, history_id, check_in_time } = response.data;
+      console.log('📋 Check-in data:', { visitor_id, history_id, check_in_time });
+
+      // Enroll visitor face using unified /api/v1/face/enroll endpoint
+      try {
+        await faceService.enrollFace(visitor_id, formData.image_base64);
+        console.log('✅ Face enrollment successful');
+      } catch (enrollmentError) {
+        // Non-blocking error - visitor check-in still successful
+        console.warn('⚠️ Face enrollment failed (non-blocking):', enrollmentError);
+      }
+
       // Store visitor data for slip generation
       setCheckedInVisitor({
-        ...response.data,
+        id: visitor_id,
+        history_id: history_id,
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        gender: formData.gender,
+        visitor_type: formData.visitor_type,
+        purpose_of_visit: formData.purpose_of_visit,
+        allowed_floor: formData.allowed_floor,
+        allowed_tower: formData.allowed_tower,
+        host_name: formData.host_name,
         organization_name: organization?.name || 'Organization',
-        check_in_time: new Date().toISOString(),
+        check_in_time: check_in_time,
         visitor_image: formData.image_base64
       });
 
@@ -241,16 +445,13 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
       setShowVisitorSlip(true);
 
       // Reset form
-      setFormData({
-        name: '',
-        mobile_number: '',
-        purpose_of_visit: '',
-        allowed_floor: '',
-        image_base64: ''
-      });
+      setFormData(initialFormData);
       setImagePreview(null);
       setShowWebcam(false);
       setErrors({});
+      setLastCheckedMobile('');
+      setIsUsingExistingImage(false);
+      setIsExistingImageConfirmed(false);
 
       // Call parent callback
       if (onSubmitSuccess) {
@@ -267,6 +468,16 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
         errorMessage = 'Access denied. You do not have permission to check-in visitors.';
       } else if (error.response?.status === 404) {
         errorMessage = 'Organization not found or API endpoint missing.';
+      } else if (error.response?.status === 400 && error.response?.data?.errors) {
+        const validationErrors = error.response.data.errors;
+        const firstErrorEntry = Object.entries(validationErrors)[0];
+        if (firstErrorEntry) {
+          const [fieldName, fieldMessages] = firstErrorEntry;
+          const firstMessage = Array.isArray(fieldMessages) ? fieldMessages[0] : fieldMessages;
+          errorMessage = `${fieldName}: ${firstMessage}`;
+        } else {
+          errorMessage = error.response?.data?.message || 'Validation failed.';
+        }
       } else if (error.response?.status === 422) {
         errorMessage = error.response?.data?.message || 'Invalid data provided.';
       } else if (error.response?.data?.message) {
@@ -286,36 +497,45 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
   const floors = ['Ground Floor', 'Floor 1', 'Floor 2', 'Floor 3', 'Floor 4', 'Floor 5'];
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-teal-50/95 rounded-xl shadow-md p-8">
-        <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-          ✅ New Visitor Check-In
-        </h3>
+    <div className="max-w-6xl mx-auto px-2">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 md:p-8">
+        <div className="mb-6 pb-4 border-b border-gray-200">
+          <h3 className="text-2xl font-bold text-gray-900">Visitor Check-In</h3>
+          <p className="text-gray-500 mt-1">Fill in the visitor details below. All fields marked <span className="text-red-500">*</span> are required.</p>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Visitor Type Selection */}
-          <div className="mb-6">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Visitor Type *
-            </label>
-            <select
-              name="visitor_type"
-              value={formData.visitor_type}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-            >
-              <option value="guest">👤 Guest</option>
-              <option value="contractor">👷 Contractor</option>
-              <option value="vendor">🏢 Vendor</option>
-              <option value="interview_candidate">💼 Interview Candidate</option>
-              <option value="delivery">📦 Delivery Personnel</option>
-              <option value="service_provider">🔧 Service Provider</option>
-              <option value="vip">👑 VIP</option>
-            </select>
-          </div>
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <div className="xl:col-span-2 space-y-6">
+              <div className="rounded-xl border border-gray-200 p-5 md:p-6">
+                <h4 className="text-2xl font-bold text-gray-900 mb-5">Visitor Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Mobile Number *
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                placeholder="Enter mobile number"
+                required
+                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.phone
+                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
+                  : 'border-gray-300 focus:ring-teal-500'
+                  }`}
+              />
+              {errors.phone && (
+                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {errors.phone}
+                </p>
+              )}
+            </div>
 
-          {/* Basic Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Visitor Name *
@@ -326,6 +546,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                 value={formData.name}
                 onChange={handleInputChange}
                 placeholder="Enter full name"
+                required
                 className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.name
                   ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
                   : 'border-gray-300 focus:ring-teal-500'
@@ -343,32 +564,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Mobile Number *
-              </label>
-              <input
-                type="tel"
-                name="mobile_number"
-                value={formData.mobile_number}
-                onChange={handleInputChange}
-                placeholder="Enter mobile number"
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.mobile_number
-                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                  : 'border-gray-300 focus:ring-teal-500'
-                  }`}
-              />
-              {errors.mobile_number && (
-                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.mobile_number}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Email Address
+                Email Address *
               </label>
               <input
                 type="email"
@@ -376,16 +572,79 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="visitor@example.com"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                required
+                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.email
+                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
+                  : 'border-gray-300 focus:ring-teal-500'
+                  }`}
               />
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+              )}
             </div>
-          </div>
 
-          {/* Host Contact Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Host Name
+                Gender *
+              </label>
+              <select
+                name="gender"
+                value={formData.gender}
+                onChange={handleInputChange}
+                required
+                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.gender
+                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
+                  : 'border-gray-300 focus:ring-teal-500'
+                  }`}
+              >
+                <option value="">Select gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+                <option value="prefer_not_to_say">Prefer not to say</option>
+              </select>
+              {errors.gender && (
+                <p className="mt-1 text-sm text-red-600">{errors.gender}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Visitor Type *
+              </label>
+              <select
+                name="visitor_type"
+                value={formData.visitor_type}
+                onChange={handleInputChange}
+                required
+                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.visitor_type
+                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
+                  : 'border-gray-300 focus:ring-teal-500'
+                  }`}
+              >
+                <option value="guest">👤 Guest</option>
+                <option value="contractor">👷 Contractor</option>
+                <option value="vendor">🏢 Vendor</option>
+                <option value="interview_candidate">💼 Interview Candidate</option>
+                <option value="delivery">📦 Delivery Personnel</option>
+                <option value="service_provider">🔧 Service Provider</option>
+                <option value="vip">👑 VIP</option>
+              </select>
+              {errors.visitor_type && (
+                <p className="mt-1 text-sm text-red-600">{errors.visitor_type}</p>
+              )}
+            </div>
+          </div>
+              </div>
+
+              <div className="rounded-xl border border-gray-200 p-5 md:p-6 space-y-6">
+                <h4 className="text-xl font-bold text-gray-900">Host & Visit Details</h4>
+
+                {/* Host Contact Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Host Name *
               </label>
               <input
                 type="text"
@@ -393,51 +652,106 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                 value={formData.host_name}
                 onChange={handleInputChange}
                 placeholder="Person/Department to visit"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Host Phone
-              </label>
-              <input
-                type="tel"
-                name="host_phone"
-                value={formData.host_phone}
-                onChange={handleInputChange}
-                placeholder="Host contact number"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              />
-            </div>
-          </div>
-
-          {/* Purpose and Floor */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Purpose of Visit *
-              </label>
-              <input
-                type="text"
-                name="purpose_of_visit"
-                value={formData.purpose_of_visit}
-                onChange={handleInputChange}
-                placeholder="e.g., Meeting, Delivery, Service"
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.purpose_of_visit
+                required
+                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.host_name
                   ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
                   : 'border-gray-300 focus:ring-teal-500'
                   }`}
               />
-              {errors.purpose_of_visit && (
+              {errors.host_name && (
                 <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                  {errors.purpose_of_visit}
+                  {errors.host_name}
                 </p>
               )}
             </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Host Phone *
+              </label>
+              <input
+                type="tel"
+                name="host_number"
+                value={formData.host_number}
+                onChange={handleInputChange}
+                placeholder="Host contact number"
+                required
+                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.host_number
+                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
+                  : 'border-gray-300 focus:ring-teal-500'
+                  }`}
+              />
+              {errors.host_number && (
+                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {errors.host_number}
+                </p>
+              )}
+            </div>
+          </div>
+
+                {/* Purpose of Visit */}
+                <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Purpose of Visit *
+            </label>
+            <input
+              type="text"
+              name="purpose_of_visit"
+              value={formData.purpose_of_visit}
+              onChange={handleInputChange}
+              placeholder="e.g., Meeting, Delivery, Service"
+              className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.purpose_of_visit
+                ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
+                : 'border-gray-300 focus:ring-teal-500'
+                }`}
+            />
+            {errors.purpose_of_visit && (
+              <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {errors.purpose_of_visit}
+              </p>
+            )}
+          </div>
+
+                {/* Floor and Tower */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Tower
+              </label>
+              <select
+                name="allowed_towers"
+                value={formData.allowed_towers || ''}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.allowed_towers
+                  ? 'border-red-500 bg-red-50 focus:ring-red-500'
+                  : 'border-gray-300 focus:ring-teal-500'
+                  }`}
+              >
+                <option value="">Select a tower</option>
+                <option value="Tower A">Tower A</option>
+                <option value="Tower B">Tower B</option>
+                <option value="Tower C">Tower C</option>
+                <option value="Tower D">Tower D</option>
+              </select>
+              {errors.allowed_towers && (
+                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {errors.allowed_towers}
+                </p>
+              )}
+            </div>
+            
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -468,125 +782,58 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                 </p>
               )}
             </div>
+
+
           </div>
 
-          {/* Conditional Fields for Contractors/Vendors */}
-          {(formData.visitor_type === 'contractor' || formData.visitor_type === 'vendor') && (
-            <div className="bg-blue-50 p-6 rounded-lg border-2 border-blue-200">
-              <h4 className="font-semibold text-blue-900 mb-4 flex items-center gap-2">
-                {formData.visitor_type === 'contractor' ? '👷' : '🏢'} {formData.visitor_type === 'contractor' ? 'Contractor' : 'Vendor'} Information
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Company Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="company_name"
-                    value={formData.company_name}
-                    onChange={handleInputChange}
-                    placeholder="Company name"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+                {/* Duration of Visit */}
+                <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
+            <h4 className="font-semibold text-gray-900 mb-4">Duration of Visit</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  From Date *
+                </label>
+                <input
+                  type="date"
+                  name="from_date"
+                  value={formData.from_date}
+                  onChange={handleInputChange}
+                  required
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.from_date
+                    ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
+                    : 'border-gray-300 focus:ring-teal-500'
+                    }`}
+                />
+                {errors.from_date && (
+                  <p className="mt-1 text-sm text-red-600">{errors.from_date}</p>
+                )}
+              </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Company Address
-                  </label>
-                  <input
-                    type="text"
-                    name="company_address"
-                    value={formData.company_address}
-                    onChange={handleInputChange}
-                    placeholder="Company address"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                {formData.visitor_type === 'contractor' && (
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Work Description
-                    </label>
-                    <textarea
-                      name="work_description"
-                      value={formData.work_description}
-                      onChange={handleInputChange}
-                      placeholder="Brief description of work to be performed"
-                      rows="2"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  To Date *
+                </label>
+                <input
+                  type="date"
+                  name="to_date"
+                  value={formData.to_date}
+                  onChange={handleInputChange}
+                  required
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.to_date
+                    ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
+                    : 'border-gray-300 focus:ring-teal-500'
+                    }`}
+                />
+                {errors.to_date && (
+                  <p className="mt-1 text-sm text-red-600">{errors.to_date}</p>
                 )}
               </div>
             </div>
-          )}
+          </div>
 
-          {/* Conditional Fields for Delivery */}
-          {formData.visitor_type === 'delivery' && (
-            <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200">
-              <h4 className="font-semibold text-green-900 mb-4 flex items-center gap-2">
-                📦 Delivery Information
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Package Count *
-                  </label>
-                  <input
-                    type="number"
-                    name="delivery_package_count"
-                    value={formData.delivery_package_count}
-                    onChange={handleInputChange}
-                    placeholder="Number of packages"
-                    min="1"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Recipient Name
-                  </label>
-                  <input
-                    type="text"
-                    name="delivery_recipient_name"
-                    value={formData.delivery_recipient_name}
-                    onChange={handleInputChange}
-                    placeholder="Package recipient"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Conditional Fields for VIP */}
-          {formData.visitor_type === 'vip' && (
-            <div className="bg-teal-50 p-6 rounded-lg border-2 border-purple-200">
-              <h4 className="font-semibold text-teal-900 mb-4 flex items-center gap-2">
-                👑 VIP Visitor
-              </h4>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Special Instructions
-                </label>
-                <textarea
-                  name="special_instructions"
-                  value={formData.special_instructions}
-                  onChange={handleInputChange}
-                  placeholder="Any special requirements or preferences for this VIP visitor"
-                  rows="3"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Additional Options */}
-          <div className="flex flex-col gap-4 bg-teal-50 p-4 rounded-lg">
+                {/* Additional Options */}
+                <div className="flex flex-col gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -604,21 +851,19 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
               </label>
             </div>
           </div>
+              </div>
+            </div>
 
-
-
-          {/* Webcam Capture */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
-              Visitor Photo *
-            </label>
+            <div className="xl:col-span-1">
+              <div className="rounded-xl border border-gray-200 p-5 md:p-6 xl:sticky xl:top-6">
+                <h4 className="text-2xl font-bold text-gray-900 mb-5">Visitor Photo</h4>
 
             {!showWebcam && !imagePreview && (
               <div className={`${errors.image_base64 ? 'error-field' : ''}`}>
                 <button
                   type="button"
                   onClick={() => setShowWebcam(true)}
-                  className={`w-full px-8 py-4 font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 mb-4 ${errors.image_base64
+                  className={`w-full px-6 py-3.5 font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md mb-4 ${errors.image_base64
                     ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-2 border-red-500'
                     : 'bg-gradient-to-r from-teal-600 to-teal-600 hover:from-teal-700 hover:to-teal-700 text-white'
                     }`}
@@ -650,42 +895,65 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
             )}
 
             {imagePreview && (
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200">
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="flex items-center justify-center w-8 h-8 bg-green-500 rounded-full">
+              <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+                <div className="mb-3 flex items-center gap-2">
+                  <div className="flex items-center justify-center w-7 h-7 bg-green-500 rounded-full">
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <p className="text-green-700 font-semibold text-lg">Photo captured successfully!</p>
+                  <p className="text-green-700 font-semibold text-sm">
+                    {isUsingExistingImage ? 'Existing image loaded from previous visit' : 'Photo captured successfully!'}
+                  </p>
                 </div>
                 <div className="relative inline-block w-full">
                   <img
                     src={imagePreview}
                     alt="Captured visitor"
-                    className="w-full h-64 object-cover rounded-xl shadow-lg"
+                    className="w-full h-72 object-cover rounded-xl border border-gray-200"
                   />
-                  <button
-                    type="button"
-                    onClick={handleClearImage}
-                    className="mt-4 w-full px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Retake Photo
-                  </button>
+                  {isUsingExistingImage && !isExistingImageConfirmed ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                      <button
+                        type="button"
+                        onClick={handleConfirmExistingImage}
+                        className="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all duration-300"
+                      >
+                        Confirm Image
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleRetakeImage}
+                        className="w-full px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition-all duration-300"
+                      >
+                        Retake
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={isUsingExistingImage ? handleRetakeImage : handleClearImage}
+                        className="mt-4 w-full px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Retake Photo
+                    </button>
+                  )}
                 </div>
               </div>
             )}
+              </div>
+            </div>
           </div>
 
           {/* Submit Button */}
-          <div className="flex justify-center pt-4">
+          <div className="flex justify-center pt-2">
             <button
               type="submit"
               disabled={loading || isSubmitting}
-              className={`px-8 py-3 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-md hover:shadow-lg min-w-[200px] ${loading || isSubmitting
+              className={`w-full md:w-auto px-8 py-3 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md min-w-[220px] ${loading || isSubmitting
                 ? 'bg-gray-400 cursor-not-allowed text-white'
                 : 'bg-green-600 hover:bg-green-700 text-white'
                 }`}
@@ -802,7 +1070,7 @@ const VisitorSlipModal = ({ visitor, onClose, onPrint }) => {
             </div>
             <div className="flex justify-between items-center py-2 border-b border-gray-100">
               <span className="font-semibold text-gray-700">Mobile:</span>
-              <span className="text-gray-900">{visitor.mobile_number}</span>
+              <span className="text-gray-900">{visitor.phone}</span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-gray-100">
               <span className="font-semibold text-gray-700">Purpose:</span>

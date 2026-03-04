@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Input, Select, DatePicker, Switch } from 'antd';
+import { Modal, Form, Input, Select, DatePicker, Switch, Pagination } from 'antd';
 import { employeesService, EMPLOYMENT_TYPES, GENDER_OPTIONS, departmentsService, shiftsService, organizationsService } from '../../../services/organizationsService';
+import { faceService } from '../../../services/faceService';
 import api from '../../../services/api';
 import moment from 'moment';
 import WebcamCapture from '../../common/WebcamCapture.jsx';
@@ -12,13 +13,13 @@ import EmployeeAttendanceCalendar from './EmployeeAttendanceCalendar';
 import OrganizationDepartments from './OrganizationDepartments';
 import OrganizationShifts from './OrganizationShifts';
 import { authService } from '../../../services/authService';
-import { Users, BarChart3, ClipboardList, Calendar as CalendarIcon, Building2, Clock, FileText, Download } from 'lucide-react';
+import { Users, BarChart3, ClipboardList, Calendar as CalendarIcon, Building2, Clock, FileText, Download, MoreHorizontal, ChevronDown, CheckCircle2, XCircle, Search, ListFilter, Trash2 } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 
 const { Option } = Select;
 const { TextArea } = Input;
 
-const OrganizationEmployees = ({ organizationId, organization }) => {
+const OrganizationEmployees = ({ organizationId, organization, isAlertSidebarOpen = false }) => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -26,10 +27,13 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
   const [form] = Form.useForm();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [departments, setDepartments] = useState([]);
   const [shifts, setShifts] = useState([]);
   const [employeePhoto, setEmployeePhoto] = useState(null);
   const [showWebcam, setShowWebcam] = useState(false);
+  const [isCreateFormComplete, setIsCreateFormComplete] = useState(false);
   const [activeTab, setActiveTab] = useState('list');
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [attendanceLogs, setAttendanceLogs] = useState([]);
@@ -38,10 +42,55 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
   const [recordsSearchText, setRecordsSearchText] = useState('');
   const [recordsDepartmentFilter, setRecordsDepartmentFilter] = useState('all');
   const [recordsDateRange, setRecordsDateRange] = useState([moment(), moment()]);
+  const [recordsCurrentPage, setRecordsCurrentPage] = useState(1);
+  const [recordsItemsPerPage, setRecordsItemsPerPage] = useState(10);
   const [allAttendanceRecords, setAllAttendanceRecords] = useState([]);
+  const [isTabDropdownOpen, setIsTabDropdownOpen] = useState(false);
   const calendarRef = React.useRef(null);
   const analyticsRef = React.useRef(null);
   const { success, error: showError } = useToast();
+
+  const employeeTabs = [
+    { id: 'list', label: 'List', icon: Users },
+    { id: 'analytics', label: 'Overview', icon: BarChart3 },
+    { id: 'logs', label: 'Logs', icon: ClipboardList },
+    { id: 'records', label: 'Records', icon: FileText },
+    { id: 'calendar', label: 'Calendar', icon: CalendarIcon },
+    { id: 'departments', label: 'Dept', icon: Building2 },
+    { id: 'shifts', label: 'Shifts', icon: Clock }
+  ];
+
+  const activeTabMeta = employeeTabs.find((tab) => tab.id === activeTab) || employeeTabs[0];
+
+  const requiredCreateFields = [
+    'full_name',
+    'phone_number',
+    'gender',
+    'date_of_birth',
+    'designation',
+    'employment_type',
+    'joining_date',
+    'department_id',
+    'shift_id',
+    'address',
+  ];
+
+  const isValueFilled = (value) => {
+    if (moment.isMoment(value)) return true;
+    if (typeof value === 'string') return value.trim().length > 0;
+    return value !== undefined && value !== null && value !== '';
+  };
+
+  const updateCreateFormCompleteness = (allValues = form.getFieldsValue(true), photoValue = employeePhoto) => {
+    if (editingEmployee) {
+      setIsCreateFormComplete(true);
+      return;
+    }
+
+    const hasAllRequiredFields = requiredCreateFields.every((field) => isValueFilled(allValues?.[field]));
+    const hasPhoto = Boolean(photoValue);
+    setIsCreateFormComplete(hasAllRequiredFields && hasPhoto);
+  };
 
   useEffect(() => {
     fetchEmployees();
@@ -50,6 +99,12 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
   useEffect(() => {
     fetchDepartmentsAndShifts();
   }, [organizationId]);
+
+  useEffect(() => {
+    if (showModal) {
+      updateCreateFormCompleteness(form.getFieldsValue(true), employeePhoto);
+    }
+  }, [employeePhoto, showModal, editingEmployee]);
 
   const fetchEmployees = async () => {
     try {
@@ -599,6 +654,7 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
     setEditingEmployee(null);
     setEmployeePhoto(null);
     setShowWebcam(false);
+    setIsCreateFormComplete(false);
     form.resetFields();
     setShowModal(true);
   };
@@ -612,6 +668,7 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
       date_of_birth: employee.date_of_birth ? moment(employee.date_of_birth) : null,
       joining_date: employee.joining_date ? moment(employee.joining_date) : null,
     });
+    setIsCreateFormComplete(true);
     setShowModal(true);
   };
 
@@ -660,8 +717,18 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
           is_active: values.is_active,
           photo_base64: employeePhoto || undefined,
         };
-        await employeesService.update(editingEmployee.id, payload);
+        const updateResponse = await employeesService.update(editingEmployee.id, payload);
         success('Successfully updated');
+
+        // Enroll employee face if photo was updated
+        if (employeePhoto) {
+          try {
+            await faceService.enrollFace(editingEmployee.id, employeePhoto);
+          } catch (enrollmentError) {
+            // Non-blocking error - employee update still successful
+            console.warn('⚠️ Face enrollment failed for update:', enrollmentError);
+          }
+        }
       } else {
         const generateUUID = () => {
           return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -686,19 +753,41 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
           address: values.address,
           photo_base64: employeePhoto || undefined,
         };
-        await employeesService.create(payload);
+        const createResponse = await employeesService.create(payload);
         success('Successfully created');
+
+        // Enroll employee face using unified /api/v1/face/enroll endpoint
+        if (employeePhoto && createResponse.data?.id) {
+          try {
+            await faceService.enrollFace(createResponse.data.id, employeePhoto);
+          } catch (enrollmentError) {
+            // Non-blocking error - employee creation still successful
+            console.warn('⚠️ Face enrollment failed for new employee:', enrollmentError);
+          }
+        }
       }
 
       setShowModal(false);
       setEmployeePhoto(null);
       setShowWebcam(false);
+      setIsCreateFormComplete(false);
       form.resetFields();
       fetchEmployees();
     } catch (error) {
       console.error('Error saving employee:', error);
       showError(error.response?.data?.message || 'Failed to save employee');
     }
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e?.target?.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setEmployeePhoto(reader.result);
+      success('Employee photo uploaded successfully!');
+    };
+    reader.readAsDataURL(file);
   };
 
   const filteredEmployees = employees.filter((emp) => {
@@ -712,6 +801,46 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
       (filterStatus === 'inactive' && !emp.is_active);
     return matchesSearch && matchesStatus;
   });
+
+  const activeEmployeesCount = employees.filter((employee) => employee.is_active).length;
+  const inactiveEmployeesCount = employees.filter((employee) => !employee.is_active).length;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus]);
+
+  const paginatedEmployees = filteredEmployees.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const paginatedAttendanceRecords = attendanceRecords.slice(
+    (recordsCurrentPage - 1) * recordsItemsPerPage,
+    recordsCurrentPage * recordsItemsPerPage
+  );
+
+  const getAttendanceRecordEmployeePhoto = (record) => {
+    const directPhoto = record.employee?.photo_base64 || record.employee?.photo || record.employee?.photo_url;
+    if (directPhoto) return directPhoto;
+
+    const matchedEmployee = employees.find((emp) =>
+      emp.id === record.employee_id ||
+      emp.employee_id === record.employee_id ||
+      (record.employee?.employee_code && emp.employee_code === record.employee.employee_code)
+    );
+
+    return matchedEmployee?.photo_base64 || matchedEmployee?.photo || matchedEmployee?.photo_url || null;
+  };
+
+  useEffect(() => {
+    setRecordsCurrentPage(1);
+  }, [recordsSearchText, recordsDepartmentFilter, recordsDateRange, activeTab]);
+
+  useEffect(() => {
+    if (!isAlertSidebarOpen) {
+      setIsTabDropdownOpen(false);
+    }
+  }, [isAlertSidebarOpen]);
 
   if (loading) {
     return (
@@ -727,8 +856,8 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
   return (
     <div className="w-full space-y-3">
       {/* Compact Single-Line Header */}
-      <div className="bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-4 py-3 flex justify-between items-center gap-4 bg-teal-50">
+      <div className="bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 overflow-visible relative">
+        <div className="px-4 py-3 flex justify-between items-center gap-4 bg-teal-50 rounded-t-lg relative z-30">
           {/* Left: Title with small subtitle */}
           <div>
             <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
@@ -768,15 +897,60 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
               )}
             </div>
 
-            <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
-              <button onClick={() => setActiveTab('list')} className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${activeTab === 'list' ? 'bg-teal-600 text-white shadow-sm' : 'text-gray-600 hover:text-teal-600 hover:bg-gray-200'}`}><Users className="w-3.5 h-3.5" />List</button>
-              <button onClick={() => setActiveTab('analytics')} className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${activeTab === 'analytics' ? 'bg-teal-600 text-white shadow-sm' : 'text-gray-600 hover:text-teal-600 hover:bg-gray-200'}`}><BarChart3 className="w-3.5 h-3.5" />Overview</button>
-              <button onClick={() => setActiveTab('logs')} className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${activeTab === 'logs' ? 'bg-teal-600 text-white shadow-sm' : 'text-gray-600 hover:text-teal-600 hover:bg-gray-200'}`}><ClipboardList className="w-3.5 h-3.5" />Logs</button>
-              <button onClick={() => setActiveTab('records')} className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${activeTab === 'records' ? 'bg-teal-600 text-white shadow-sm' : 'text-gray-600 hover:text-teal-600 hover:bg-gray-200'}`}><FileText className="w-3.5 h-3.5" />Records</button>
-              <button onClick={() => setActiveTab('calendar')} className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${activeTab === 'calendar' ? 'bg-teal-600 text-white shadow-sm' : 'text-gray-600 hover:text-teal-600 hover:bg-gray-200'}`}><CalendarIcon className="w-3.5 h-3.5" />calendar</button>
-              <button onClick={() => setActiveTab('departments')} className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${activeTab === 'departments' ? 'bg-teal-600 text-white shadow-sm' : 'text-gray-600 hover:text-teal-600 hover:bg-gray-200'}`}><Building2 className="w-3.5 h-3.5" />Dept</button>
-              <button onClick={() => setActiveTab('shifts')} className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${activeTab === 'shifts' ? 'bg-teal-600 text-white shadow-sm' : 'text-gray-600 hover:text-teal-600 hover:bg-gray-200'}`}><Clock className="w-3.5 h-3.5" />Shifts</button>
-            </div>
+            {isAlertSidebarOpen ? (
+              <div className="relative">
+                <button
+                  onClick={() => setIsTabDropdownOpen((prev) => !prev)}
+                  className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-200 transition-colors"
+                >
+                  <MoreHorizontal className="w-4 h-4" />
+                  <span>{activeTabMeta.label}</span>
+                </button>
+
+                {isTabDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-1">
+                    {employeeTabs.map((tab) => {
+                      const Icon = tab.icon;
+                      return (
+                        <button
+                          key={tab.id}
+                          onClick={() => {
+                            setActiveTab(tab.id);
+                            setIsTabDropdownOpen(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-md text-xs font-semibold transition-all flex items-center gap-2 ${activeTab === tab.id
+                            ? 'bg-teal-600 text-white'
+                            : 'text-gray-600 hover:text-teal-600 hover:bg-gray-100'
+                            }`}
+                        >
+                          <Icon className="w-3.5 h-3.5" />
+                          {tab.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+                {employeeTabs.map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${activeTab === tab.id
+                        ? 'bg-teal-600 text-white shadow-sm'
+                        : 'text-gray-600 hover:text-teal-600 hover:bg-gray-200'
+                        }`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -875,6 +1049,9 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
                   <thead className="bg-teal-50 border-b border-gray-200">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        S.No
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                         Employee
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -898,21 +1075,37 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {attendanceRecords.map((record) => (
+                    {paginatedAttendanceRecords.map((record, index) => (
                       <tr
-                        key={record.employee_id}
+                        key={record.entity_id }
                         className="hover:bg-teal-50 transition-colors cursor-pointer"
                         onClick={() => {
-                          setSelectedCalendarEmployee(record.employee_id);
+                          setSelectedCalendarEmployee(record.entity_id );
                           setActiveTab('calendar');
                         }}
                         title="Click to view attendance calendar"
                       >
+                        {(() => {
+                          const recordPhoto = getAttendanceRecordEmployeePhoto(record);
+                          const recordName = record.employee?.full_name || 'Employee';
+                          return (
+                            <>
+                        <td className="px-4 py-3 text-sm font-medium text-gray-700">
+                          {(recordsCurrentPage - 1) * recordsItemsPerPage + index + 1}
+                        </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold">
-                              {record.employee?.full_name?.charAt(0).toUpperCase()}
-                            </div>
+                              {recordPhoto ? (
+                                <img
+                                  src={recordPhoto}
+                                  alt={recordName}
+                                  className="w-10 h-10 rounded-full object-cover border border-white shadow-sm"
+                                />
+                              ) : (
+                                <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold">
+                                  {(recordName || 'U').charAt(0).toUpperCase()}
+                                </div>
+                              )}
                             <div>
                               <div className="font-semibold text-gray-900">{record.employee?.full_name || 'N/A'}</div>
                               <div className="text-xs text-gray-500">{record.employee?.employee_code || 'N/A'}</div>
@@ -952,10 +1145,34 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
                             </span>
                           </div>
                         </td>
+                            </>
+                          );
+                        })()}
                       </tr>
                     ))}
                   </tbody>
                 </table>
+
+                {attendanceRecords.length > 0 && (
+                  <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-gray-200 bg-white">
+                    <div className="text-sm text-gray-600">
+                      Showing {attendanceRecords.length === 0 ? 0 : (recordsCurrentPage - 1) * recordsItemsPerPage + 1} to {Math.min(recordsCurrentPage * recordsItemsPerPage, attendanceRecords.length)} of {attendanceRecords.length} records
+                    </div>
+                    <Pagination
+                      current={recordsCurrentPage}
+                      pageSize={recordsItemsPerPage}
+                      total={attendanceRecords.length}
+                      showSizeChanger
+                      pageSizeOptions={[10, 20, 50, 100]}
+                      onChange={(page) => setRecordsCurrentPage(page)}
+                      onShowSizeChange={(_, size) => {
+                        setRecordsCurrentPage(1);
+                        setRecordsItemsPerPage(size);
+                      }}
+                      showLessItems
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -968,17 +1185,45 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
         <>
           {/* Search and Filters */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input
-              type="text"
-              placeholder="🔍 Search by name, code, or phone..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm w-full md:w-64"
-            />
-            <div className="flex gap-2 text-sm">
-              <button onClick={() => setFilterStatus('all')} className={`px-3 py-1.5 rounded-md ${filterStatus === 'all' ? 'bg-teal-100 text-teal-700 font-medium' : 'bg-teal-50/95 border hover:bg-teal-50'}`}>All ({employees.length})</button>
-              <button onClick={() => setFilterStatus('active')} className={`px-3 py-1.5 rounded-md ${filterStatus === 'active' ? 'bg-green-100 text-green-700 font-medium' : 'bg-teal-50/95 border hover:bg-teal-50'}`}>Active ({employees.filter(e => e.is_active).length})</button>
-              <button onClick={() => setFilterStatus('inactive')} className={`px-3 py-1.5 rounded-md ${filterStatus === 'inactive' ? 'bg-orange-100 text-orange-700 font-medium' : 'bg-teal-50/95 border hover:bg-teal-50'}`}>Inactive ({employees.filter(e => !e.is_active).length})</button>
+            <div className="relative w-full md:max-w-sm">
+              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search by name, code, or phone..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg bg-white text-sm text-gray-700 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              />
+            </div>
+            <div className="flex items-center justify-start md:justify-end">
+              <div className="min-w-[240px]">
+                <Select
+                  value={filterStatus}
+                  onChange={setFilterStatus}
+                  suffixIcon={<ChevronDown className="w-4 h-4 text-gray-500" />}
+                  className="w-full"
+                  size="middle"
+                >
+                  <Option value="all">
+                    <span className="inline-flex items-center gap-2">
+                      <ListFilter className="w-4 h-4 text-slate-500" />
+                      All ({employees.length})
+                    </span>
+                  </Option>
+                  <Option value="active">
+                    <span className="inline-flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      Active ({activeEmployeesCount})
+                    </span>
+                  </Option>
+                  <Option value="inactive">
+                    <span className="inline-flex items-center gap-2">
+                      <XCircle className="w-4 h-4 text-orange-600" />
+                      Inactive ({inactiveEmployeesCount})
+                    </span>
+                  </Option>
+                </Select>
+              </div>
             </div>
           </div>
 
@@ -1007,6 +1252,9 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
                 <thead className="bg-teal-50 border-b border-gray-200">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      S.No
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Employee
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -1030,13 +1278,24 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {filteredEmployees.map((employee) => (
+                  {paginatedEmployees.map((employee, index) => (
                     <tr key={employee.id} className="hover:bg-teal-50 transition-colors">
+                      <td className="px-4 py-3 text-sm font-medium text-gray-700">
+                        {(currentPage - 1) * itemsPerPage + index + 1}
+                      </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold">
-                            {employee.full_name?.charAt(0).toUpperCase()}
-                          </div>
+                          {employee.photo_base64 || employee.photo || employee.photo_url ? (
+                            <img
+                              src={employee.photo_base64 || employee.photo || employee.photo_url}
+                              alt={employee.full_name}
+                              className="w-10 h-10 rounded-full object-cover border border-white shadow-sm"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold">
+                              {employee.full_name?.charAt(0).toUpperCase()}
+                            </div>
+                          )}
                           <div>
                             <div className="font-semibold text-gray-900">{employee.full_name}</div>
                           </div>
@@ -1061,27 +1320,34 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
                       <td className="px-4 py-3">
                         <button
                           onClick={() => handleToggleStatus(employee)}
-                          className={`px-3 py-1 rounded-full text-xs font-semibold cursor-pointer transition-all ${employee.is_active
+                          className={`px-3 py-1 rounded-full text-xs font-semibold cursor-pointer transition-all inline-flex items-center gap-1.5 ${employee.is_active
                             ? 'bg-green-100 text-green-700 hover:bg-green-200'
                             : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
                             }`}
                         >
-                          {employee.is_active ? '✓ Active' : '⊘ Inactive'}
+                          {employee.is_active ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
+                          {employee.is_active ? 'Active' : 'Inactive'}
                         </button>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => handleEditEmployee(employee)}
-                            className="px-3 py-1 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100 transition-all text-sm font-semibold"
+                            title="Edit employee"
+                            aria-label="Edit employee"
+                            className="w-9 h-9 inline-flex items-center justify-center bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100 transition-all"
                           >
-                            Edit
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
                           </button>
                           <button
                             onClick={() => handleDeleteEmployee(employee.id, employee.full_name)}
-                            className="px-3 py-1 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all text-sm font-semibold"
+                            title="Delete employee"
+                            aria-label="Delete employee"
+                            className="w-9 h-9 inline-flex items-center justify-center bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all"
                           >
-                            Delete
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>
@@ -1089,14 +1355,42 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
                   ))}
                 </tbody>
               </table>
+
+              {filteredEmployees.length > 0 && (
+                <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-gray-200 bg-white">
+                  <div className="text-sm text-gray-600">
+                    Showing {filteredEmployees.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredEmployees.length)} of {filteredEmployees.length} employees
+                  </div>
+                  <Pagination
+                    current={currentPage}
+                    pageSize={itemsPerPage}
+                    total={filteredEmployees.length}
+                    showSizeChanger
+                    pageSizeOptions={[10, 20, 50, 100]}
+                    onChange={(page) => setCurrentPage(page)}
+                    onShowSizeChange={(_, size) => {
+                      setCurrentPage(1);
+                      setItemsPerPage(size);
+                    }}
+                    showLessItems
+                  />
+                </div>
+              )}
             </div>
           )}
 
           {/* Create/Edit Modal */}
           <Modal
             title={
-              <div className="text-xl font-bold text-gray-900">
-                {editingEmployee ? 'Edit Employee' : 'Create New Employee'}
+              <div className="py-1">
+                <div className="text-2xl md:text-3xl font-bold text-gray-800 leading-tight">
+                  {editingEmployee ? 'Edit Employee' : 'Create New Employee'}
+                </div>
+                {!editingEmployee && (
+                  <p className="text-sm text-gray-500 mt-2">
+                    Fill in the employee details below. All fields marked <span className="text-red-500 font-semibold">*</span> are required.
+                  </p>
+                )}
               </div>
             }
             open={showModal}
@@ -1104,100 +1398,181 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
               setShowModal(false);
               setEmployeePhoto(null);
               setShowWebcam(false);
+              setIsCreateFormComplete(false);
               form.resetFields();
             }}
             footer={null}
-            width={800}
+            width={980}
           >
-            <Form form={form} layout="vertical" onFinish={handleSubmit} className="mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Employee code is auto-generated by backend; do not allow manual entry */}
-
-                <Form.Item
-                  name="full_name"
-                  label="Full Name"
-                  rules={[{ required: true, message: 'Please enter full name' }]}
-                >
-                  <Input placeholder="John Doe" />
-                </Form.Item>
-
-                <Form.Item name="phone_number" label="Phone Number">
-                  <Input placeholder="+1234567890" />
-                </Form.Item>
-
-                <Form.Item name="gender" label="Gender">
-                  <Select placeholder="Select gender">
-                    <Option value={GENDER_OPTIONS.MALE}>Male</Option>
-                    <Option value={GENDER_OPTIONS.FEMALE}>Female</Option>
-                    <Option value={GENDER_OPTIONS.OTHER}>Other</Option>
-                  </Select>
-                </Form.Item>
-
-                <Form.Item name="date_of_birth" label="Date of Birth">
-                  <DatePicker className="w-full" format="YYYY-MM-DD" />
-                </Form.Item>
-
-                <Form.Item name="designation" label="Designation">
-                  <Input placeholder="Software Engineer" />
-                </Form.Item>
-
-                <Form.Item name="employment_type" label="Employment Type">
-                  <Select placeholder="Select employment type">
-                    <Option value={EMPLOYMENT_TYPES.FULL_TIME}>Full Time</Option>
-                    <Option value={EMPLOYMENT_TYPES.PART_TIME}>Part Time</Option>
-                    <Option value={EMPLOYMENT_TYPES.CONTRACT}>Contract</Option>
-                    <Option value={EMPLOYMENT_TYPES.INTERN}>Intern</Option>
-                  </Select>
-                </Form.Item>
-
-                <Form.Item name="joining_date" label="Joining Date">
-                  <DatePicker className="w-full" format="YYYY-MM-DD" />
-                </Form.Item>
-
-                <Form.Item name="department_id" label="Department">
-                  <Select placeholder="Select department" allowClear>
-                    {departments.map((d) => (
-                      <Option key={d.id} value={d.id}>{d.name || d.department_name}{d.code ? ` — ${d.code}` : ''}</Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-
-
-
-                <Form.Item name="shift_id" label="Shift">
-                  <Select placeholder="Select shift" allowClear>
-                    {shifts.map((s) => (
-                      <Option key={s.id} value={s.id}>{s.shift_name || s.name} {s.start_time ? `(${s.start_time} - ${s.end_time})` : ''}</Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-
-                <Form.Item name="address" label="Address" className="md:col-span-2">
-                  <TextArea rows={2} placeholder="Enter full address" />
-                </Form.Item>
-
-                {/* Employee Photo Capture */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    Employee Photo
-                  </label>
-
-                  {!showWebcam && !employeePhoto && (
-                    <button
-                      type="button"
-                      onClick={() => setShowWebcam(true)}
-                      className="w-full px-8 py-4 bg-gradient-to-r from-teal-600 to-teal-600 hover:from-teal-700 hover:to-teal-700 text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 mb-6"
+            <Form
+              form={form}
+              layout="vertical"
+              onFinish={handleSubmit}
+              className="mt-4"
+              onValuesChange={(_, allValues) => updateCreateFormCompleteness(allValues, employeePhoto)}
+            >
+              <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_1fr] gap-6">
+                <div className="rounded-xl border border-gray-200 p-5">
+                  <h3 className="text-lg font-bold text-gray-800 mb-4">Employee Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Form.Item
+                      name="full_name"
+                      label="Full Name"
+                      rules={[{ required: !editingEmployee, message: 'Please enter full name' }]}
                     >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      Capture Employee Photo
-                    </button>
-                  )}
+                      <Input placeholder="John Doe" />
+                    </Form.Item>
+
+                    <Form.Item
+                      name="phone_number"
+                      label="Phone Number"
+                      rules={[{ required: !editingEmployee, message: 'Please enter phone number' }]}
+                    >
+                      <Input placeholder="+1234567890" />
+                    </Form.Item>
+
+                    <Form.Item
+                      name="gender"
+                      label="Gender"
+                      rules={[{ required: !editingEmployee, message: 'Please select gender' }]}
+                    >
+                      <Select placeholder="Select gender">
+                        <Option value={GENDER_OPTIONS.MALE}>Male</Option>
+                        <Option value={GENDER_OPTIONS.FEMALE}>Female</Option>
+                        <Option value={GENDER_OPTIONS.OTHER}>Other</Option>
+                      </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                      name="date_of_birth"
+                      label="Date of Birth"
+                      rules={[{ required: !editingEmployee, message: 'Please select date of birth' }]}
+                    >
+                      <DatePicker className="w-full" format="YYYY-MM-DD" />
+                    </Form.Item>
+
+                    <Form.Item
+                      name="designation"
+                      label="Designation"
+                      rules={[{ required: !editingEmployee, message: 'Please enter designation' }]}
+                    >
+                      <Input placeholder="Software Engineer" />
+                    </Form.Item>
+
+                    <Form.Item
+                      name="employment_type"
+                      label="Employment Type"
+                      rules={[{ required: !editingEmployee, message: 'Please select employment type' }]}
+                    >
+                      <Select placeholder="Select employment type">
+                        <Option value={EMPLOYMENT_TYPES.FULL_TIME}>Full Time</Option>
+                        <Option value={EMPLOYMENT_TYPES.PART_TIME}>Part Time</Option>
+                        <Option value={EMPLOYMENT_TYPES.CONTRACT}>Contract</Option>
+                        <Option value={EMPLOYMENT_TYPES.INTERN}>Intern</Option>
+                      </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                      name="department_id"
+                      label="Department"
+                      rules={[{ required: !editingEmployee, message: 'Please select department' }]}
+                    >
+                      <Select placeholder="Select department" allowClear>
+                        {departments.map((d) => (
+                          <Option key={d.id} value={d.id}>{d.name || d.department_name}{d.code ? ` — ${d.code}` : ''}</Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                      name="joining_date"
+                      label="Joining Date"
+                      rules={[{ required: !editingEmployee, message: 'Please select joining date' }]}
+                    >
+                      <DatePicker className="w-full" format="YYYY-MM-DD" />
+                    </Form.Item>
+
+                    <Form.Item
+                      name="shift_id"
+                      label="Shift"
+                      className="md:col-span-2"
+                      rules={[{ required: !editingEmployee, message: 'Please select shift' }]}
+                    >
+                      <Select placeholder="Select shift" allowClear>
+                        {shifts.map((s) => (
+                          <Option key={s.id} value={s.id}>{s.shift_name || s.name} {s.start_time ? `(${s.start_time} - ${s.end_time})` : ''}</Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                      name="address"
+                      label="Address"
+                      className="md:col-span-2"
+                      rules={[{ required: !editingEmployee, message: 'Please enter address' }]}
+                    >
+                      <TextArea rows={4} placeholder="Enter full address" />
+                    </Form.Item>
+
+                    {editingEmployee && (
+                      <Form.Item
+                        name="is_active"
+                        label="Active Status"
+                        valuePropName="checked"
+                        className="md:col-span-2"
+                      >
+                        <Switch />
+                      </Form.Item>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-gray-200 p-5 h-fit">
+                  <h3 className="text-lg font-bold text-gray-800 mb-4">Employee Photo</h3>
+
+                  <div className="space-y-4">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      className="block w-full text-sm text-gray-700 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border file:border-gray-300 file:bg-white file:text-gray-800"
+                    />
+
+                    <div className="w-full block mt-1">
+                      <div className="w-full px-5 py-3 bg-white border border-gray-200 rounded-xl text-center text-sm text-gray-700 hover:shadow-sm">
+                        📁 Upload Photo
+                      </div>
+                    </div>
+
+                    {!showWebcam && (
+                      <button
+                        type="button"
+                        onClick={() => setShowWebcam(true)}
+                        className="w-full px-5 py-3 bg-gradient-to-r from-teal-600 to-teal-600 hover:from-teal-700 hover:to-teal-700 text-white font-semibold rounded-xl transition-all duration-300"
+                      >
+                        Capture Photo
+                      </button>
+                    )}
+
+                    {showWebcam && (
+                      <div className="pt-1 flex justify-start">
+                        <button
+                          type="button"
+                          onClick={() => setShowWebcam(false)}
+                          className="flex items-center gap-2 px-5 py-2.5 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-all duration-300"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.5 19.5 3 12l7.5-7.5" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12h18" />
+                          </svg>
+                          Back
+                        </button>
+                      </div>
+                    )}
+                  </div>
 
                   {showWebcam && (
-                    <div className="mb-6">
+                    <div className="mt-4">
                       <WebcamCapture
                         key={`webcam-${Date.now()}`}
                         onImageCapture={(base64) => {
@@ -1205,52 +1580,24 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
                           setShowWebcam(false);
                           success('Employee photo captured successfully!');
                         }}
-                        onBack={() => setShowWebcam(false)}
                       />
                     </div>
                   )}
 
                   {employeePhoto && (
-                    <div className="bg-teal-50 rounded-lg p-4 border border-green-200">
+                    <div className="mt-4 bg-teal-50 rounded-lg p-4 border border-green-200">
                       <div className="mb-3 flex items-center gap-2">
                         <span className="text-2xl">✅</span>
                         <p className="text-green-700 font-semibold">Photo captured successfully</p>
                       </div>
-                      <div className="relative">
-                        <img
-                          src={employeePhoto}
-                          alt="Employee"
-                          className="w-full h-48 object-cover rounded-lg"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEmployeePhoto(null);
-                            setShowWebcam(false);
-                            // Delay to ensure camera cleanup before restarting
-                            setTimeout(() => {
-                              setShowWebcam(true);
-                            }, 500);
-                          }}
-                          className="mt-3 w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
-                        >
-                          🔄 Retake Photo
-                        </button>
-                      </div>
+                      <img
+                        src={employeePhoto}
+                        alt="Employee"
+                        className="w-full h-44 object-cover rounded-lg"
+                      />
                     </div>
                   )}
                 </div>
-
-                {editingEmployee && (
-                  <Form.Item
-                    name="is_active"
-                    label="Active Status"
-                    valuePropName="checked"
-                    className="md:col-span-2"
-                  >
-                    <Switch />
-                  </Form.Item>
-                )}
               </div>
 
               <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
@@ -1260,6 +1607,7 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
                     setShowModal(false);
                     setEmployeePhoto(null);
                     setShowWebcam(false);
+                    setIsCreateFormComplete(false);
                     form.resetFields();
                   }}
                   className="px-6 py-2 bg-teal-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all font-semibold"
@@ -1268,7 +1616,12 @@ const OrganizationEmployees = ({ organizationId, organization }) => {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-gradient-to-r from-teal-600 to-teal-600 text-white rounded-lg hover:shadow-lg transition-all font-semibold"
+                  disabled={!editingEmployee && !isCreateFormComplete}
+                  className={`px-6 py-2 rounded-lg transition-all font-semibold ${
+                    !editingEmployee && !isCreateFormComplete
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-teal-600 to-teal-600 text-white hover:shadow-lg'
+                  }`}
                 >
                   {editingEmployee ? 'Update Employee' : 'Create Employee'}
                 </button>

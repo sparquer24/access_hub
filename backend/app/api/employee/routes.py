@@ -16,7 +16,7 @@ from app.models.leave_request import LeaveRequest
 from app.utils.decorators import role_required, tenant_isolation
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 
-bp = Blueprint('employee', __name__)
+bp = Blueprint('EmployeeDetail', __name__, url_prefix='/api/v2/employees')
 
 
 def _get_current_user_id():
@@ -41,7 +41,7 @@ def _get_current_user_id():
     except Exception:
         return None
 
-@bp.route('/api/employee/profile', methods=['GET'])
+@bp.route('/profile', methods=['GET'])
 @jwt_required()
 @role_required('employee', 'manager', 'org_admin', 'super_admin')
 def get_employee_profile():
@@ -158,7 +158,7 @@ def get_employee_profile():
             'message': 'Failed to fetch employee profile'
         }), 500
 
-@bp.route('/api/employee/attendance/today', methods=['GET'])
+@bp.route('/attendance/today', methods=['GET'])
 @jwt_required()
 @role_required('employee', 'manager', 'org_admin', 'super_admin')
 def get_today_attendance():
@@ -228,7 +228,7 @@ def get_today_attendance():
             'message': 'Failed to fetch attendance information'
         }), 500
 
-@bp.route('/api/employee/attendance/history', methods=['GET'])
+@bp.route('/attendance/history', methods=['GET'])
 @jwt_required()
 @role_required('employee', 'manager', 'org_admin', 'super_admin')
 def get_attendance_history():
@@ -316,7 +316,7 @@ def get_attendance_history():
             'message': 'Failed to fetch attendance history'
         }), 500
 
-@bp.route('/api/employee/leaves', methods=['GET'])
+@bp.route('/leaves', methods=['GET'])
 @jwt_required()
 @role_required('employee', 'manager', 'org_admin', 'super_admin')
 def get_employee_leaves():
@@ -404,7 +404,7 @@ def get_employee_leaves():
             'message': 'Failed to fetch leave requests'
         }), 500
 
-@bp.route('/api/employee/leaves', methods=['POST'])
+@bp.route('/leaves', methods=['POST'])
 @jwt_required()
 @role_required('employee', 'manager', 'org_admin', 'super_admin')
 def apply_for_leave():
@@ -499,7 +499,7 @@ def apply_for_leave():
             'message': 'Failed to submit leave request'
         }), 500
 
-@bp.route('/api/employee/stats/summary', methods=['GET'])
+@bp.route('/stats/summary', methods=['GET'])
 @jwt_required()
 @role_required('employee', 'manager', 'org_admin', 'super_admin')
 def get_employee_stats_summary():

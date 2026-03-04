@@ -123,6 +123,7 @@ const OrganizationDepartments = ({ organizationId, organization }) => {
           <table className="w-full">
             <thead className="bg-teal-50 border-b">
               <tr>
+                <th className="px-6 py-3 text-left">S.No</th>
                 <th className="px-6 py-3 text-left">Name</th>
                 <th className="px-6 py-3 text-left">Code</th>
                 <th className="px-6 py-3 text-left">Status</th>
@@ -130,8 +131,9 @@ const OrganizationDepartments = ({ organizationId, organization }) => {
               </tr>
             </thead>
             <tbody className="divide-y">
-              {departments.map((d) => (
+              {departments.map((d, index) => (
                 <tr key={d.id} className="hover:bg-teal-50">
+                  <td className="px-6 py-4">{index + 1}</td>
                   <td className="px-6 py-4">{d.name}</td>
                   <td className="px-6 py-4">{d.code || '-'}</td>
                   <td className="px-6 py-4">
