@@ -2,7 +2,6 @@
 WebSocket Events Module
 """
 from flask import Blueprint
-from flask_socketio import SocketIOManager
 
 # Create a blueprint for events (needed for proper registration)
 bp = Blueprint('events', __name__)

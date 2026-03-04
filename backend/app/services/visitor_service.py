@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import func, and_, or_, distinct, case, desc
 from ..extensions import db
-from ..models import OrganizationVisitor, AttendanceRecord, Employee, Shift, VisitorHistoryDetails, Image, VisitorMovementLog, Alert
+from ..models import OrganizationVisitor, AttendanceRecord, Employee, Shift, VisitorHistoryDetails, Image, VisitorMovementLog
 import uuid
 from flask import current_app
 
@@ -366,51 +366,24 @@ class VisitorService:
             return []
 
     @staticmethod
-    def acknowledge_alert(organization_id, alert_id, user_id):
+    def acknowledge_alert(organization_id, alert_id, user_id=None):
         """
         Acknowledge a visitor alert.
+        
+        Note: Alert model has been deprecated. This method returns a deprecation message.
         
         Args:
             organization_id: Organization ID
             alert_id: Alert ID to acknowledge
-            user_id: User ID who acknowledged the alert
+            user_id: User ID who acknowledged the alert (optional)
             
         Returns:
-            Updated alert dictionary
+            Deprecation notice dictionary
             
         Raises:
-            ValueError: If alert not found or already handled
+            ValueError: Alert functionality has been deprecated
         """
-        try:
-            alert = db.session.query(Alert).filter(
-                Alert.id == alert_id,
-                Alert.organization_id == organization_id
-            ).first()
-            
-            if not alert:
-                raise ValueError(f'Alert {alert_id} not found')
-            
-            if alert.alert_status == 'handled':
-                raise ValueError('Alert already handled')
-            
-            # Update alert status
-            alert.alert_status = 'handled'
-            alert.handled_by = user_id
-            alert.handled_at = datetime.utcnow()
-            
-            db.session.commit()
-            
-            return {
-                'id': alert.id,
-                'alert_status': alert.alert_status,
-                'handled_by': alert.handled_by,
-                'handled_at': alert.handled_at.isoformat()
-            }
-            
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.exception('Failed to acknowledge alert')
-            raise
+        raise ValueError('Alert functionality has been deprecated. Please use visitor_history for tracking visits.')
 
     @staticmethod
     def create_visitor_history_record(organization_id, visitor_id, data):
