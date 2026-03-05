@@ -14,11 +14,12 @@ def create_app():
     # For JWT-based APIs, we don't need credentials (cookies/sessions)
     # This prevents 'strict-origin-when-cross-origin' issues
     cors_origins = app.config["CORS_ORIGIN"]
+    env = str(app.config.get("ENVIRONMENT", "dev")).lower()
+    if env in ("dev", "stage"):
+        cors_origins = "*"
     if cors_origins == "*":
-        # Allow all origins in development (not recommended for production)
         cors_origins = "*"
     else:
-        # Split multiple origins by comma if provided
         cors_origins = [origin.strip() for origin in cors_origins.split(",")]
     
     CORS(
