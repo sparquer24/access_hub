@@ -4,6 +4,7 @@
  */
 
 import { io } from 'socket.io-client';
+import { tokenUtils } from '../utils/tokenUtils';
 
 // WebSocket server URL - should be configured based on environment
 const SOCKET_URL = process.env.REACT_APP_WS_URL || 'http://localhost:5001';
@@ -27,12 +28,15 @@ class SocketService {
     }
 
     try {
+      const token = tokenUtils.getAccessToken();
+
       this.socket = io(SOCKET_URL, {
         transports: ['websocket', 'polling'],
         reconnection: true,
         reconnectionDelay: 1000,
         reconnectionAttempts: 5,
         timeout: 20000,
+        auth: token ? { token } : {},
       });
 
       this.socket.on('connect', () => {
@@ -43,6 +47,7 @@ class SocketService {
         // Auto-join organization room if provided
         if (organizationId) {
           this.joinOrganization(organizationId);
+          this.subscribeToAlerts(organizationId);
         }
       });
 

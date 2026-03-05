@@ -12741,3 +12741,396 @@ AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 
                    ^^^^^^^^^^^^^^^^^^^^
 AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
 
+[2026-03-05 14:09:30,724] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 14:11:29,772] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 14:11:30,224] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 14:12:01,676] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 14:12:02,281] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 14:21:20,810] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 14:21:20,890] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 14:21:30,736] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 14:21:31,061] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 14:21:34,440] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 14:21:34,704] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 14:45:28,965] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 14:45:29,356] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 15:29:06,195] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 15:56:14,415] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 15:56:14,665] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 15:56:18,391] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 15:56:18,713] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 15:57:01,059] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 15:57:01,120] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:06:50,492] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:06:50,818] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:17:04,178] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:17:04,241] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:17:35,483] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:17:35,546] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:20:46,332] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:20:46,518] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:27:09,416] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:27:09,464] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:38:43,715] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:38:43,856] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:39:20,973] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:39:21,300] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:39:57,631] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:39:57,695] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:54:13,508] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:54:13,571] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:58:54,986] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 17:08:23,132] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 17:08:23,212] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 17:36:18,897] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 17:38:01,053] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 17:38:01,379] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 17:45:40,087] ERROR in errors: Unhandled exception: type object 'Role' has no attribute 'name__in'
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\.venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\.venv\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\middleware\auth_middleware.py", line 122, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\middleware\auth_middleware.py", line 159, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\api\subscriptions\routes.py", line 146, in get_organization_subscription_status
+    status = get_subscription_status(org_id)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\middleware\subscription_middleware.py", line 215, in get_subscription_status
+    current_usage = get_organization_usage(organization_id)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\middleware\subscription_middleware.py", line 60, in get_organization_usage
+    User.role.has(name__in=['super_admin', 'org_admin']),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\.venv\Lib\site-packages\sqlalchemy\orm\interfaces.py", line 979, in has
+    return self.operate(PropComparator.has_op, criterion, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\.venv\Lib\site-packages\sqlalchemy\orm\attributes.py", line 453, in operate
+    return op(self.comparator, *other, **kwargs)  # type: ignore[no-any-return]  # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\.venv\Lib\site-packages\sqlalchemy\orm\interfaces.py", line 859, in _has_op
+    return left.has(other, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\.venv\Lib\site-packages\sqlalchemy\orm\relationships.py", line 963, in has
+    return self._criterion_exists(criterion, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\.venv\Lib\site-packages\sqlalchemy\orm\relationships.py", line 822, in _criterion_exists
+    crit = getattr(self.property.mapper.class_, k) == kwargs[k]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'Role' has no attribute 'name__in'
+[2026-03-05 17:48:51,863] ERROR in errors: Unhandled exception: type object 'Role' has no attribute 'name__in'
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\.venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\.venv\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\middleware\auth_middleware.py", line 122, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\middleware\auth_middleware.py", line 159, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\api\subscriptions\routes.py", line 146, in get_organization_subscription_status
+    status = get_subscription_status(org_id)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\middleware\subscription_middleware.py", line 215, in get_subscription_status
+    current_usage = get_organization_usage(organization_id)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\middleware\subscription_middleware.py", line 60, in get_organization_usage
+    User.role.has(name__in=['super_admin', 'org_admin']),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\.venv\Lib\site-packages\sqlalchemy\orm\interfaces.py", line 979, in has
+    return self.operate(PropComparator.has_op, criterion, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\.venv\Lib\site-packages\sqlalchemy\orm\attributes.py", line 453, in operate
+    return op(self.comparator, *other, **kwargs)  # type: ignore[no-any-return]  # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\.venv\Lib\site-packages\sqlalchemy\orm\interfaces.py", line 859, in _has_op
+    return left.has(other, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\.venv\Lib\site-packages\sqlalchemy\orm\relationships.py", line 963, in has
+    return self._criterion_exists(criterion, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\.venv\Lib\site-packages\sqlalchemy\orm\relationships.py", line 822, in _criterion_exists
+    crit = getattr(self.property.mapper.class_, k) == kwargs[k]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'Role' has no attribute 'name__in'
+[2026-03-05 17:48:53,037] ERROR in errors: Unhandled exception: type object 'Role' has no attribute 'name__in'
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\.venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\.venv\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\middleware\auth_middleware.py", line 122, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\middleware\auth_middleware.py", line 159, in decorated_function
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\api\subscriptions\routes.py", line 146, in get_organization_subscription_status
+    status = get_subscription_status(org_id)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\middleware\subscription_middleware.py", line 215, in get_subscription_status
+    current_usage = get_organization_usage(organization_id)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\middleware\subscription_middleware.py", line 60, in get_organization_usage
+    User.role.has(name__in=['super_admin', 'org_admin']),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\.venv\Lib\site-packages\sqlalchemy\orm\interfaces.py", line 979, in has
+    return self.operate(PropComparator.has_op, criterion, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\.venv\Lib\site-packages\sqlalchemy\orm\attributes.py", line 453, in operate
+    return op(self.comparator, *other, **kwargs)  # type: ignore[no-any-return]  # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\.venv\Lib\site-packages\sqlalchemy\orm\interfaces.py", line 859, in _has_op
+    return left.has(other, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\.venv\Lib\site-packages\sqlalchemy\orm\relationships.py", line 963, in has
+    return self._criterion_exists(criterion, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\.venv\Lib\site-packages\sqlalchemy\orm\relationships.py", line 822, in _criterion_exists
+    crit = getattr(self.property.mapper.class_, k) == kwargs[k]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'Role' has no attribute 'name__in'
+[2026-03-05 17:49:06,260] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 17:49:06,574] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\nisha\OneDrive\Desktop\accessHub\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined

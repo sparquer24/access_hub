@@ -1544,7 +1544,7 @@ const OrganizationEmployees = ({ organizationId, organization, isAlertSidebarOpe
                       </div>
                     </div>
 
-                    {!showWebcam && (
+                    {!showWebcam && !employeePhoto && (
                       <button
                         type="button"
                         onClick={() => setShowWebcam(true)}
@@ -1554,47 +1554,51 @@ const OrganizationEmployees = ({ organizationId, organization, isAlertSidebarOpe
                       </button>
                     )}
 
-                    {showWebcam && (
-                      <div className="pt-1 flex justify-start">
-                        <button
-                          type="button"
-                          onClick={() => setShowWebcam(false)}
-                          className="flex items-center gap-2 px-5 py-2.5 text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-all duration-300"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.5 19.5 3 12l7.5-7.5" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12h18" />
-                          </svg>
-                          Back
-                        </button>
-                      </div>
-                    )}
                   </div>
 
                   {showWebcam && (
                     <div className="mt-4">
                       <WebcamCapture
-                        key={`webcam-${Date.now()}`}
                         onImageCapture={(base64) => {
                           setEmployeePhoto(base64);
                           setShowWebcam(false);
                           success('Employee photo captured successfully!');
                         }}
+                        onBack={() => setShowWebcam(false)}
                       />
                     </div>
                   )}
 
                   {employeePhoto && (
-                    <div className="mt-4 bg-teal-50 rounded-lg p-4 border border-green-200">
+                    <div className="mt-4 bg-green-50 rounded-xl p-4 border border-green-200">
                       <div className="mb-3 flex items-center gap-2">
-                        <span className="text-2xl">✅</span>
-                        <p className="text-green-700 font-semibold">Photo captured successfully</p>
+                        <div className="flex items-center justify-center w-7 h-7 bg-green-500 rounded-full">
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                        <p className="text-green-700 font-semibold">Photo captured successfully!</p>
                       </div>
-                      <img
-                        src={employeePhoto}
-                        alt="Employee"
-                        className="w-full h-44 object-cover rounded-lg"
-                      />
+                      <div className="relative inline-block w-full">
+                        <img
+                          src={employeePhoto}
+                          alt="Employee"
+                          className="w-full max-w-[320px] mx-auto aspect-[3/4] object-cover rounded-xl border border-gray-200"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEmployeePhoto(null);
+                            setShowWebcam(true);
+                          }}
+                          className="mt-4 w-full px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          Retake Photo
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>

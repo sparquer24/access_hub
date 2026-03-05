@@ -28,8 +28,13 @@ const OrganizationDetail = ({
   const [organization, setOrganization] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAlertSidebarOpen, setIsAlertSidebarOpen] = useState(true);
+  const [alertCount, setAlertCount] = useState(0);
   const { hasFeature } = useSubscription();
   const { user } = useAuth();
+
+  useEffect(() => {
+    setIsAlertSidebarOpen(alertCount > 0);
+  }, [alertCount]);
 
   // Verify user has access to this organization
   useEffect(() => {
@@ -41,23 +46,6 @@ const OrganizationDetail = ({
 
   // Get active tab from URL or default to 'info'
   const activeTab = searchParams.get('tab') || 'info';
-
-  const getAlertCount = () => {
-    const alertCounts = {
-      info: 6,
-      employees: 6,
-      visitors: 6,
-      lpr: 6,
-      cameras: 6,
-      locations: 6,
-      rules: 6,
-      statistics: 6
-    };
-
-    return alertCounts[activeTab] || 6;
-  };
-
-  const alertCount = getAlertCount();
 
   const getCleanTabLabel = (label) => label.replace(/^[^A-Za-z0-9]+\s*/, '');
 
@@ -296,13 +284,19 @@ const OrganizationDetail = ({
 
                 <button
                   onClick={() => setIsAlertSidebarOpen((prev) => !prev)}
-                  className={`relative inline-flex items-center justify-center p-2.5 rounded-xl text-xs font-medium transition-all duration-200 border ${isAlertSidebarOpen
+                  className={`relative inline-flex items-center justify-center p-2.5 rounded-xl text-xs font-medium transition-all duration-200 border ${alertCount > 0
                     ? 'bg-teal-50 text-teal-700 border-teal-200 shadow-sm'
                     : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-teal-700 hover:border-slate-300'
                     }`}
                   aria-label="Toggle alerts sidebar"
                 >
-                  <Bell className="w-4 h-4" />
+                  {alertCount > 0 && (
+                    <>
+                      <span className="alert-wave text-rose-400" />
+                      <span className="alert-wave alert-wave-delay text-rose-300" />
+                    </>
+                  )}
+                  <Bell className={`w-4 h-4 relative z-10 ${alertCount > 0 ? 'animate-bell-vibrate text-rose-500' : ''}`} />
                   {alertCount > 0 && (
                     <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-semibold flex items-center justify-center leading-none shadow-sm">
                       {alertCount}
@@ -373,6 +367,7 @@ const OrganizationDetail = ({
                   organizationId={id}
                   activeTab={activeTab}
                   showActivityLog={false}
+                  onAlertCountChange={setAlertCount}
                   onCloseSidebar={() => setIsAlertSidebarOpen(false)}
                 />
               </div>

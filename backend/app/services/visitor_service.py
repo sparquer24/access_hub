@@ -3,6 +3,7 @@ from dateutil.relativedelta import relativedelta
 from sqlalchemy import func, and_, or_, distinct, case, desc
 from ..extensions import db
 from ..models import OrganizationVisitor, AttendanceRecord, Employee, Shift, VisitorHistoryDetails, Image, VisitorMovementLog
+from ..models.alerts import Alert
 import uuid
 from flask import current_app
 

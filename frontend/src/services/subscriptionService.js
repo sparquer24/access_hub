@@ -5,6 +5,8 @@
 
 import api from './api';
 
+const SUBSCRIPTION_BASE = '/api/v2/subscriptions';
+
 /**
  * Subscription API Service
  */
@@ -15,7 +17,7 @@ export const subscriptionAPI = {
    */
   getPlans: async () => {
     try {
-      const response = await api.get('/api/subscriptions/plans');
+      const response = await api.get(`${SUBSCRIPTION_BASE}/plans`);
       return response.data;
     } catch (error) {
       console.error('Error fetching subscription plans:', error);
@@ -30,7 +32,7 @@ export const subscriptionAPI = {
    */
   getOrganizationStatus: async (orgId) => {
     try {
-      const response = await api.get(`/api/subscriptions/organization/${orgId}/status`);
+      const response = await api.get(`${SUBSCRIPTION_BASE}/organization/${orgId}/status`);
       return response.data;
     } catch (error) {
       console.error('Error fetching organization subscription status:', error);
@@ -46,7 +48,7 @@ export const subscriptionAPI = {
    */
   upgradeOrganization: async (orgId, subscriptionTier) => {
     try {
-      const response = await api.post(`/api/subscriptions/organization/${orgId}/upgrade`, {
+      const response = await api.post(`${SUBSCRIPTION_BASE}/organization/${orgId}/upgrade`, {
         subscription_tier: subscriptionTier
       });
       return response.data;
@@ -63,7 +65,7 @@ export const subscriptionAPI = {
    */
   getAccessibleTabs: async (orgId) => {
     try {
-      const response = await api.get(`/api/subscriptions/organization/${orgId}/accessible-tabs`);
+      const response = await api.get(`${SUBSCRIPTION_BASE}/organization/${orgId}/accessible-tabs`);
       return response.data;
     } catch (error) {
       console.error('Error fetching accessible tabs:', error);
@@ -78,7 +80,7 @@ export const subscriptionAPI = {
    */
   checkFeatureAccess: async (feature) => {
     try {
-      const response = await api.post('/api/subscriptions/features/check', {
+      const response = await api.post(`${SUBSCRIPTION_BASE}/features/${feature}/check`, {
         feature
       });
       return response.data;
@@ -94,7 +96,7 @@ export const subscriptionAPI = {
    */
   getUsageSummary: async () => {
     try {
-      const response = await api.get('/api/subscriptions/usage-summary');
+      const response = await api.get(`${SUBSCRIPTION_BASE}/usage-summary`);
       return response.data;
     } catch (error) {
       console.error('Error fetching usage summary:', error);

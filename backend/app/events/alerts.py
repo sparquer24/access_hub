@@ -3,17 +3,71 @@ WebSocket Events for Real-time Alerts
 """
 from flask import request
 from flask_socketio import emit, join_room, leave_room
+from flask_jwt_extended import decode_token
 from ..extensions import socketio
-from ..extensions import db
 
 # Store connected clients
 connected_clients = {}
+authenticated_clients = {}
+ORG_ID_REQUIRED_MESSAGE = 'organization_id is required'
+
+
+def _normalize_role_name(role):
+    raw = str(role or '').strip().lower()
+    normalized = raw.replace('-', '_').replace(' ', '_')
+    compact = normalized.replace('_', '')
+
+    if compact in {'orgadmin', 'organizationadmin'}:
+        return 'org_admin'
+    if compact in {'superadmin', 'superadministrator'}:
+        return 'super_admin'
+    return normalized
+
+
+def _extract_auth_payload(auth):
+    if not isinstance(auth, dict):
+        return None
+
+    token = auth.get('token')
+    if not token and auth.get('Authorization'):
+        token = auth.get('Authorization')
+
+    if not token or not isinstance(token, str):
+        return None
+
+    if token.lower().startswith('bearer '):
+        token = token[7:]
+
+    if not token:
+        return None
+
+    try:
+        decoded = decode_token(token)
+    except Exception:
+        return None
+
+    role = _normalize_role_name(decoded.get('role'))
+    organization_id = decoded.get('organization_id')
+    user_id = decoded.get('user_id') or decoded.get('sub')
+
+    return {
+        'user_id': user_id,
+        'role': role,
+        'organization_id': organization_id,
+    }
 
 
 @socketio.on('connect')
-def handle_connect():
+def handle_connect(auth=None):
     """Handle client connection"""
-    print(f'Client connected: {request.sid}')
+    auth_payload = _extract_auth_payload(auth)
+    if auth_payload:
+        authenticated_clients[request.sid] = auth_payload
+        print(f"Client connected: {request.sid}, role={auth_payload.get('role')}, org={auth_payload.get('organization_id')}")
+    else:
+        authenticated_clients[request.sid] = None
+        print(f'Client connected without valid auth: {request.sid}')
+
     emit('connected', {'status': 'connected', 'sid': request.sid})
 
 
@@ -26,6 +80,25 @@ def handle_disconnect():
         if request.sid in connected_clients[org_id]:
             connected_clients[org_id].remove(request.sid)
             leave_room(f'org_{org_id}')
+    authenticated_clients.pop(request.sid, None)
+
+
+def _is_org_admin_for_org(org_id):
+    auth_payload = authenticated_clients.get(request.sid)
+    if not auth_payload:
+        emit('error', {'message': 'Authentication required for alert subscriptions'})
+        return False
+
+    if _normalize_role_name(auth_payload.get('role')) != 'org_admin':
+        emit('error', {'message': 'Only org_admin users can subscribe to alert notifications'})
+        return False
+
+    token_org_id = auth_payload.get('organization_id')
+    if token_org_id and str(token_org_id) != str(org_id):
+        emit('error', {'message': 'Organization mismatch for alert subscription'})
+        return False
+
+    return True
 
 
 @socketio.on('join_organization')
@@ -35,9 +108,13 @@ def handle_join_organization(data):
     
     Expected data: { organization_id: 'uuid' }
     """
-    org_id = data.get('organization_id')
+    payload = data if isinstance(data, dict) else {}
+    org_id = payload.get('organization_id')
     if not org_id:
-        emit('error', {'message': 'organization_id is required'})
+        emit('error', {'message': ORG_ID_REQUIRED_MESSAGE})
+        return
+
+    if not _is_org_admin_for_org(org_id):
         return
     
     # Join the organization room
@@ -59,9 +136,10 @@ def handle_leave_organization(data):
     
     Expected data: { organization_id: 'uuid' }
     """
-    org_id = data.get('organization_id')
+    payload = data if isinstance(data, dict) else {}
+    org_id = payload.get('organization_id')
     if not org_id:
-        emit('error', {'message': 'organization_id is required'})
+        emit('error', {'message': ORG_ID_REQUIRED_MESSAGE})
         return
     
     # Leave the organization room
@@ -82,9 +160,13 @@ def handle_subscribe_alerts(data):
     
     Expected data: { organization_id: 'uuid' }
     """
-    org_id = data.get('organization_id')
+    payload = data if isinstance(data, dict) else {}
+    org_id = payload.get('organization_id')
     if not org_id:
-        emit('error', {'message': 'organization_id is required'})
+        emit('error', {'message': ORG_ID_REQUIRED_MESSAGE})
+        return
+
+    if not _is_org_admin_for_org(org_id):
         return
     
     # Join organization room

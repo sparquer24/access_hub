@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import VisitorEntryForm from './VisitorEntryForm';
 import VisitorLogsList from './VisitorLogsList';
 import VisitorOverview from './VisitorOverview';
 import { Users, BarChart3, UserCheck, FileText, RefreshCw } from 'lucide-react';
 
 const OrganizationVisitors = ({ organizationId, organization }) => {
-  const [activeSubTab, setActiveSubTab] = useState('logs');
+  const [activeSubTab, setActiveSubTab] = useState('activeVisitors');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleVisitorCreated = () => {
     setRefreshTrigger(prev => prev + 1);
-    setActiveSubTab('logs');
+    setActiveSubTab('activeVisitors');
   };
 
   return (
@@ -41,13 +41,22 @@ const OrganizationVisitors = ({ organizationId, organization }) => {
           {/* Sub-tabs */}
           <div className="flex gap-1 bg-slate-100 p-1 rounded-lg">
             <button
-              onClick={() => setActiveSubTab('logs')}
-              className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-1.5 ${activeSubTab === 'logs'
+              onClick={() => setActiveSubTab('activeVisitors')}
+              className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-1.5 ${activeSubTab === 'activeVisitors'
                 ? 'bg-white text-teal-700 shadow-sm'
                 : 'text-slate-600 hover:text-teal-600 hover:bg-slate-200'
                 }`}
             >
-              <FileText className="w-4 h-4" /> Logs
+              <Users className="w-4 h-4" /> Active Visitors
+            </button>
+            <button
+              onClick={() => setActiveSubTab('floorLogs')}
+              className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-1.5 ${activeSubTab === 'floorLogs'
+                ? 'bg-white text-teal-700 shadow-sm'
+                : 'text-slate-600 hover:text-teal-600 hover:bg-slate-200'
+                }`}
+            >
+              <FileText className="w-4 h-4" /> Floor Logs
             </button>
             <button
               onClick={() => setActiveSubTab('overview')}
@@ -73,10 +82,11 @@ const OrganizationVisitors = ({ organizationId, organization }) => {
 
       {/* Content */}
       <div>
-        {activeSubTab === 'logs' && (
+        {(activeSubTab === 'activeVisitors' || activeSubTab === 'floorLogs') && (
           <VisitorLogsList
             organizationId={organizationId}
             refreshTrigger={refreshTrigger}
+            initialTab={activeSubTab === 'activeVisitors' ? 'active' : 'logs'}
           />
         )}
 

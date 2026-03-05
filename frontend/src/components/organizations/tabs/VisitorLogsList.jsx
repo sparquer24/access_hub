@@ -4,13 +4,12 @@ import Loader from '../../common/Loader';
 import { useToast } from '../../../contexts/ToastContext';
 import moment from 'moment';
 
-const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
+const VisitorLogsList = ({ organizationId, refreshTrigger, initialTab = 'logs' }) => {
   const { success, error: showError } = useToast();
-  const [visitors, setVisitors] = useState([]);
   const [activeVisitors, setActiveVisitors] = useState([]);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState('logs');
+  const [selectedTab, setSelectedTab] = useState(initialTab);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [fromDate, setFromDate] = useState(moment().format('YYYY-MM-DD'));
@@ -18,26 +17,6 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
   const [showAllData, setShowAllData] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [checkingOutId, setCheckingOutId] = useState(null);
-
-  const fetchVisitors = useCallback(async () => {
-    try {
-      setLoading(true);
-      const params = { page, limit: pageSize };
-      if (!showAllData) {
-        params.from_date = fromDate;
-        params.to_date = toDate;
-      }
-      const response = await visitorService.getVisitorsByOrganization(organizationId, params);
-      if (response.success) {
-        setVisitors(response.data?.visitors || []);
-        setTotalCount(response.data?.pagination?.total || 0);
-      }
-    } catch (error) {
-      showError('Failed to load visitor logs');
-    } finally {
-      setLoading(false);
-    }
-  }, [organizationId, page, pageSize, fromDate, toDate, showAllData]);
 
   const fetchActiveVisitors = useCallback(async () => {
     try {
@@ -78,15 +57,16 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
 
   useEffect(() => {
     if (selectedTab === 'active') fetchActiveVisitors();
-    else if (selectedTab === 'logs') fetchLogs();
-    else fetchVisitors();
+    else fetchLogs();
   }, [organizationId, refreshTrigger, selectedTab, page, fromDate, toDate, showAllData]);
 
-  const handleTabChange = (tab) => {
-    setSelectedTab(tab);
-    setPage(1);
-    setTotalCount(0);
-  };
+  useEffect(() => {
+    if (initialTab !== selectedTab) {
+      setSelectedTab(initialTab);
+      setPage(1);
+      setTotalCount(0);
+    }
+  }, [initialTab, selectedTab]);
 
   const handlePresetDate = (type) => {
     const today = moment();
@@ -195,32 +175,8 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
 
   return (
     <div className="space-y-6">
-      {/* Tab Header + Filters */}
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          {/* Tabs */}
-          <div className="flex bg-gray-100 p-1 rounded-lg w-fit">
-            {[
-              { key: 'active', label: '👥 Active Visitors' },
-              { key: 'logs', label: '📍 Floor Logs' },
-            ].map(({ key, label }) => (
-              <button
-                key={key}
-                onClick={() => handleTabChange(key)}
-                className={`px-5 py-2.5 font-semibold rounded-md transition-all duration-300 text-sm ${selectedTab === key
-                    ? 'bg-white text-indigo-600 shadow-md'
-                    : 'text-gray-600 hover:text-gray-900'
-                  }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Date filter for tabs that support it */}
-        {selectedTab === 'logs' && <DateFilterBar />}
-      </div>
+      {/* Date filter for Floor Logs only */}
+      {selectedTab === 'logs' && <DateFilterBar />}
 
       {/* ===== ACTIVE VISITORS TAB ===== */}
       {selectedTab === 'active' && (

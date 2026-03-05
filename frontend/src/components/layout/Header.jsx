@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Building2, ChevronDown, User, Settings, LogOut, Menu, X, Bell, Download } from 'lucide-react';
+import { Building2, ChevronDown, User, Settings, LogOut, Menu, X, Download } from 'lucide-react';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -118,10 +118,6 @@ const Header = () => {
                 <div className="hidden sm:flex items-center gap-2">
                   <button className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-300">
                     <Download className="w-5 h-5" />
-                  </button>
-                  <button className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-300 relative">
-                    <Bell className="w-5 h-5" />
-                    <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
                   </button>
                 </div>
 
