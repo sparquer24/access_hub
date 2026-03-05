@@ -344,16 +344,34 @@ export const visitorService = {
    */
   getVisitorAlertsNew: async (organizationId, params = {}) => {
     try {
-      console.log('🚨 Fetching visitor alerts:', { organizationId, params });
+      console.log('🚨 Fetching visitor alerts:', { organizationId, params});
       const response = await api.get(
         `${ORG_VISITOR_API_BASE}/${organizationId}/visitors/alerts`,
         { params }
       );
-      console.log('✅ Alerts fetched:', { count: response.data?.data?.alerts?.length });
+      console.log('✅ Alerts fetched:', { count: response.data?.data?.alerts?.length});
       return response.data;
     } catch (error) {
       console.error('❌ Failed to fetch alerts:', error.response?.data || error.message);
       throw error;
+    }
+  },
+
+  /**
+   * Get visitor alerts - Simple method for OrganizationAlerts component
+   * @param {string} organizationId - Organization ID
+   * @returns {Promise<Object>}
+   */
+  getAlerts: async (organizationId) => {
+    try {
+      const response = await api.get(
+        `${ORG_VISITOR_API_BASE}/${organizationId}/visitors/alerts`,
+        { params: { limit: 100 } }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch alerts:', error);
+      return { success: false, data: [], message: 'Failed to fetch alerts' };
     }
   },
 

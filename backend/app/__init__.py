@@ -503,8 +503,22 @@ def create_app():
         
         return response
 
-    # socketio.init_app(app)
-
+    # Initialize SocketIO with the app
+    from .events.alerts import (
+        handle_connect, 
+        handle_disconnect, 
+        handle_join_organization, 
+        handle_leave_organization,
+        handle_subscribe_alerts
+    )
+    
+    # Register event handlers
+    socketio.init_app(app, cors_allowed_origins="*")
+    
+    # Import and register event handlers
+    from . import events
+    events_bp = events.bp
+    
     return app
 
 
