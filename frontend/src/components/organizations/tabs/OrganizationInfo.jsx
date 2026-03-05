@@ -7,7 +7,7 @@ import {
 import {
   TrendingUp, Users, Camera, MapPin, Layers, Clock, Shield, Database,
   AlertCircle, CheckCircle2, Activity, Copy, Settings, Calendar, Briefcase,
-  Mail, Phone, Globe, Loader2, Download, Sparkles
+  Mail, Phone, Globe, Loader2, Sparkles
 } from 'lucide-react';
 import { organizationsService } from '../../../services/organizationsService';
 import Loader from '../../common/Loader';
@@ -57,55 +57,6 @@ const OrganizationInfo = ({ organization, onUpdate }) => {
     setCopiedField(field);
     setTimeout(() => setCopiedField(null), 2000);
   };
-
-  const handleExport = () => {
-    const csvRows = [];
-
-    // Header
-    csvRows.push(['Category', 'Metric', 'Value']);
-
-    // Organization Details
-    csvRows.push(['Organization', 'Name', organization.name]);
-    csvRows.push(['Organization', 'Employees (Total)', organization.employees_count || 0]);
-    csvRows.push(['Organization', 'Active Employees', activeToday]);
-
-    // Attendance
-    if (attendanceStats || hasAttendanceFeature) {
-      csvRows.push(['Attendance', 'Rate', `${attendanceRate}%`]);
-      csvRows.push(['Attendance', 'Trend', `${attendanceTrend}%`]);
-      // Daily attendance
-      (attendanceTrendData || []).forEach(day => {
-        csvRows.push(['Attendance Daily', day.name, day.value]);
-      });
-    }
-
-    // Visitors
-    if (visitorStats || hasVisitorFeature) {
-      csvRows.push(['Visitors', 'Today', totalVisitorsToday]);
-      csvRows.push(['Visitors', 'Active', activeVisitors]);
-      // Weekly visitors
-      (visitorWeeklyData || []).forEach(day => {
-        csvRows.push(['Visitors Weekly', day.name, day.value]);
-      });
-    }
-
-    // Departments
-    (departmentAttendanceData || []).forEach(dept => {
-      csvRows.push(['Department Attendance', dept.name, `${dept.rate}%`]);
-    });
-
-    // Create CSV content
-    const csvContent = csvRows.map(e => e.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `org_stats_${organization.name || 'export'}_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
 
 
   const formatDate = (dateString) => {
@@ -302,28 +253,12 @@ const OrganizationInfo = ({ organization, onUpdate }) => {
   return (
     <div className="space-y-6 animate-fadeIn bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen py-6">
 
-      {/* Header with Export Action */}
-      <div className="flex justify-between items-center mb-2 px-2">
-        <div>
-          {/* Placeholder for left content if needed */}
-        </div>
-        <button
-          onClick={handleExport}
-          className="flex items-center gap-2 px-4 py-2 bg-white text-indigo-600 rounded-lg shadow-sm border border-indigo-100 hover:bg-indigo-50 hover:shadow-md transition-all font-medium text-sm"
-        >
-          <Download className="w-4 h-4" />
-          Export Report
-        </button>
-
-      </div>
-
-      {/* AI Smart Summary Section */}
+      {/* AI Smart Summary Section
       <div className="px-2 mb-6">
         <div className="bg-gradient-to-r from-teal-900 via-cyan-900 to-slate-900 rounded-2xl p-6 shadow-2xl relative overflow-hidden group border border-teal-500/30">
           <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-30 transition-opacity duration-1000 pointer-events-none">
             <Sparkles className="h-64 w-64 text-cyan-400 animate-pulse" />
           </div>
-          {/* Animated Background Elements */}
           <div className="absolute -top-24 -left-24 w-64 h-64 bg-teal-600/20 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-cyan-600/20 rounded-full blur-3xl animate-pulse delay-700"></div>
 
@@ -413,7 +348,8 @@ const OrganizationInfo = ({ organization, onUpdate }) => {
             )}
           </div>
         </div>
-      </div>
+      </div> 
+      */}
 
       {/* Resource Analysis - Professional Dashboard (Moved to Bottom) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6 mt-6">

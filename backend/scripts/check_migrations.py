@@ -5,7 +5,7 @@ from sqlalchemy import create_engine, text
 load_dotenv('.env')
 url = os.getenv('DATABASE_URL')
 print('Using DATABASE_URL=', url)
-engine = create_engine(url)
+engine = create_engine(url, connect_args={"options": "-csearch_path=main"})
 with engine.connect() as conn:
     print('\n-- alembic_version table --')
     try:
@@ -26,8 +26,8 @@ with engine.connect() as conn:
     except Exception:
         pass
 
-    print('\n-- Listing public tables (first 50) --')
-    rows = conn.execute(text("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public' ORDER BY tablename LIMIT 50")).fetchall()
+    print('\n-- Listing main tables (first 50) --')
+    rows = conn.execute(text("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='main' ORDER BY tablename LIMIT 50")).fetchall()
     for r in rows:
         print(r[0])
 

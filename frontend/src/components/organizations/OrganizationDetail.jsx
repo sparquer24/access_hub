@@ -16,7 +16,7 @@ import OrganizationVisitors from './tabs/OrganizationVisitors';
 import OrganizationLPR from './tabs/OrganizationLPR';
 import { useSubscription } from '../../contexts/SubscriptionContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { ArrowLeft, Edit2, Ban, CheckCircle, Building2 } from 'lucide-react';
+import { ArrowLeft, Edit2, Ban, CheckCircle, Building2, Bell } from 'lucide-react';
 
 const OrganizationDetail = ({
   backPath = '/super-admin/organizations',
@@ -27,6 +27,7 @@ const OrganizationDetail = ({
   const [searchParams, setSearchParams] = useSearchParams();
   const [organization, setOrganization] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isAlertSidebarOpen, setIsAlertSidebarOpen] = useState(false);
   const { hasFeature } = useSubscription();
   const { user } = useAuth();
 
@@ -40,6 +41,25 @@ const OrganizationDetail = ({
 
   // Get active tab from URL or default to 'info'
   const activeTab = searchParams.get('tab') || 'info';
+
+  const getAlertCount = () => {
+    const alertCounts = {
+      info: 6,
+      employees: 6,
+      visitors: 6,
+      lpr: 6,
+      cameras: 6,
+      locations: 6,
+      rules: 6,
+      statistics: 6
+    };
+
+    return alertCounts[activeTab] || 6;
+  };
+
+  const alertCount = getAlertCount();
+
+  const getCleanTabLabel = (label) => label.replace(/^[^A-Za-z0-9]+\s*/, '');
 
   // Function to update tab in URL
   const setActiveTab = (tabId) => {
@@ -191,7 +211,7 @@ const OrganizationDetail = ({
     <div className="bg-gradient-to-br from-slate-50 via-teal-50 to-cyan-50 min-h-full">
       {/* Enhanced Page Header */}
       <div className="bg-teal-50/90 backdrop-blur-sm border-b border-slate-200/60 sticky top-0 z-30 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+        <div className="max-w-screen-2xl mx-auto px-2 sm:px-3 lg:px-4 py-2">
           {/* Top Row - Back Button and Organization Name */}
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-4">
@@ -250,81 +270,114 @@ const OrganizationDetail = ({
       </div>
 
 
-      {/* Tabs */}
-      <div className="max-w-7xl mx-auto px-1 sm:px-4 lg:px-1 py-2">
-        <div className="bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          {/* Tab Navigation */}
-          <div className="flex bg-teal-50 border-b border-gray-200 overflow-x-auto">
-            {availableTabs.map((tab) => (
-              <button
-                key={tab.id}
-                className={`px-3 py-2 font-medium text-xs whitespace-nowrap flex items-center gap-1 transition-all duration-300 relative border-b-2 ${activeTab === tab.id
-                  ? 'text-teal-600 bg-teal-50/95 border-teal-600'
-                  : 'text-gray-600 hover:text-teal-600 hover:bg-teal-100 border-transparent'
-                  }`}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                <span>{tab.name}</span>
-              </button>
-            ))}
+      {/* Tabs + Right Sidebar Alerts */}
+      <div className="max-w-screen-2xl mx-auto px-2 sm:px-3 lg:px-4 py-2">
+        <div className={`grid grid-cols-1 lg:grid-cols-12 gap-3 ${isAlertSidebarOpen ? 'h-[calc(100vh-150px)]' : ''}`}>
+          <div className={`${isAlertSidebarOpen ? 'lg:col-span-10 h-full overflow-hidden' : 'lg:col-span-12'} min-w-0 transition-all duration-300`}>
+            <div className={`bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 overflow-hidden ${isAlertSidebarOpen ? 'h-full flex flex-col' : ''}`}>
+              {/* Tab Navigation */}
+              <div className="flex items-center gap-3 bg-gradient-to-r from-white via-slate-50 to-white border-b border-gray-200 px-3 py-2.5">
+                <div className="flex-1 overflow-x-auto">
+                  <div className="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl border border-slate-200/80 w-max min-w-full">
+                    {availableTabs.map((tab) => (
+                      <button
+                        key={tab.id}
+                        className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap flex items-center gap-1 transition-all duration-200 border ${activeTab === tab.id
+                          ? 'text-white bg-gradient-to-r from-teal-600 to-cyan-600 border-teal-600 shadow-md font-semibold'
+                          : 'text-slate-700 bg-transparent border-transparent hover:text-slate-900 hover:bg-white hover:border-slate-300 hover:font-semibold'
+                          }`}
+                        onClick={() => setActiveTab(tab.id)}
+                      >
+                        <span>{getCleanTabLabel(tab.name)}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setIsAlertSidebarOpen((prev) => !prev)}
+                  className={`relative inline-flex items-center justify-center p-2.5 rounded-xl text-xs font-medium transition-all duration-200 border ${isAlertSidebarOpen
+                    ? 'bg-teal-50 text-teal-700 border-teal-200 shadow-sm'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-teal-700 hover:border-slate-300'
+                    }`}
+                  aria-label="Toggle alerts sidebar"
+                >
+                  <Bell className="w-4 h-4" />
+                  {alertCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-semibold flex items-center justify-center leading-none shadow-sm">
+                      {alertCount}
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              {/* Tab Content */}
+              <div className={`p-4 ${isAlertSidebarOpen ? 'flex-1 overflow-y-auto' : ''}`}>
+                {activeTab === 'info' && (
+                  <OrganizationInfo
+                    organization={organization}
+                    onUpdate={fetchOrganization}
+                  />
+                )}
+                {activeTab === 'employees' && (
+                  <OrganizationEmployees
+                    organizationId={id}
+                    organization={organization}
+                    isAlertSidebarOpen={isAlertSidebarOpen}
+                  />
+                )}
+                {activeTab === 'cameras' && (
+                  <OrganizationCameras
+                    organizationId={id}
+                    organization={organization}
+                  />
+                )}
+                {activeTab === 'locations' && (
+                  <OrganizationLocations
+                    organizationId={id}
+                    organization={organization}
+                  />
+                )}
+
+                {activeTab === 'rules' && (
+                  <OrganizationRules
+                    organizationId={id}
+                    organization={organization}
+                    onUpdate={fetchOrganization}
+                  />
+                )}
+                {activeTab === 'statistics' && (
+                  <OrganizationStatistics
+                    organization={organization}
+                  />
+                )}
+                {activeTab === 'visitors' && (
+                  <OrganizationVisitors
+                    organizationId={id}
+                    organization={organization}
+                  />
+                )}
+                {activeTab === 'lpr' && (
+                  <OrganizationLPR
+                    organization={organization}
+                  />
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Tab Content */}
-          <div className="p-4">
-            {activeTab === 'info' && (
-              <OrganizationInfo
-                organization={organization}
-                onUpdate={fetchOrganization}
-              />
-            )}
-            {activeTab === 'employees' && (
-              <OrganizationEmployees
-                organizationId={id}
-                organization={organization}
-              />
-            )}
-            {activeTab === 'cameras' && (
-              <OrganizationCameras
-                organizationId={id}
-                organization={organization}
-              />
-            )}
-            {activeTab === 'locations' && (
-              <OrganizationLocations
-                organizationId={id}
-                organization={organization}
-              />
-            )}
-
-            {activeTab === 'rules' && (
-              <OrganizationRules
-                organizationId={id}
-                organization={organization}
-                onUpdate={fetchOrganization}
-              />
-            )}
-            {activeTab === 'alerts' && (
-              <OrganizationAlerts
-                organizationId={id}
-              />
-            )}
-            {activeTab === 'statistics' && (
-              <OrganizationStatistics
-                organization={organization}
-              />
-            )}
-            {activeTab === 'visitors' && (
-              <OrganizationVisitors
-                organizationId={id}
-                organization={organization}
-              />
-            )}
-            {activeTab === 'lpr' && (
-              <OrganizationLPR
-                organization={organization}
-              />
-            )}
-          </div>
+          {isAlertSidebarOpen && (
+            <aside className="lg:col-span-2 h-full transition-all duration-300 overflow-hidden">
+              <div className="h-full">
+                <OrganizationAlerts
+                  organizationId={id}
+                  activeTab={activeTab}
+                  showActivityLog={false}
+                  onCloseSidebar={() => setIsAlertSidebarOpen(false)}
+                />
+              </div>
+            </aside>
+          )}
         </div>
       </div>
 

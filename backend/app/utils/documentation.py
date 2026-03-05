@@ -186,6 +186,120 @@ class APIDocumentationGenerator:
         
         return spec
     
+    def generate_swagger2_spec(self) -> Dict[str, Any]:
+        """Generate Swagger 2.0 specification from discovered endpoints and models"""
+        endpoints = self.discover_endpoints()
+        models = self.discover_models()
+        
+        # Convert models to Swagger 2.0 definitions
+        definitions = {}
+        for model_name, model_info in models.items():
+            properties = {}
+            required = []
+            for field_name, field_info in model_info['fields'].items():
+                prop = {}
+                sql_type = field_info['type'].lower()
+                if 'integer' in sql_type:
+                    prop['type'] = 'integer'
+                elif 'varchar' in sql_type or 'text' in sql_type or 'string' in sql_type:
+                    prop['type'] = 'string'
+                elif 'boolean' in sql_type:
+                    prop['type'] = 'boolean'
+                elif 'datetime' in sql_type:
+                    prop['type'] = 'string'
+                    prop['format'] = 'date-time'
+                elif 'date' in sql_type:
+                    prop['type'] = 'string'
+                    prop['format'] = 'date'
+                elif 'decimal' in sql_type or 'numeric' in sql_type or 'float' in sql_type:
+                    prop['type'] = 'number'
+                else:
+                    prop['type'] = 'string'
+                properties[field_name] = prop
+                if not field_info['nullable'] and not field_info['primary_key']:
+                    required.append(field_name)
+            schema_def = {'type': 'object', 'properties': properties}
+            if required:
+                schema_def['required'] = required
+            definitions[model_name] = schema_def
+        
+        # Convert endpoints to Swagger 2.0 paths
+        paths = {}
+        for endpoint_name, endpoint_info in endpoints.items():
+            url = endpoint_info['url']
+            swagger_url = re.sub(r'<(\w+:)?(\w+)>', r'{\2}', url)
+            if swagger_url not in paths:
+                paths[swagger_url] = {}
+            for method in endpoint_info['methods']:
+                method_lower = method.lower()
+                operation = {
+                    'summary': endpoint_info['description'].split('\n')[0] if endpoint_info['description'] else f'{method} {url}',
+                    'description': endpoint_info['description'] or f'{method} operation for {url}',
+                    'responses': {
+                        '200': {
+                            'description': 'Successful response',
+                            'schema': {
+                                'type': 'object',
+                                'properties': {
+                                    'success': {'type': 'boolean'},
+                                    'message': {'type': 'string'},
+                                    'data': {'type': 'object'}
+                                }
+                            }
+                        },
+                        '400': {'description': 'Bad request'},
+                        '401': {'description': 'Unauthorized'},
+                        '403': {'description': 'Forbidden'},
+                        '404': {'description': 'Not found'},
+                        '500': {'description': 'Internal server error'}
+                    }
+                }
+                parameters = []
+                for param_name, param_info in endpoint_info['parameters'].items():
+                    parameters.append({
+                        'name': param_name,
+                        'in': param_info['type'],
+                        'required': param_info['required'],
+                        'description': param_info['description'],
+                        'type': 'string'
+                    })
+                if method_lower in ['post', 'put', 'patch']:
+                    parameters.append({
+                        'name': 'body',
+                        'in': 'body',
+                        'required': True,
+                        'schema': {'type': 'object'}
+                    })
+                if parameters:
+                    operation['parameters'] = parameters
+                # Security
+                if endpoint_info['authentication'] != 'none':
+                    operation['security'] = [{'Bearer': []}]
+                paths[swagger_url][method_lower] = operation
+        
+        spec = {
+            'swagger': '2.0',
+            'info': {
+                'title': 'VMS (Visitor Management System) API',
+                'description': 'API documentation (auto-generated) for VMS backend services',
+                'version': '2.0.0'
+            },
+            'host': 'localhost:5000',
+            'basePath': '/',
+            'schemes': ['http', 'https'],
+            'securityDefinitions': {
+                'Bearer': {
+                    'type': 'apiKey',
+                    'name': 'Authorization',
+                    'in': 'header',
+                    'description': "JWT Authorization header using the Bearer scheme. Example: 'Bearer {token}'"
+                }
+            },
+            'paths': paths,
+            'definitions': definitions
+        }
+        return spec
+    
     def _convert_models_to_openapi_schemas(self, models: Dict) -> Dict[str, Any]:
         """Convert SQLAlchemy models to OpenAPI schemas"""
         schemas = {}
@@ -418,6 +532,12 @@ def create_documentation_routes(app: Flask):
     def openapi_spec():
         """Get OpenAPI specification"""
         spec = doc_generator.generate_openapi_spec()
+        return jsonify(spec)
+    
+    @doc_bp.route('/swagger2.json', methods=['GET'])
+    def swagger2_spec():
+        """Get Swagger 2.0 specification (for Flasgger UI compatibility)"""
+        spec = doc_generator.generate_swagger2_spec()
         return jsonify(spec)
     
     @doc_bp.route('/postman.json', methods=['GET'])
