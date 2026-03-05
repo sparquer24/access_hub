@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import {
   TrendingUp, Users, Camera, MapPin, Layers, Clock, Shield, Database,
-  AlertCircle, CheckCircle2, Activity, Copy, Settings, Calendar, Briefcase,
+  AlertCircle, CheckCircle2, Activity, Copy, Settings, Calendar, Briefcase, Download,
   Mail, Phone, Globe, Loader2, Sparkles
 } from 'lucide-react';
 import { organizationsService } from '../../../services/organizationsService';
@@ -56,6 +56,43 @@ const OrganizationInfo = ({ organization, onUpdate }) => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
     setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const handleExport = () => {
+    try {
+      const reportRows = [
+        ['Organization Name', organization?.name || 'N/A'],
+        ['Organization ID', organization?.id || organization?.uuid || 'N/A'],
+        ['Type', organization?.type || 'N/A'],
+        ['Subscription', organization?.subscription_tier || 'N/A'],
+        ['Employees', organization?.employees_count ?? 0],
+        ['Departments', organization?.departments_count ?? 0],
+        ['Cameras', organization?.cameras_count ?? 0],
+        ['Locations', organization?.locations_count ?? 0],
+        ['Attendance Rate (%)', attendanceRate ?? 0],
+        ['Active Employees Today', activeToday ?? 0],
+        ['Visitors Today', totalVisitorsToday ?? 0],
+        ['Active Visitors', activeVisitors ?? 0],
+      ];
+
+      const csvContent = reportRows
+        .map(([label, value]) => `"${String(label).replace(/"/g, '""')}","${String(value).replace(/"/g, '""')}"`)
+        .join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const datePart = new Date().toISOString().split('T')[0];
+      link.href = url;
+      link.setAttribute('download', `organization_report_${datePart}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting organization report:', error);
+      showError('Failed to export report');
+    }
   };
 
 
@@ -252,8 +289,6 @@ const OrganizationInfo = ({ organization, onUpdate }) => {
 
   return (
     <div className="space-y-6 animate-fadeIn bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen py-6">
-
-      {/* AI Smart Summary Section
       <div className="px-2 mb-6">
         <div className="bg-gradient-to-r from-teal-900 via-cyan-900 to-slate-900 rounded-2xl p-6 shadow-2xl relative overflow-hidden group border border-teal-500/30">
           <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-30 transition-opacity duration-1000 pointer-events-none">

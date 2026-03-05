@@ -18,17 +18,17 @@ class VisitorService:
         """
         today = datetime.utcnow().date()
         
-        # Get today's visitors count
-        entries_today = db.session.query(func.count(OrganizationVisitor.id)).filter(
-            OrganizationVisitor.organization_id == organization_id,
-            func.date(OrganizationVisitor.check_in_time) == today
+        # Get today's visitors count (from VisitorHistoryDetails)
+        entries_today = db.session.query(func.count(VisitorHistoryDetails.id)).filter(
+            VisitorHistoryDetails.organization_id == organization_id,
+            func.date(VisitorHistoryDetails.created_at) == today
         ).scalar() or 0
         
-        # Get currently active visitors
-        active_visitors = db.session.query(func.count(OrganizationVisitor.id)).filter(
-            OrganizationVisitor.organization_id == organization_id,
-            OrganizationVisitor.is_checked_in == True,
-            OrganizationVisitor.check_out_time == None
+        # Get currently active visitors (checked in but not checked out)
+        active_visitors = db.session.query(func.count(VisitorHistoryDetails.id)).filter(
+            VisitorHistoryDetails.organization_id == organization_id,
+            VisitorHistoryDetails.is_checked_in == True,
+            VisitorHistoryDetails.check_out_time.is_(None)
         ).scalar() or 0
         
         return {
@@ -142,9 +142,9 @@ class VisitorService:
             day = today - timedelta(days=i)
             day_name = day.strftime('%a')
             
-            count = db.session.query(func.count(OrganizationVisitor.id)).filter(
-                OrganizationVisitor.organization_id == organization_id,
-                func.date(OrganizationVisitor.check_in_time) == day
+            count = db.session.query(func.count(VisitorHistoryDetails.id)).filter(
+                VisitorHistoryDetails.organization_id == organization_id,
+                func.date(VisitorHistoryDetails.created_at) == day
             ).scalar() or 0
             
             weekly_activity.append({
@@ -161,10 +161,10 @@ class VisitorService:
             month_num = target_date.month
             year_num = target_date.year
             
-            count = db.session.query(func.count(OrganizationVisitor.id)).filter(
-                OrganizationVisitor.organization_id == organization_id,
-                func.extract('month', OrganizationVisitor.check_in_time) == month_num,
-                func.extract('year', OrganizationVisitor.check_in_time) == year_num
+            count = db.session.query(func.count(VisitorHistoryDetails.id)).filter(
+                VisitorHistoryDetails.organization_id == organization_id,
+                func.extract('month', VisitorHistoryDetails.created_at) == month_num,
+                func.extract('year', VisitorHistoryDetails.created_at) == year_num
             ).scalar() or 0
             
             monthly_trend.append({
@@ -183,23 +183,26 @@ class VisitorService:
         Return (total, visitors) for an organization with optional check-in date filtering and pagination.
         `from_date` and `to_date` are expected as 'YYYY-MM-DD' strings (or None).
         """
-        # Base query for organization
-        query = db.session.query(OrganizationVisitor).filter(
+        # Base query - get distinct visitors that have visit history in this org
+        query = db.session.query(OrganizationVisitor.id).join(
+            VisitorHistoryDetails,
+            VisitorHistoryDetails.visitor_id == OrganizationVisitor.id
+        ).filter(
             OrganizationVisitor.organization_id == organization_id
-        )
+        ).distinct()
 
-        # Apply optional date filters (compare dates only)
+        # Apply optional date filters on visit history
         if from_date:
             try:
                 from_dt = datetime.strptime(from_date, '%Y-%m-%d').date()
-                query = query.filter(func.date(OrganizationVisitor.check_in_time) >= from_dt)
+                query = query.filter(func.date(VisitorHistoryDetails.created_at) >= from_dt)
             except Exception:
                 raise ValueError('Invalid from_date format. Use YYYY-MM-DD')
 
         if to_date:
             try:
                 to_dt = datetime.strptime(to_date, '%Y-%m-%d').date()
-                query = query.filter(func.date(OrganizationVisitor.check_in_time) <= to_dt)
+                query = query.filter(func.date(VisitorHistoryDetails.created_at) <= to_dt)
             except Exception:
                 raise ValueError('Invalid to_date format. Use YYYY-MM-DD')
 
@@ -213,9 +216,34 @@ class VisitorService:
         if page < 1 or limit < 1:
             raise ValueError('Page and limit must be positive integers')
 
+        # Get total count
         total = query.count()
-        offset = (page - 1) * limit
-        visitors = query.order_by(OrganizationVisitor.check_in_time.desc()).offset(offset).limit(limit).all()
+        
+        # Get visitor IDs with date filtering and ordering by latest visit
+        visitor_ids = db.session.query(OrganizationVisitor.id).join(
+            VisitorHistoryDetails,
+            VisitorHistoryDetails.visitor_id == OrganizationVisitor.id
+        ).filter(
+            OrganizationVisitor.organization_id == organization_id
+        )
+        
+        # Apply same date filters
+        if from_date:
+            from_dt = datetime.strptime(from_date, '%Y-%m-%d').date()
+            visitor_ids = visitor_ids.filter(func.date(VisitorHistoryDetails.created_at) >= from_dt)
+        if to_date:
+            to_dt = datetime.strptime(to_date, '%Y-%m-%d').date()
+            visitor_ids = visitor_ids.filter(func.date(VisitorHistoryDetails.created_at) <= to_dt)
+        
+        visitor_ids = visitor_ids.order_by(VisitorHistoryDetails.created_at.desc()).distinct().offset(
+            (page - 1) * limit
+        ).limit(limit).all()
+        
+        # Fetch actual visitor objects
+        visitor_id_list = [vid[0] for vid in visitor_ids]
+        visitors = db.session.query(OrganizationVisitor).filter(
+            OrganizationVisitor.id.in_(visitor_id_list)
+        ).all() if visitor_id_list else []
 
         return total, visitors
     
@@ -501,39 +529,39 @@ class VisitorService:
         Returns:
             List of movement log records
         """
-        # # Get all visitor IDs for this organization
-        # visitors = db.session.query(OrganizationVisitor.id).filter_by(
-        #     organization_id=org_id
-        # ).all()
-        # visitor_ids = [v[0] for v in visitors]
+        # Get all visitor IDs for this organization
+        visitors = db.session.query(OrganizationVisitor.id).filter_by(
+            organization_id=org_id
+        ).all()
+        visitor_ids = [v[0] for v in visitors]
         
-        # query = VisitorMovementLog.query.filter(
-        #     VisitorMovementLog.visitor_id.in_(visitor_ids)
-        # )
+        query = VisitorMovementLog.query.filter(
+            VisitorMovementLog.visitor_id.in_(visitor_ids)
+        )
         
-        # if filters:
-        #     if filters.get('visitor_id'):
-        #         query = query.filter_by(visitor_id=filters['visitor_id'])
+        if filters:
+            if filters.get('visitor_id'):
+                query = query.filter_by(visitor_id=filters['visitor_id'])
             
-        #     if filters.get('floor'):
-        #         query = query.filter_by(floor=filters['floor'])
+            if filters.get('floor'):
+                query = query.filter_by(floor=filters['floor'])
             
-        #     if filters.get('date_from'):
-        #         query = query.filter(VisitorMovementLog.entry_time >= filters['date_from']) # type: ignore
+            if filters.get('date_from'):
+                query = query.filter(VisitorMovementLog.entry_time >= filters['date_from']) # type: ignore
             
-        #     if filters.get('date_to'):
-        #         query = query.filter(VisitorMovementLog.entry_time <= filters['date_to'])
+            if filters.get('date_to'):
+                query = query.filter(VisitorMovementLog.entry_time <= filters['date_to'])
         
-        # # Order by most recent first
-        # query = query.order_by(desc(VisitorMovementLog.entry_time))
+        # Order by most recent first
+        query = query.order_by(desc(VisitorMovementLog.entry_time))
         
-        # # Apply pagination
-        # offset = filters.get('offset', 0) if filters else 0
-        # limit = filters.get('limit', 50) if filters else 50
+        # Apply pagination
+        offset = filters.get('offset', 0) if filters else 0
+        limit = filters.get('limit', 50) if filters else 50
         
         return {
-                # 'total': query.count(),
-                # 'logs': query.offset(offset).limit(limit).all()
+                'total': query.count(),
+                'logs': query.offset(offset).limit(limit).all()
             
         }    
     @staticmethod
@@ -794,6 +822,36 @@ class VisitorService:
         ).order_by(VisitorHistoryDetails.created_at.desc()).limit(limit).all()
         
         return records
+
+    @staticmethod
+    def search_visitors(organization_id, query, limit=10, offset=0):
+        """
+        Search visitors by name, phone, or email.
+        
+        Args:
+            organization_id: Organization ID
+            query: Search query string (searches in name, phone, email)
+            limit: Maximum number of results (default: 10)
+            offset: Number of results to skip (default: 0)
+        
+        Returns:
+            List of OrganizationVisitor objects matching the query
+        """
+        if not query or not query.strip():
+            return []
+        
+        search_term = f"%{query.strip()}%"
+        
+        visitors = db.session.query(OrganizationVisitor).filter(
+            OrganizationVisitor.organization_id == organization_id,
+            or_(
+                OrganizationVisitor.name.ilike(search_term),
+                OrganizationVisitor.phone.ilike(search_term),
+                OrganizationVisitor.email.ilike(search_term)
+            )
+        ).order_by(OrganizationVisitor.name).offset(offset).limit(limit).all()
+        
+        return visitors
 
     @staticmethod
     def get_visitor_history_search(organization_id, phone_number=None, limit=10):

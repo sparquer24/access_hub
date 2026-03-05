@@ -298,17 +298,7 @@ const OrganizationLPR = ({ organization }) => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
-                        <div className="bg-teal-50/95 border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                            <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-                                <h3 className="font-bold text-slate-800">Recent Alerts</h3>
-                                <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded border border-red-200">Live</span>
-                            </div>
-                            <div className="divide-y divide-slate-100 p-8 text-center text-slate-500">
-                                No recent security alerts.
-                            </div>
-                        </div>
-
+                    <div className="grid grid-cols-1 gap-6 mt-2">
                         <div className="bg-teal-50/95 border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                             <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                                 <h3 className="font-bold text-slate-800">Quick Actions</h3>

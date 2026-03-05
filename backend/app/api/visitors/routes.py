@@ -448,7 +448,9 @@ def get_logs(org_id):
         filters['limit'] = int(request.args.get('limit', 50))
         filters['offset'] = int(request.args.get('offset', 0))
         
-        logs = VisitorService.get_visitor_logs(org_id, filters)
+        result = VisitorService.get_visitor_logs(org_id, filters)
+        logs = result.get('logs', [])
+        total = result.get('total', 0)
         
         log_data = []
         for log in logs:
@@ -466,7 +468,7 @@ def get_logs(org_id):
         
         return success_response({
             'logs': log_data,
-            'total': len(log_data),
+            'total': total,
             'limit': filters['limit'],
             'offset': filters['offset']
         }, 200)

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { visitorService } from '../../../services/visitorService';
 import { useToast } from '../../../contexts/ToastContext';
-import { RefreshCw, Users, TrendingUp, AlertTriangle, MapPin, BarChart3 } from 'lucide-react';
+import { Users, TrendingUp, MapPin, BarChart3 } from 'lucide-react';
 import {
   ResponsiveContainer,
   LineChart,
@@ -20,56 +20,26 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
   const { error: showError, success } = useToast();
   const [overview, setOverview] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [autoRefresh] = useState(true);
   const [monthlyTrend, setMonthlyTrend] = useState(null);
   const [weeklyTrend, setWeeklyTrend] = useState(null);
   const [hourlyData, setHourlyData] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState('monthly');
-  // Dummy monthly (12 months) and weekly (7 days) datasets used as visible fallbacks
-  const DUMMY_MONTHLY = [
-    { label: 'Jan', male: 40, female: 30 },
-    { label: 'Feb', male: 35, female: 32 },
-    { label: 'Mar', male: 50, female: 45 },
-    { label: 'Apr', male: 55, female: 48 },
-    { label: 'May', male: 60, female: 52 },
-    { label: 'Jun', male: 70, female: 60 },
-    { label: 'Jul', male: 65, female: 58 },
-    { label: 'Aug', male: 75, female: 68 },
-    { label: 'Sep', male: 68, female: 62 },
-    { label: 'Oct', male: 72, female: 66 },
-    { label: 'Nov', male: 66, female: 60 },
-    { label: 'Dec', male: 80, female: 72 }
-  ];
-  const DUMMY_WEEKLY = [
-    { label: 'Mon', male: 8, female: 6 },
-    { label: 'Tue', male: 10, female: 9 },
-    { label: 'Wed', male: 12, female: 11 },
-    { label: 'Thu', male: 9, female: 8 },
-    { label: 'Fri', male: 15, female: 13 },
-    { label: 'Sat', male: 5, female: 6 },
-    { label: 'Sun', male: 4, female: 5 }
-  ];
-  // Dummy hourly data (24 hours) used as a visible fallback during development
-  const DUMMY_HOURLY = Array.from({ length: 24 }).map((_, i) => {
-    const hour = i.toString().padStart(2, '0') + ':00';
-    // simple pattern: peak midday
-    const base = Math.round(5 + 10 * Math.sin((i - 8) / 24 * Math.PI * 2));
-    const male = Math.max(0, Math.round(base * (0.55 + (i % 3) * 0.02)));
-    const female = Math.max(0, Math.round(base * (0.45 - (i % 3) * 0.02)));
-    return { label: hour, count: male + female, male, female };
-  });
 
   useEffect(() => {
     fetchOverviewStats();
-    fetchAnalytics();
+    fetchAnalytics(selectedPeriod);
 
     // Auto-refresh every 30 seconds
     if (autoRefresh) {
-      const interval = setInterval(() => { fetchOverviewStats(); fetchAnalytics(); }, 30000);
+      const interval = setInterval(() => {
+        fetchOverviewStats();
+        fetchAnalytics(selectedPeriod);
+      }, 30000);
       return () => clearInterval(interval);
     }
-  }, [organizationId, refreshTrigger, autoRefresh]);
+  }, [organizationId, refreshTrigger, autoRefresh, selectedPeriod]);
 
   const fetchOverviewStats = async () => {
     try {
@@ -79,8 +49,9 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
       const response = await visitorService.getOverviewStats(organizationId);
 
       if (response.success) {
-        setOverview(response.data.overview);
-        console.log('✅ Overview stats received:', response.data.overview);
+        const overviewData = response.data?.overview || response.data || null;
+        setOverview(overviewData);
+        console.log('✅ Overview stats received:', overviewData);
       } else {
         showError(response.message || 'Failed to fetch overview statistics');
       }
@@ -94,17 +65,13 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
     }
   };
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = async (period = 'monthly') => {
     if (!organizationId) return;
     try {
       setAnalyticsLoading(true);
-      // Try to fetch monthly, weekly and hourly analytics.
-      // The backend `getAnalytics` supports a dateRange/params object.
-      // We'll request three variants; if the backend ignores unknown params
-      // it should still return useful defaults.
-      const [monthlyRes, weeklyRes, hourlyRes] = await Promise.all([
-        visitorService.getAnalytics(organizationId, { period: 'monthly' }),
-        visitorService.getAnalytics(organizationId, { period: 'weekly' }),
+      // Fetch trend data for the active period and hourly data.
+      const [trendRes, hourlyRes] = await Promise.all([
+        visitorService.getAnalytics(organizationId, { period }),
         visitorService.getAnalytics(organizationId, { period: 'hourly' })
       ]);
 
@@ -118,8 +85,7 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
         return res;
       };
 
-      const monthly = normalize(safeData(monthlyRes));
-      const weekly = normalize(safeData(weeklyRes));
+      const trend = normalize(safeData(trendRes));
       const hourly = normalize(safeData(hourlyRes));
 
       // Attempt to pick likely fields: gender series or direct arrays
@@ -139,8 +105,12 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
         return null;
       };
 
-      setMonthlyTrend(toSeries(monthly));
-      setWeeklyTrend(toSeries(weekly));
+      const trendSeries = toSeries(trend);
+      if (period === 'monthly') {
+        setMonthlyTrend(trendSeries);
+      } else {
+        setWeeklyTrend(trendSeries);
+      }
       setHourlyData(toSeries(hourly));
     } catch (error) {
       console.error('Failed to fetch analytics:', error);
@@ -167,115 +137,122 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
     );
   }
 
+  const activeTrendData = selectedPeriod === 'monthly' ? monthlyTrend : weeklyTrend;
+  const hasTrendData = Array.isArray(activeTrendData) && activeTrendData.length > 0;
+  const hasHourlyData = Array.isArray(hourlyData) && hourlyData.length > 0;
+  const chartTooltipStyle = {
+    borderRadius: '12px',
+    border: '1px solid #e2e8f0',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)'
+  };
+
   // Stat cards
-  const StatCard = ({ icon: Icon, label, value, color = 'blue', trend }) => (
-    <div className={`bg-${color}-50 border border-${color}-200 rounded-lg p-4`}>
-      <div className="flex items-start justify-between">
-        <div>
-          <p className={`text-${color}-600 text-sm font-medium`}>{label}</p>
-          <p className={`text-${color}-900 text-3xl font-bold mt-2`}>{value}</p>
-          {trend && (
-            <p className="text-xs text-gray-500 mt-1">
-              {trend > 0 ? '📈' : '📉'} {Math.abs(trend)} from yesterday
-            </p>
-          )}
+  const StatCard = ({ icon: Icon, label, value, color = 'blue', trend, uppercaseLabel = false, compactLabel = false }) => {
+    const colorStyles = {
+      blue: {
+        bg: 'bg-gradient-to-br from-blue-50 to-indigo-50',
+        border: 'border-blue-200/70',
+        label: 'text-blue-700',
+        value: 'text-blue-900',
+        iconBg: 'bg-white/70',
+        icon: 'text-indigo-500',
+        trend: 'text-slate-500'
+      },
+      green: {
+        bg: 'bg-gradient-to-br from-emerald-50 to-teal-50',
+        border: 'border-emerald-200/70',
+        label: 'text-emerald-700',
+        value: 'text-emerald-900',
+        iconBg: 'bg-white/70',
+        icon: 'text-emerald-600',
+        trend: 'text-slate-500'
+      },
+      purple: {
+        bg: 'bg-gradient-to-br from-violet-50 to-indigo-50',
+        border: 'border-violet-200/70',
+        label: 'text-violet-700',
+        value: 'text-violet-900',
+        iconBg: 'bg-white/70',
+        icon: 'text-violet-600',
+        trend: 'text-slate-500'
+      }
+    };
+
+    const styles = colorStyles[color] || colorStyles.blue;
+    const labelClass = uppercaseLabel
+      ? `text-sm font-bold tracking-wider uppercase ${styles.label}`
+      : compactLabel
+        ? `text-lg font-semibold ${styles.label}`
+        : `text-2xl font-semibold ${styles.label}`;
+
+    return (
+      <div className={`relative overflow-hidden rounded-xl border ${styles.border} ${styles.bg} p-5 shadow-sm backdrop-blur-sm`}>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className={labelClass}>{label}</p>
+            <p className={`text-4xl font-bold mt-2 leading-none ${styles.value}`}>{value ?? 0}</p>
+            {typeof trend === 'number' && trend !== 0 && (
+              <p className={`text-xs font-medium mt-3 ${styles.trend}`}>
+                ☑ {Math.abs(trend)} from yesterday
+              </p>
+            )}
+          </div>
+          <div className={`rounded-xl p-2.5 border border-white/70 ${styles.iconBg}`}>
+            <Icon className={`w-6 h-6 ${styles.icon}`} />
+          </div>
         </div>
-        <Icon className={`w-8 h-8 text-${color}-500 opacity-20`} />
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Header with refresh button */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-teal-600" />
-            Visitor Overview Dashboard
-          </h3>
-          <p className="text-slate-500 text-sm mt-1">
-            Real-time visitor management statistics
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={autoRefresh}
-              onChange={(e) => setAutoRefresh(e.target.checked)}
-              className="w-4 h-4"
+    <div className="space-y-6 rounded-2xl border border-slate-200/80 bg-slate-100/60 p-4">
+      {/* Top Summary Layout */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        <div className="xl:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <StatCard
+            icon={Users}
+            label="Active Visitors"
+            value={overview.active_visitors}
+            color="blue"
+            trend={overview.active_visitors > 0 ? 2 : -1}
+            uppercaseLabel
+          />
+          <StatCard
+            icon={TrendingUp}
+            label="Total Entries Today"
+            value={overview.total_entries_today}
+            color="green"
+            trend={overview.total_entries_today > 10 ? 5 : 1}
+            compactLabel
+          />
+          <div className="md:col-span-2">
+            <StatCard
+              icon={Users}
+              label="Total Visitors"
+              value={overview.total_visitors}
+              color="purple"
+              trend={overview.total_visitors > 40 ? 3 : 1}
+              uppercaseLabel
             />
-            <span className="text-sm text-slate-600">Auto-refresh</span>
-          </label>
-          <button
-            onClick={fetchOverviewStats}
-            disabled={loading}
-            className="p-2 text-slate-500 hover:text-teal-600 hover:bg-slate-100 rounded transition-colors disabled:opacity-50"
-            title="Refresh Statistics"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
-        </div>
-      </div>
-
-      {/* Main Statistics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          icon={Users}
-          label="Active Visitors"
-          value={overview.active_visitors}
-          color="blue"
-          trend={overview.active_visitors > 0 ? 2 : -1}
-        />
-        <StatCard
-          icon={TrendingUp}
-          label="Total Entries Today"
-          value={overview.total_entries_today}
-          color="green"
-          trend={overview.total_entries_today > 10 ? 5 : 0}
-        />
-        <StatCard
-          icon={AlertTriangle}
-          label="Active Alerts"
-          value={overview.active_alerts}
-          color="red"
-          trend={overview.active_alerts > 0 ? 1 : -2}
-        />
-        <StatCard
-          icon={Users}
-          label="Total Visitors"
-          value={overview.total_visitors}
-          color="purple"
-          trend={overview.total_visitors > 40 ? 3 : 1}
-        />
-      </div>
-
-      {/* Additional Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Movement Logs */}
-        <div className="bg-white border border-slate-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <MapPin className="w-5 h-5 text-teal-600" />
-            <h4 className="font-semibold text-slate-900">Floor Movements</h4>
           </div>
-          <p className="text-3xl font-bold text-teal-600">
-            {overview.logged_movements}
-          </p>
-          <p className="text-sm text-slate-500 mt-1">movements logged today</p>
         </div>
 
-        {/* Visitor Types */}
-        <div className="bg-white border border-slate-200 rounded-lg p-4">
-          <h4 className="font-semibold text-slate-900 mb-3">Visitor Types</h4>
-          <div className="space-y-2">
+        <div className="bg-gradient-to-br from-white/90 to-teal-50/70 border border-slate-200/80 rounded-xl p-4 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-md">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="w-5 h-5 text-teal-600" />
+            <h4 className="font-semibold text-slate-900 text-lg">Visitor Types</h4>
+          </div>
+          <div className="space-y-2.5">
             {Object.entries(overview.visitor_types_breakdown || {}).map(
               ([type, count]) => (
-                <div key={type} className="flex justify-between items-center">
-                  <span className="text-sm text-slate-600 capitalize">
-                    {type}
-                  </span>
-                  <span className="inline-block bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-sm font-medium">
+                <div
+                  key={type}
+                  className="flex justify-between items-center rounded-lg border border-slate-200/70 bg-white/80 px-3 py-2.5 transition-all duration-200 hover:border-teal-200 hover:bg-teal-50/60"
+                >
+                  <span className="text-sm font-medium text-slate-700 capitalize">{type}</span>
+                  <span className="inline-flex min-w-9 h-9 items-center justify-center bg-teal-100 text-teal-700 ring-1 ring-teal-200 rounded-full text-sm font-semibold px-2">
                     {count}
                   </span>
                 </div>
@@ -291,7 +268,7 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
 
       {/* Charts: Monthly/Weekly Trend and Hourly */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-white border border-slate-200 rounded-lg p-4">
+        <div className="bg-white/80 border border-slate-200/90 rounded-xl p-4 backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-teal-600" />
@@ -300,64 +277,88 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setSelectedPeriod('monthly')}
-                className={`px-3 py-1 rounded ${selectedPeriod === 'monthly' ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-600'}`}
+                className={`px-3 py-1 rounded transition-all duration-200 ${selectedPeriod === 'monthly' ? 'bg-teal-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
               >
                 Monthly
               </button>
               <button
                 onClick={() => setSelectedPeriod('weekly')}
-                className={`px-3 py-1 rounded ${selectedPeriod === 'weekly' ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-600'}`}
+                className={`px-3 py-1 rounded transition-all duration-200 ${selectedPeriod === 'weekly' ? 'bg-teal-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
               >
                 Weekly
               </button>
             </div>
           </div>
-          {analyticsLoading && !monthlyTrend && !weeklyTrend ? (
+          {analyticsLoading && !hasTrendData ? (
             <Loader fullScreen={false} text="Loading charts..." />
-          ) : (
-            <div style={{ width: '100%', height: 260 }}>
+          ) : hasTrendData ? (
+            <div style={{ width: '100%', height: 340 }}>
               <ResponsiveContainer>
                 <LineChart
-                  data={
-                    selectedPeriod === 'monthly'
-                      ? (monthlyTrend && monthlyTrend.length ? monthlyTrend : DUMMY_MONTHLY)
-                      : (weeklyTrend && weeklyTrend.length ? weeklyTrend : DUMMY_WEEKLY)
-                  }
+                  data={activeTrendData}
                   margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="label" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="male" stroke="#3182ce" strokeWidth={2} />
-                  <Line type="monotone" dataKey="female" stroke="#d53f8c" strokeWidth={2} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                  <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={{ stroke: '#cbd5e1' }} tickLine={{ stroke: '#cbd5e1' }} />
+                  <YAxis tick={{ fill: '#64748b', fontSize: 12 }} axisLine={{ stroke: '#cbd5e1' }} tickLine={{ stroke: '#cbd5e1' }} />
+                  <Tooltip
+                    contentStyle={chartTooltipStyle}
+                    cursor={{ stroke: '#14b8a6', strokeWidth: 1.5, strokeDasharray: '4 4' }}
+                  />
+                  <Legend wrapperStyle={{ paddingTop: 8 }} iconType="circle" />
+                  <Line
+                    type="monotone"
+                    dataKey="male"
+                    stroke="#3182ce"
+                    strokeWidth={2.5}
+                    dot={{ r: 3, strokeWidth: 2, fill: '#ffffff' }}
+                    activeDot={{ r: 6, strokeWidth: 2, fill: '#ffffff' }}
+                    isAnimationActive
+                    animationDuration={650}
+                    animationEasing="ease-out"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="female"
+                    stroke="#d53f8c"
+                    strokeWidth={2.5}
+                    dot={{ r: 3, strokeWidth: 2, fill: '#ffffff' }}
+                    activeDot={{ r: 6, strokeWidth: 2, fill: '#ffffff' }}
+                    isAnimationActive
+                    animationDuration={650}
+                    animationEasing="ease-out"
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
+          ) : (
+            <p className="text-sm text-slate-400 italic">No data available</p>
           )}
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-lg p-4">
+        <div className="bg-white/80 border border-slate-200/90 rounded-xl p-4 backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
           <div className="flex items-center gap-2 mb-3">
             <MapPin className="w-5 h-5 text-teal-600" />
             <h4 className="font-semibold text-slate-900">Visitors by Hour</h4>
           </div>
-          {analyticsLoading && !hourlyData ? (
+          {analyticsLoading && !hasHourlyData ? (
             <Loader fullScreen={false} text="Loading hourly chart..." />
-          ) : (hourlyData && hourlyData.length ? hourlyData : DUMMY_HOURLY) ? (
-            <div style={{ width: '100%', height: 260 }}>
+          ) : hasHourlyData ? (
+            <div style={{ width: '100%', height: 340 }}>
               <ResponsiveContainer>
-                <BarChart data={hourlyData && hourlyData.length ? hourlyData : DUMMY_HOURLY} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="label" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
+                <BarChart data={hourlyData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                  <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={{ stroke: '#cbd5e1' }} tickLine={{ stroke: '#cbd5e1' }} />
+                  <YAxis tick={{ fill: '#64748b', fontSize: 12 }} axisLine={{ stroke: '#cbd5e1' }} tickLine={{ stroke: '#cbd5e1' }} />
+                  <Tooltip
+                    contentStyle={chartTooltipStyle}
+                    cursor={{ fill: 'rgba(20, 184, 166, 0.08)' }}
+                  />
+                  <Legend wrapperStyle={{ paddingTop: 8 }} iconType="circle" />
                   {/* Prefer a single `count` field, fallback to male+female sum */}
-                  <Bar dataKey="count" fill="#14b8a6" />
-                  <Bar dataKey="male" fill="#3182ce" />
-                  <Bar dataKey="female" fill="#d53f8c" />
+                  <Bar dataKey="count" fill="#14b8a6" radius={[6, 6, 0, 0]} isAnimationActive animationDuration={700} animationEasing="ease-out" />
+                  <Bar dataKey="male" fill="#3182ce" radius={[6, 6, 0, 0]} isAnimationActive animationDuration={700} animationEasing="ease-out" />
+                  <Bar dataKey="female" fill="#d53f8c" radius={[6, 6, 0, 0]} isAnimationActive animationDuration={700} animationEasing="ease-out" />
                 </BarChart>
               </ResponsiveContainer>
             </div>

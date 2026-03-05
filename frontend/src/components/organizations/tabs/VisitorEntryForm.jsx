@@ -497,15 +497,19 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
   const floors = ['Ground Floor', 'Floor 1', 'Floor 2', 'Floor 3', 'Floor 4', 'Floor 5'];
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-teal-50/95 rounded-xl shadow-md p-8">
-        <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-          ✅ Visitor Check-In
-        </h3>
+    <div className="max-w-6xl mx-auto px-2">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 md:p-8">
+        <div className="mb-6 pb-4 border-b border-gray-200">
+          <h3 className="text-2xl font-bold text-gray-900">Visitor Check-In</h3>
+          <p className="text-gray-500 mt-1">Fill in the visitor details below. All fields marked <span className="text-red-500">*</span> are required.</p>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <div className="xl:col-span-2 space-y-6">
+              <div className="rounded-xl border border-gray-200 p-5 md:p-6">
+                <h4 className="text-2xl font-bold text-gray-900 mb-5">Visitor Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Mobile Number *
@@ -631,9 +635,13 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
               )}
             </div>
           </div>
+              </div>
 
-          {/* Host Contact Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="rounded-xl border border-gray-200 p-5 md:p-6 space-y-6">
+                <h4 className="text-xl font-bold text-gray-900">Host & Visit Details</h4>
+
+                {/* Host Contact Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Host Name *
@@ -687,8 +695,8 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
             </div>
           </div>
 
-          {/* Purpose of Visit */}
-          <div>
+                {/* Purpose of Visit */}
+                <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Purpose of Visit *
             </label>
@@ -713,8 +721,8 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
             )}
           </div>
 
-          {/* Floor and Tower */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Floor and Tower */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Tower
@@ -778,9 +786,9 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
 
           </div>
 
-          {/* Duration of Visit */}
-          <div className="bg-teal-50 p-6 rounded-lg border-2 border-teal-200">
-            <h4 className="font-semibold text-teal-900 mb-4">Duration of Visit</h4>
+                {/* Duration of Visit */}
+                <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
+            <h4 className="font-semibold text-gray-900 mb-4">Duration of Visit</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -824,8 +832,8 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
             </div>
           </div>
 
-          {/* Additional Options */}
-          <div className="flex flex-col gap-4 bg-teal-50 p-4 rounded-lg">
+                {/* Additional Options */}
+                <div className="flex flex-col gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -843,21 +851,19 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
               </label>
             </div>
           </div>
+              </div>
+            </div>
 
-
-
-          {/* Webcam Capture */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
-              Visitor Photo *
-            </label>
+            <div className="xl:col-span-1">
+              <div className="rounded-xl border border-gray-200 p-5 md:p-6 xl:sticky xl:top-6">
+                <h4 className="text-2xl font-bold text-gray-900 mb-5">Visitor Photo</h4>
 
             {!showWebcam && !imagePreview && (
               <div className={`${errors.image_base64 ? 'error-field' : ''}`}>
                 <button
                   type="button"
                   onClick={() => setShowWebcam(true)}
-                  className={`w-full px-8 py-4 font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 mb-4 ${errors.image_base64
+                  className={`w-full px-6 py-3.5 font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md mb-4 ${errors.image_base64
                     ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-2 border-red-500'
                     : 'bg-gradient-to-r from-teal-600 to-teal-600 hover:from-teal-700 hover:to-teal-700 text-white'
                     }`}
@@ -889,14 +895,14 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
             )}
 
             {imagePreview && (
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200">
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="flex items-center justify-center w-8 h-8 bg-green-500 rounded-full">
+              <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+                <div className="mb-3 flex items-center gap-2">
+                  <div className="flex items-center justify-center w-7 h-7 bg-green-500 rounded-full">
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <p className="text-green-700 font-semibold text-lg">
+                  <p className="text-green-700 font-semibold text-sm">
                     {isUsingExistingImage ? 'Existing image loaded from previous visit' : 'Photo captured successfully!'}
                   </p>
                 </div>
@@ -904,7 +910,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                   <img
                     src={imagePreview}
                     alt="Captured visitor"
-                    className="w-full h-64 object-cover rounded-xl shadow-lg"
+                    className="w-full h-72 object-cover rounded-xl border border-gray-200"
                   />
                   {isUsingExistingImage && !isExistingImageConfirmed ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
@@ -927,7 +933,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                     <button
                       type="button"
                       onClick={isUsingExistingImage ? handleRetakeImage : handleClearImage}
-                      className="mt-4 w-full px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
+                        className="mt-4 w-full px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -938,14 +944,16 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                 </div>
               </div>
             )}
+              </div>
+            </div>
           </div>
 
           {/* Submit Button */}
-          <div className="flex justify-center pt-4">
+          <div className="flex justify-center pt-2">
             <button
               type="submit"
               disabled={loading || isSubmitting}
-              className={`px-8 py-3 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-md hover:shadow-lg min-w-[200px] ${loading || isSubmitting
+              className={`w-full md:w-auto px-8 py-3 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md min-w-[220px] ${loading || isSubmitting
                 ? 'bg-gray-400 cursor-not-allowed text-white'
                 : 'bg-green-600 hover:bg-green-700 text-white'
                 }`}

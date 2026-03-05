@@ -13,7 +13,7 @@ import EmployeeAttendanceCalendar from './EmployeeAttendanceCalendar';
 import OrganizationDepartments from './OrganizationDepartments';
 import OrganizationShifts from './OrganizationShifts';
 import { authService } from '../../../services/authService';
-import { Users, BarChart3, ClipboardList, Calendar as CalendarIcon, Building2, Clock, FileText, Download, MoreHorizontal, ChevronDown, CheckCircle2, XCircle, Search, ListFilter, Pencil, Trash2 } from 'lucide-react';
+import { Users, BarChart3, ClipboardList, Calendar as CalendarIcon, Building2, Clock, FileText, Download, MoreHorizontal, ChevronDown, CheckCircle2, XCircle, Search, ListFilter, Trash2 } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 
 const { Option } = Select;
@@ -1337,7 +1337,9 @@ const OrganizationEmployees = ({ organizationId, organization, isAlertSidebarOpe
                             aria-label="Edit employee"
                             className="w-9 h-9 inline-flex items-center justify-center bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100 transition-all"
                           >
-                            <Pencil className="w-4 h-4" />
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
                           </button>
                           <button
                             onClick={() => handleDeleteEmployee(employee.id, employee.full_name)}

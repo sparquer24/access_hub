@@ -796,7 +796,8 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                                     <XAxis dataKey="name" fontSize={12} tick={{ fill: '#6b7280' }} />
                                     <YAxis fontSize={12} tick={{ fill: '#6b7280' }} />
                                     <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                                    <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                            
+                                                <Legend wrapperStyle={{ paddingTop: '20px' }} />
                                     <Bar dataKey="present" name="Present" stackId="a" fill="#22c55e" radius={[0, 0, 4, 4]} />
                                     <Bar dataKey="late" name="Late" stackId="a" fill="#eab308" />
                                     <Bar dataKey="absent" name="Absent" stackId="a" fill="#ef4444" radius={[4, 4, 0, 0]} />
