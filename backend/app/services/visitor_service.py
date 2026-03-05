@@ -329,15 +329,89 @@ class VisitorService:
         return visitor
 
     @staticmethod
-    def get_visitor_alerts(organization_id, visitor_id=None, limit=100):
+    def get_visitor_alerts(organization_id, filters=None):
         """
-        Retrieve visitor alerts for an organization or a specific visitor.
+        Retrieve visitor alerts for an organization.
         
-        Note: Visitor alerts functionality has been removed from the schema.
-        This method returns an empty list for backward compatibility.
+        Uses the Alert model from alerts.py for unified platform alerts.
+        
+        Args:
+            organization_id: Organization ID
+            filters: Optional dict with filter criteria {
+                visitor_id: str,
+                unacknowledged_only: bool,
+                alert_type: str,
+                date_from: date,
+                date_to: date,
+                limit: int,
+                offset: int
+            }
+            
+        Returns:
+            List of Alert objects
         """
-        # Legacy method - VisitorAlert model no longer exists
-        return []
+        try:
+            if filters is None:
+                filters = {}
+            
+            # Build query for alerts
+            query = db.session.query(Alert).filter(
+                Alert.organization_id == organization_id
+            )
+            
+            # Filter by visitor if provided
+            if filters.get('visitor_id'):
+                query = query.filter(Alert.visitor_id == filters['visitor_id'])
+            
+            # Filter by acknowledgment status
+            if filters.get('unacknowledged_only'):
+                query = query.filter(Alert.alert_status == 'yet_to_handle')
+            
+            # Filter by alert type
+            if filters.get('alert_type'):
+                query = query.filter(Alert.alert_type == filters['alert_type'])
+            
+            # Filter by date range
+            if filters.get('date_from'):
+                query = query.filter(Alert.alert_time >= filters['date_from'])
+            
+            if filters.get('date_to'):
+                query = query.filter(Alert.alert_time <= filters['date_to'])
+            
+            # Order by most recent first
+            query = query.order_by(Alert.alert_time.desc())
+            
+            # Apply pagination
+            offset = filters.get('offset', 0)
+            limit = filters.get('limit', 50)
+            
+            alerts = query.offset(offset).limit(limit).all()
+            
+            return alerts
+            
+        except Exception as e:
+            current_app.logger.exception('Failed to get visitor alerts')
+            return []
+
+    @staticmethod
+    def acknowledge_alert(organization_id, alert_id, user_id=None):
+        """
+        Acknowledge a visitor alert.
+        
+        Note: Alert model has been deprecated. This method returns a deprecation message.
+        
+        Args:
+            organization_id: Organization ID
+            alert_id: Alert ID to acknowledge
+            user_id: User ID who acknowledged the alert (optional)
+            
+        Returns:
+            Deprecation notice dictionary
+            
+        Raises:
+            ValueError: Alert functionality has been deprecated
+        """
+        raise ValueError('Alert functionality has been deprecated. Please use visitor_history for tracking visits.')
 
     @staticmethod
     def create_visitor_history_record(organization_id, visitor_id, data):

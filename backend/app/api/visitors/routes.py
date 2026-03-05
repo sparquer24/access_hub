@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime
 from ...utils.helpers import (
     success_response,
@@ -18,7 +18,7 @@ from ...schemas.visitor import (
 from ...services.visitor_service import VisitorService
 from ...middlewares.rbac_middleware import require_permission
 from ...models import OrganizationVisitor, VisitorHistoryDetails, VisitorMovementLog
-from ...extensions import db
+from ...extensions import db, socketio
 
 bp = Blueprint('Visitors', __name__, url_prefix='/api/v2/organizations')
 
@@ -327,21 +327,23 @@ def get_alerts(org_id):
         alerts = VisitorService.get_visitor_alerts(org_id, filters)
         
         alert_data = []
-        for alert in alerts:
-            visitor = alert.visitor
-            alert_data.append({
-                'id': alert.id,
-                'visitor_id': alert.visitor_id,
-                'visitor_name': visitor.name if visitor else None,
-                'visitor_phone': visitor.phone if visitor else None,
-                'alert_type': alert.alert_type,
-                'current_floor': alert.current_floor,
-                'allowed_floor': alert.allowed_floor,
-                'alert_time': alert.alert_time.isoformat(),
-                'acknowledged': alert.acknowledged,
-                'acknowledged_at': alert.acknowledged_at.isoformat() if alert.acknowledged_at else None,
-                'details': alert.details
-            })
+        # Note: Alert model has been deprecated. This endpoint returns empty list for backward compatibility
+        if isinstance(alerts, list):
+            for alert in alerts:
+                visitor = alert.visitor if hasattr(alert, 'visitor') else None
+                alert_data.append({
+                    'id': alert.id if hasattr(alert, 'id') else None,
+                    'visitor_id': alert.visitor_id if hasattr(alert, 'visitor_id') else None,
+                    'visitor_name': visitor.name if visitor else None,
+                    'visitor_phone': visitor.phone if visitor else None,
+                    'alert_type': alert.alert_type if hasattr(alert, 'alert_type') else None,
+                    'current_floor': alert.current_floor if hasattr(alert, 'current_floor') else None,
+                    'allowed_floor': alert.allowed_floor if hasattr(alert, 'allowed_floor') else None,
+                    'alert_time': alert.alert_time.isoformat() if hasattr(alert, 'alert_time') and alert.alert_time else None,
+                    'acknowledged': alert.acknowledged if hasattr(alert, 'acknowledged') else False,
+                    'acknowledged_at': alert.acknowledged_at.isoformat() if hasattr(alert, 'acknowledged_at') and alert.acknowledged_at else None,
+                    'details': alert.details if hasattr(alert, 'details') else None
+                })
         
         return success_response({
             'alerts': alert_data,
@@ -610,20 +612,15 @@ def acknowledge_alert(org_id, alert_id):
         description: Alert not found
     """
     try:
-        alert = VisitorService.acknowledge_alert(org_id, alert_id)
-        
-        visitor = alert.visitor
+        user_id = get_jwt_identity()
+        alert = VisitorService.acknowledge_alert(org_id, alert_id, user_id)
         
         return success_response({
-            'id': alert.id,
-            'visitor_id': alert.visitor_id,
-            'visitor_name': visitor.name if visitor else None,
-            'alert_type': alert.alert_type,
-            'acknowledged': alert.acknowledged,
-            'acknowledged_at': alert.acknowledged_at.isoformat() if alert.acknowledged_at else None,
             'message': 'Alert acknowledged successfully'
         }, 200)
         
+    except ValueError as e:
+        return error_response(str(e), 410)  # 410 Gone - feature deprecated
     except Exception as e:
         return error_response(str(e), 400)
 

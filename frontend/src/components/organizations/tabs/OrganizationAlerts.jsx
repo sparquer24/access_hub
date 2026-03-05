@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { auditAPI } from '../../../services/apiServices';
+import { visitorService } from '../../../services/visitorService';
+import { socketService } from '../../../services/socketService';
 import { useToast } from '../../../contexts/ToastContext';
 import Loader from '../../common/Loader';
 import { X } from 'lucide-react';
@@ -66,8 +68,63 @@ const OrganizationAlerts = ({ organizationId, activeTab = 'info', showActivityLo
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeAlerts, setActiveAlerts] = useState([]);
+  const [visitorAlerts, setVisitorAlerts] = useState([]);
   const activeHeader = TAB_HEADERS[activeTab] || 'Organization Overview';
   const showScrollableAlerts = activeAlerts.length > 6;
+
+  // Connect to WebSocket and subscribe to alerts
+  useEffect(() => {
+    if (!organizationId) return;
+
+    // Connect to WebSocket
+    socketService.connect(organizationId);
+
+    // Subscribe to real-time alerts
+    const handleNewAlert = (data) => {
+      console.log('Real-time alert received:', data);
+      // Add new alert to the list
+      const newAlert = {
+        id: data.id,
+        type: data.alert_type === 'unauthorized' ? 'critical' : 
+              data.alert_type === 'overstay' ? 'warning' : 'info',
+        title: data.alert_type?.charAt(0).toUpperCase() + data.alert_type?.slice(1) || 'New Alert',
+        message: data.details || `Visitor alert: ${data.alert_type}`,
+        relativeTime: 'Just now'
+      };
+      setActiveAlerts(prev => [newAlert, ...prev].slice(0, 6));
+      success('New alert received!');
+    };
+
+    const handleAlertHandled = (data) => {
+      console.log('Alert handled:', data);
+      // Remove handled alert from list
+      setActiveAlerts(prev => prev.filter(alert => alert.id !== data.id));
+    };
+
+    const handleVisitorCheckin = (data) => {
+      console.log('Visitor checked in:', data);
+      success(`${data.visitor_name || 'A visitor'} checked in`);
+    };
+
+    const handleVisitorCheckout = (data) => {
+      console.log('Visitor checked out:', data);
+    };
+
+    // Register event listeners
+    socketService.on('new_alert', handleNewAlert);
+    socketService.on('alert_handled', handleAlertHandled);
+    socketService.on('visitor_checkin', handleVisitorCheckin);
+    socketService.on('visitor_checkout', handleVisitorCheckout);
+
+    // Cleanup on unmount
+    return () => {
+      socketService.off('new_alert', handleNewAlert);
+      socketService.off('alert_handled', handleAlertHandled);
+      socketService.off('visitor_checkin', handleVisitorCheckin);
+      socketService.off('visitor_checkout', handleVisitorCheckout);
+      socketService.disconnect();
+    };
+  }, [organizationId, success]);
 
   useEffect(() => {
     const loadLogs = async () => {
@@ -83,11 +140,43 @@ const OrganizationAlerts = ({ organizationId, activeTab = 'info', showActivityLo
       }
     };
 
+    // Load visitor alerts if on visitors tab
+    const loadVisitorAlerts = async () => {
+      if (activeTab === 'visitors') {
+        try {
+          const response = await visitorService.getAlerts(organizationId);
+          if (response.success && response.data) {
+            // Transform visitor alerts to match component format
+            const transformedAlerts = response.data.map(alert => ({
+              id: alert.id,
+              type: alert.alert_type === 'unauthorized' ? 'critical' : 
+                    alert.alert_type === 'overstay' ? 'warning' : 'info',
+              title: alert.alert_type.charAt(0).toUpperCase() + alert.alert_type.slice(1),
+              message: `Visitor alert: ${alert.alert_type}`,
+              relativeTime: alert.alert_time ? new Date(alert.alert_time).toLocaleTimeString() : 'Just now'
+            }));
+            setVisitorAlerts(transformedAlerts);
+          }
+        } catch (error) {
+          console.error('Error fetching visitor alerts:', error);
+        }
+      }
+    };
+
     if (showActivityLog) {
       loadLogs();
     }
+    
+    loadVisitorAlerts();
 
     const tabAlerts = TAB_ALERTS[activeTab] || TAB_ALERTS.default;
+    
+    // Merge visitor alerts with tab alerts for visitors tab
+    let combinedAlerts = tabAlerts;
+    if (activeTab === 'visitors' && visitorAlerts.length > 0) {
+      combinedAlerts = [...visitorAlerts, ...tabAlerts].slice(0, 6);
+    }
+
     const ensureSixAlerts = (alerts) => {
       if (alerts.length >= 6) {
         return alerts.slice(0, 6);
@@ -120,8 +209,8 @@ const OrganizationAlerts = ({ organizationId, activeTab = 'info', showActivityLo
       return [...alerts, ...fallbackAlerts].slice(0, 6);
     };
 
-    setActiveAlerts(ensureSixAlerts(tabAlerts));
-  }, [organizationId, activeTab, showActivityLog, showError]);
+    setActiveAlerts(ensureSixAlerts(combinedAlerts));
+  }, [organizationId, activeTab, showActivityLog, showError, visitorAlerts]);
 
   const handleDismiss = (id) => {
     setActiveAlerts(prev => prev.filter(alert => alert.id !== id));
@@ -129,6 +218,7 @@ const OrganizationAlerts = ({ organizationId, activeTab = 'info', showActivityLo
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleString('en-IN', {
       dateStyle: 'medium',
       timeStyle: 'short',
@@ -207,13 +297,15 @@ const OrganizationAlerts = ({ organizationId, activeTab = 'info', showActivityLo
             <p className="text-lg font-semibold text-red-800 leading-tight">Alerts {activeAlerts.length}</p>
              <h3 className="text-sm font-medium text-slate-500 leading-tight mt-0.5">{activeHeader}</h3>
           </div>
-          <button
-            onClick={onCloseSidebar}
-            className="p-1.5 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-            aria-label="Close alerts sidebar"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          {onCloseSidebar && (
+            <button
+              onClick={onCloseSidebar}
+              className="p-1.5 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+              aria-label="Close alerts sidebar"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         <div className={`p-1.5 space-y-1.5 flex-1 ${showScrollableAlerts ? 'overflow-y-auto' : 'overflow-hidden'}`}>
@@ -328,7 +420,9 @@ const OrganizationAlerts = ({ organizationId, activeTab = 'info', showActivityLo
                     </div>
                     <div className="text-right">
                       <span className="text-xs text-gray-500 block">{formatDate(log.created_at)}</span>
-                      <span className="text-xs font-medium text-teal-600 block mt-1">{log.performed_by_username}</span>
+                      {log.performed_by_username && (
+                        <span className="text-xs font-medium text-teal-600 block mt-1">{log.performed_by_username}</span>
+                      )}
                     </div>
                   </div>
                 </div>
