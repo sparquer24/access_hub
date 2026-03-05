@@ -62,7 +62,7 @@ jobs:
   deploy-backend:
     name: Deploy Backend
     needs: changes
-    if: needs.changes.outputs.other == 'false' && needs.changes.outputs.backend == 'true'
+    if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     env:
       AWS_REGION: ap-south-1
@@ -116,7 +116,7 @@ jobs:
   deploy-frontend:
     name: Deploy Frontend
     needs: changes
-    if: needs.changes.outputs.other == 'false' && needs.changes.outputs.frontend == 'true'
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
