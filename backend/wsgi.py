@@ -13,8 +13,19 @@ app = create_app()
 
 if __name__ == '__main__':
     # Run with SocketIO if available
+    import traceback
     try:
+        print("Attempting to start server with SocketIO...")
         from app.extensions import socketio
         socketio.run(app, host='0.0.0.0', port=5001, debug=True, allow_unsafe_werkzeug=True, use_reloader=False)
-    except:
-        app.run(host='0.0.0.0', port=5001, debug=True, use_reloader=False)
+    except Exception as e:
+        print("Failed to start with SocketIO, falling back to Flask's development server.")
+        print(f"Error: {e}")
+        traceback.print_exc()
+        try:
+            print("Attempting to start server with Flask's development server...")
+            app.run(host='0.0.0.0', port=5001, debug=True, use_reloader=False)
+        except Exception as e2:
+            print(f"Failed to start with Flask's development server as well.")
+            print(f"Error: {e2}")
+            traceback.print_exc()

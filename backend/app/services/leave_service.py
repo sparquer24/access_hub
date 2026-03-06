@@ -203,7 +203,7 @@ class LeaveService:
             raise BadRequestError('Leave request is not pending')
         
         leave_request.status = 'approved'
-        leave_request.approved_by = current_user.get('id')
+        leave_request.approved_by = current_user.id
         
         if data.get('approval_notes'):
             leave_request.approval_notes = data['approval_notes']
@@ -223,7 +223,7 @@ class LeaveService:
             raise BadRequestError('Leave request is not pending')
         
         leave_request.status = 'rejected'
-        leave_request.approved_by = current_user.get('id')
+        leave_request.approved_by = current_user.id
         
         if data.get('approval_notes'):
             leave_request.approval_notes = data['approval_notes']

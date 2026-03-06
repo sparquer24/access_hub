@@ -9,7 +9,13 @@ export const profileAPI = {
 };
 
 // Base URL for API calls
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:5001";
+let API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://access-alb16-o81zyqqut8kx-538769711.ap-south-1.elb.amazonaws.com";
+
+// Mixed Content Fix: If the page is loaded over HTTPS, force the API to use HTTPS
+if (typeof window !== 'undefined' && window.location.protocol === 'https:' && API_BASE_URL.startsWith('http:')) {
+  console.log('🔒 Mixed Content detected: Switching API_BASE_URL to HTTPS');
+  API_BASE_URL = API_BASE_URL.replace('http:', 'https:');
+}
 
 // DEBUG: Log the API URL being used
 console.log('🌐 API Configuration:');

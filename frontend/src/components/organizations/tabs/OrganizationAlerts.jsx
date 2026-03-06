@@ -103,7 +103,7 @@ const OrganizationAlerts = ({ organizationId, activeTab = 'info', showActivityLo
 
     const handleVisitorCheckin = (data) => {
       console.log('Visitor checked in:', data);
-      success(`${data.visitor_name || 'A visitor'} checked in`);
+      success(`${data.name || 'A visitor'} checked in`);
     };
 
     const handleVisitorCheckout = (data) => {

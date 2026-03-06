@@ -9,7 +9,7 @@ import QuickActionButton from '../common/dashboard/QuickActionButton';
 import Loader from '../common/Loader';
 import { useToast } from '../../contexts/ToastContext';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://access-alb16-o81zyqqut8kx-538769711.ap-south-1.elb.amazonaws.com';
 
 const OrgAdminDashboard = () => {
   const { user, logout } = useAuth();
