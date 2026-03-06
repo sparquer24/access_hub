@@ -4,37 +4,30 @@ from .extensions import db, migrate, bcrypt, socketio, jwt, cache
 from flask_cors import CORS
 from flasgger import Swagger
 import os
+from sqlalchemy import text
 
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    # CORS Configuration - Properly handle preflight and cross-origin requests
-    # For JWT-based APIs, we don't need credentials (cookies/sessions)
-    # This prevents 'strict-origin-when-cross-origin' issues
-    cors_origins = app.config["CORS_ORIGIN"]
-    env = str(app.config.get("ENVIRONMENT", "dev")).lower()
-    if env in ("dev", "stage"):
-        cors_origins = "*"
-    if cors_origins == "*":
-        cors_origins = "*"
+    # CORS Configuration
+    cors_origins_str = app.config.get("CORS_ORIGIN", "*")
+    env = app.config.get("ENVIRONMENT", "dev").lower()
+
+    if cors_origins_str == "*":
+        allowed_origins = "*"
+        if env == "prod":
+            app.logger.warning("CORS is configured to allow all origins ('*') in a production environment. This is insecure and should be restricted to specific domains.")
     else:
-        cors_origins = [origin.strip() for origin in cors_origins.split(",")]
-    
+        allowed_origins = [origin.strip() for origin in cors_origins_str.split(",")]
+
     CORS(
         app,
-        resources={
-            r"/api/*": {
-                "origins": cors_origins,
-                "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-                "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
-                "expose_headers": ["Content-Type", "Authorization"],
-                "supports_credentials": False,  # JWT doesn't need cookies
-                "max_age": 3600  # Cache preflight for 1 hour
-            }
-        }
+        resources={r"/api/*": {"origins": allowed_origins}},
+        supports_credentials=True
     )
+    app.logger.info(f"CORS enabled for origins: {allowed_origins}")
 
     # Initialize extensions
     db.init_app(app)
@@ -488,21 +481,28 @@ def create_app():
         """
         return jsonify({"status": "healthy", "version": "2.0"}), 200
 
-    @app.after_request
-    def set_security_headers(response):
-        # Set a conservative referrer policy for cross-origin requests
-        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
-        
-        # Ensure CORS headers are present for all API responses
-        if request.path.startswith('/api/'):
-            origin = request.headers.get('Origin')
-            if origin and origin in cors_origins if isinstance(cors_origins, list) else True:
-                response.headers['Access-Control-Allow-Origin'] = origin if cors_origins != "*" else "*"
-                response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
-                response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
-                response.headers['Access-Control-Expose-Headers'] = 'Content-Type, Authorization'
-        
-        return response
+    @app.get("/")
+    def root_ok():
+        return jsonify({"status": "ok"}), 200
+
+    @app.get("/api/ready")
+    def readiness_check():
+        try:
+            # Query to count tables in the 'public' schema, which is standard for user tables.
+            query = text("SELECT count(*) FROM information_schema.tables WHERE table_schema = 'main'")
+            result = db.session.execute(query)
+            # .scalar_one() fetches the first column of the first row and ensures there is exactly one result.
+            table_count = result.scalar_one()
+            return jsonify({
+                "status": "ready",
+                "database_connection": "ok",
+                "public_table_count": table_count
+            }), 200
+        except Exception as e:
+            app.logger.error(f"Readiness check failed: {e}")
+            return jsonify({"status": "unavailable", "error": str(e)}), 503
+
+
 
     # Initialize SocketIO with the app
     from .events.alerts import (

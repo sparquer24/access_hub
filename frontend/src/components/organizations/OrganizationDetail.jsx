@@ -29,15 +29,19 @@ const OrganizationDetail = ({
   const [loading, setLoading] = useState(true);
   const [isAlertSidebarOpen, setIsAlertSidebarOpen] = useState(true);
   const { hasFeature } = useSubscription();
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
 
   // Verify user has access to this organization
   useEffect(() => {
-    if (user && user.organization_id && user.organization_id !== id) {
+    const isSuperAdmin = hasRole('super_admin');
+    const isOrgAdmin = hasRole('org_admin');
+    const userOrgId = user?.organization_id;
+
+    if (!isSuperAdmin && isOrgAdmin && userOrgId && String(userOrgId) !== String(id)) {
       message.error('Access denied. You can only view your own organization.');
       navigate(dashboardPath);
     }
-  }, [user, id, navigate, dashboardPath]);
+  }, [user, id, navigate, dashboardPath, hasRole]);
 
   // Get active tab from URL or default to 'info'
   const activeTab = searchParams.get('tab') || 'info';
