@@ -1,7 +1,17 @@
 name: DEV MMS BACKEND
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
   workflow_dispatch:
+    inputs:
+      restart_only:
+        description: 'Restart service without building a new image'
+        required: true
+        type: boolean
+        default: false
 
 env:
   AWS_REGION: ap-south-1
@@ -65,7 +75,8 @@ jobs:
           container-name: BackendContainer
           image: ${{ steps.build-image.outputs.image }}
 
-      - name: Deploy to DEV ECS
+      - name: Deploy to ECS
+        if: ${{ !github.event.inputs.restart_only }}
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.render-task-def.outputs.task-definition }}
@@ -73,8 +84,7 @@ jobs:
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
 
-      - name: Deployment Summary
+      - name: Restart ECS Service
+        if: ${{ github.event.inputs.restart_only }}
         run: |
-          echo "Environment: DEV"
-          echo "Branch: ${{ github.ref_name }}"
-          echo "Cluster: $ECS_CLUSTER"
+          aws ecs update-service --cluster ${{ vars.ECS_CLUSTER }} --service ${{ vars.ECS_SERVICE }} --force-new-deployment
