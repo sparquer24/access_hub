@@ -1,0 +1,83 @@
+name: AccessHub Backend Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/accesshub-backend-deploy.yml"
+  workflow_dispatch: {}
+
+concurrency:
+  group: accesshub-backend
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-south-1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      - name: Deploy backend (ECS/ECR)
+        env:
+          AWS_REGION: ap-south-1
+          ECS_TASK_FAMILY: ${{ secrets.ECS_TASK_FAMILY }}
+          ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+          ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+          CONTAINER_NAME: BackendContainer
+          IMAGE_TAG: ${{ github.sha }}
+          WAIT_FOR_SERVICE_STABILITY: "false"
+        shell: bash
+        run: |
+          set -euo pipefail
+          aws ecs describe-task-definition \
+            --task-definition "${ECS_TASK_FAMILY}" \
+            --query taskDefinition > task-definition.json
+
+          CURRENT_IMAGE="$(jq -r --arg NAME "${CONTAINER_NAME}" '.containerDefinitions[] | select(.name==$NAME) | .image' task-definition.json)"
+          if [[ -z "${CURRENT_IMAGE}" || "${CURRENT_IMAGE}" == "null" ]]; then
+            echo "Failed to resolve current image from task definition" >&2
+            exit 1
+          fi
+          ECR_REGISTRY="$(echo "${CURRENT_IMAGE}" | cut -d'/' -f1)"
+          ECR_REPOSITORY="$(echo "${CURRENT_IMAGE}" | cut -d'/' -f2- | sed 's/@.*$//' | sed 's/:.*$//')"
+          IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+          echo "ECR_REGISTRY=${ECR_REGISTRY}" >> "$GITHUB_ENV"
+          echo "ECR_REPOSITORY=${ECR_REPOSITORY}" >> "$GITHUB_ENV"
+          echo "IMAGE_URI=${IMAGE_URI}" >> "$GITHUB_ENV"
+
+          aws ecr get-login-password --region "${AWS_REGION}" | docker login --username AWS --password-stdin "${ECR_REGISTRY}"
+          docker build -t "${IMAGE_URI}" backend
+          docker push "${IMAGE_URI}"
+
+          jq --arg IMG "${IMAGE_URI}" --arg NAME "${CONTAINER_NAME}" '
+          .containerDefinitions |= ( map(if .name==$NAME then .image=$IMG else . end) ) |
+          { family, taskRoleArn, executionRoleArn, networkMode, containerDefinitions, volumes, placementConstraints, requiresCompatibilities, cpu, memory }
+          ' task-definition.json > new-task-definition.json
+
+          REGISTER_OUTPUT="$(aws ecs register-task-definition --cli-input-json file://new-task-definition.json)"
+          NEW_TD_ARN="$(echo "$REGISTER_OUTPUT" | jq -r .taskDefinition.taskDefinitionArn)"
+          echo "NEW_TD_ARN=${NEW_TD_ARN}" >> "$GITHUB_ENV"
+
+          aws ecs update-service \
+            --cluster "${ECS_CLUSTER}" \
+            --service "${ECS_SERVICE}" \
+            --task-definition "${NEW_TD_ARN}" >/dev/null
+
+          if [[ "${WAIT_FOR_SERVICE_STABILITY}" == "true" ]]; then
+            aws ecs wait services-stable --cluster "${ECS_CLUSTER}" --services "${ECS_SERVICE}"
+          fi
