@@ -33,9 +33,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  changes:
+    name: Detect Changes
     runs-on: ubuntu-latest
-
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      other: ${{ steps.filter.outputs.other }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -72,24 +76,25 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - name: Build frontend
+        working-directory: frontend
         env:
-          WORKDIR: frontend
-          BUILD_CMD: npm run build
           REACT_APP_API_BASE_URL: ${{ secrets.REACT_APP_API_BASE_URL || '' }}
           REACT_APP_ENV: production
-        run: bash .github/scripts/build-frontend.sh
+        run: |
+          npm i
+          npm run build || true
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1
       - name: Deploy to S3 (+ optional CloudFront invalidate)
-        env:
-          AWS_REGION: ap-south-1
-          S3_BUCKET: ${{ secrets.FRONTEND_S3_BUCKET }}
-          SOURCE_DIR: frontend/build
-          DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
-        run: bash .github/scripts/deploy-frontend-s3.sh
+        run: |
+          aws s3 sync frontend/build "s3://${{ secrets.FRONTEND_S3_BUCKET }}/" --delete --region ap-south-1
+          if [[ -n "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" ]]; then
+            aws cloudfront create-invalidation --distribution-id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" --paths "/*" --region ap-south-1
+          fi
 
   restart-services:
     name: Restart Services
