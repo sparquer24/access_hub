@@ -1,14 +1,20 @@
-name: Deploy Backend
+name: AccessHub Backend
 
 on:
   push:
     branches: [main]
     paths:
       - "backend/**"
+      - ".github/workflows/deploy-backend.yml"
+  workflow_dispatch: {}
 
 env:
   AWS_REGION: ap-south-1
   ECR_REPOSITORY: access-hub-backend
+
+concurrency:
+  group: accesshub-backend
+  cancel-in-progress: false
 
 permissions:
   id-token: write
@@ -48,7 +54,7 @@ jobs:
       - name: Download current task definition
         run: |
           aws ecs describe-task-definition \
-            --task-definition ${{ secrets.ECS_TASK_FAMILY }} \
+            --task-definition "${{ secrets.ECS_TASK_FAMILY }}" \
             --query taskDefinition \
             > task-definition.json
 
@@ -66,4 +72,4 @@ jobs:
           task-definition: ${{ steps.render-task-def.outputs.task-definition }}
           service: ${{ secrets.ECS_SERVICE }}
           cluster: ${{ secrets.ECS_CLUSTER }}
-          wait-for-service-stability: true
+          wait-for-service-stability: false

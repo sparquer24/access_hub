@@ -1,4 +1,4 @@
-name: Deploy Backend
+name: AccessHub Frontend
 
 on:
   push:
@@ -29,7 +29,7 @@ on:
         type: string
 
 concurrency:
-  group: fullstack-server
+  group: accesshub-frontend
   cancel-in-progress: false
 
 jobs:
@@ -37,9 +37,7 @@ jobs:
     name: Detect Changes
     runs-on: ubuntu-latest
     outputs:
-      backend: ${{ steps.filter.outputs.backend }}
       frontend: ${{ steps.filter.outputs.frontend }}
-      other: ${{ steps.filter.outputs.other }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -48,21 +46,13 @@ jobs:
         uses: dorny/paths-filter@v3
         with:
           filters: |
-            backend:
-              - 'backend/**'
             frontend:
               - 'frontend/**'
-            other:
-              - '**'
-              - '!backend/**'
-              - '!frontend/**'
-
-  # Backend deployment handled by deploy-backend.yml to avoid double triggers
 
   deploy-frontend:
     name: Deploy Frontend
     needs: changes
-    if: needs.changes.outputs.other == 'false' && needs.changes.outputs.frontend == 'true'
+    if: needs.changes.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read
