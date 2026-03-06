@@ -34,7 +34,7 @@ class BaseConfig:
     JWT_BLACKLIST_TOKEN_CHECKS = ['access', 'refresh']
     
     # CORS settings
-    CORS_ORIGIN = os.environ.get('CORS_ORIGIN', 'http://localhost:5001')
+    CORS_ORIGIN = os.environ.get('CORS_ORIGIN', '*')
     
     # Cache settings
     CACHE_TYPE = 'simple'

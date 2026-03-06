@@ -15,8 +15,35 @@ def create_app():
     cors_origins_str = app.config.get("CORS_ORIGIN", "*")
     env = app.config.get("ENVIRONMENT", "dev").lower()
 
+    # Define common headers for CORS
+    cors_headers = [
+        "Content-Type", 
+        "Authorization", 
+        "X-Requested-With", 
+        "Accept", 
+        "X-CSRF-Token",
+        "X-Organization-Id",
+        "X-Department-Id"
+    ]
+
     if cors_origins_str == "*":
-        allowed_origins = "*"
+        # Using a list with a regex-like string or just the list of common origins
+        # When supports_credentials=True, origins cannot be "*"
+        # Flask-CORS handles a list of origins by echoing the matching one
+        allowed_origins = [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:5173",  # Vite default
+            "http://127.0.0.1:5173",
+            "https://app.sparquer.ai",
+            "http://localhost:3001"
+        ]
+        # In dev/stage, we can be more permissive by adding a regex that matches anything
+        # but correctly echoes the origin for supports_credentials
+        if env != "prod":
+            # This regex matches any origin starting with http:// or https://
+            allowed_origins.append(r"https?://.*")
+        
         if env == "prod":
             app.logger.warning("CORS is configured to allow all origins ('*') in a production environment. This is insecure and should be restricted to specific domains.")
     else:
@@ -24,10 +51,51 @@ def create_app():
 
     CORS(
         app,
-        resources={r"/api/*": {"origins": allowed_origins}},
+        resources={
+            r"/api/.*": {
+                "origins": allowed_origins,
+                "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+                "allow_headers": cors_headers,
+                "expose_headers": ["Content-Type", "Authorization"]
+            }
+        },
         supports_credentials=True
     )
     app.logger.info(f"CORS enabled for origins: {allowed_origins}")
+
+    @app.after_request
+    def after_request(response):
+        # Set security headers
+        response.headers["Referrer-Policy"] = "no-referrer-when-downgrade"
+        
+        # Ensure CORS headers are present even for error responses that might bypass flask-cors
+        # if the origin is allowed
+        origin = request.headers.get('Origin')
+        if origin:
+            # Check if origin is in allowed_origins or matches our regex
+            # (In dev we used r"https?://.*")
+            import re
+            is_allowed = False
+            if cors_origins_str == "*":
+                is_allowed = True
+            elif isinstance(allowed_origins, list):
+                for allowed in allowed_origins:
+                    if allowed == "*" or allowed == origin:
+                        is_allowed = True
+                        break
+                    # Simple regex check for our dev permissive origin
+                    if isinstance(allowed, str) and allowed.startswith(r"https?://") and re.match(allowed, origin):
+                        is_allowed = True
+                        break
+            
+            if is_allowed:
+                response.headers["Access-Control-Allow-Origin"] = origin
+                response.headers["Access-Control-Allow-Credentials"] = "true"
+                if request.method == 'OPTIONS':
+                    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+                    response.headers["Access-Control-Allow-Headers"] = ", ".join(cors_headers)
+        
+        return response
 
     # Initialize extensions
     db.init_app(app)
