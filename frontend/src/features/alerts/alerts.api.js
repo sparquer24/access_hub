@@ -1,5 +1,10 @@
+import { API_BASE, SOCKET_URL } from "../../config";
+
 // helpers to resolve env urls and fetch initial alerts
 export function getEnvUrl(name, fallback) {
+  if (name.includes('API_BASE_URL')) return API_BASE;
+  if (name.includes('SOCKET_URL')) return SOCKET_URL;
+  
   // Vite: import.meta.env
   try {
     // eslint-disable-next-line no-undef
@@ -21,11 +26,11 @@ export function getEnvUrl(name, fallback) {
 }
 
 export function getApiBase() {
-  return getEnvUrl('VITE_ALERTS_API_BASE_URL', window.location.origin);
+  return API_BASE;
 }
 
 export function getSocketUrl() {
-  return getEnvUrl('VITE_ALERTS_SOCKET_URL', window.location.origin);
+  return SOCKET_URL;
 }
 
 export async function fetchInitialAlerts(signal) {

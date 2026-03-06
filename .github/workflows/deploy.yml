@@ -5,35 +5,184 @@ on:
     branches:
       - main
     paths:
-      - "frontend/**"
-  workflow_dispatch: {}
+      - backend/**
+      - frontend/**
+      - .github/workflows/deploy.yml
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Select which service to restart
+        required: true
+        default: both
+        type: choice
+        options:
+          - backend
+          - frontend
+          - both
+      working_dir:
+        description: Remote working directory
+        required: true
+        default: /var/www/fullstack
+        type: string
+      compose_file:
+        description: Compose file path relative to working_dir
+        required: true
+        default: docker-compose.yml
+        type: string
+
+concurrency:
+  group: fullstack-server
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      other: ${{ steps.filter.outputs.other }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+            frontend:
+              - 'frontend/**'
+            other:
+              - '**'
+              - '!backend/**'
+              - '!frontend/**'
+
+  deploy-backend:
+    name: Deploy Backend
+    needs: changes
+    if: needs.changes.outputs.other == 'false' && needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ap-south-1
+      ECR_REPOSITORY: access-hub-backend
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build, tag, and push image to ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker buildx build --platform linux/arm64 \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            --push backend/
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+      - name: Download current task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ vars.ECS_TASK_FAMILY }} \
+            --query taskDefinition \
+            > task-definition.json
+      - name: Update task definition with new image
+        id: render-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: BackendContainer
+          image: ${{ steps.build-image.outputs.image }}
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-task-def.outputs.task-definition }}
+          service: ${{ vars.ECS_SERVICE }}
+          cluster: ${{ vars.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+  deploy-frontend:
+    name: Deploy Frontend
+    needs: changes
+    if: needs.changes.outputs.other == 'false' && needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install Dependencies
+        working-directory: frontend
+        run: npm ci || npm install
+      - name: Build Frontend
+        working-directory: frontend
+        env:
+          REACT_APP_API_BASE_URL: ${{ vars.REACT_APP_API_BASE_URL || '' }}
+          REACT_APP_ENV: production
+        run: npm run build
+      - name: Copy build to cloud folder
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          source: frontend/build/**
+          target: ${{ vars.CLOUD_WORKDIR }}/frontend/build
+          overwrite: true
+          strip_components: 2
+      - name: Restart frontend on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            set -e
+            cd "${{ vars.CLOUD_WORKDIR }}"
+            docker compose -f docker-compose.yml up -d frontend || docker compose -f docker-compose.yml restart frontend
+
+  restart-services:
+    name: Restart Services
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+      - name: Restart via SSH
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          role-duration-seconds: 900
-
-      - name: Build frontend
-        run: |
-          cd frontend
-          npm install
-          npm run build
-
-      - name: Deploy to S3
-        run: |
-          aws s3 sync frontend/build s3://${{ secrets.S3_BUCKET_NAME }} --delete
-
-      - name: Invalidate CloudFront
-        run: |
-          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            set -e
+            cd "${{ inputs.working_dir }}"
+            TARGET="${{ inputs.target }}"
+            CF="${{ inputs.compose_file }}"
+            if [ "$TARGET" = "backend" ]; then
+              SERVICES="backend"
+            elif [ "$TARGET" = "frontend" ]; then
+              SERVICES="frontend"
+            else
+              SERVICES="backend frontend"
+            fi
+            docker compose -f "$CF" ps
+            docker compose -f "$CF" restart $SERVICES

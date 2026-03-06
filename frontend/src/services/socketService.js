@@ -4,9 +4,7 @@
  */
 
 import { io } from 'socket.io-client';
-
-// WebSocket server URL - should be configured based on environment
-const SOCKET_URL = process.env.REACT_APP_WS_URL || 'http://localhost:5001';
+import { SOCKET_URL } from '../config';
 
 class SocketService {
   constructor() {

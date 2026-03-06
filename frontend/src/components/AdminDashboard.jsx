@@ -8,8 +8,9 @@ import Loader from './common/Loader';
 import AlertFeed from "../features/alerts/AlertFeed";
 import { AlertsProvider, AlertsContext } from "../features/alerts/alerts.context";
 import { statsAPI } from "../services/api";
+import { API_BASE } from "../config";
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://access-alb16-o81zyqqut8kx-538769711.ap-south-1.elb.amazonaws.com';
+const API_BASE_URL = API_BASE;
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
