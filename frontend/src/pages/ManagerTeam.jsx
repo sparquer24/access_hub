@@ -15,8 +15,9 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/authService';
+import { API_BASE } from '../config';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://access-alb16-o81zyqqut8kx-538769711.ap-south-1.elb.amazonaws.com';
+const API_BASE_URL = API_BASE;
 
 function ManagerTeam() {
   const { user } = useAuth();
