@@ -1,0 +1,90 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fullstack-backend
+    env_file:
+      - ./backend/.env
+    ports:
+      - "5001:5001"
+    depends_on:
+      - redis
+      - rabbitmq
+      - qdrant_api
+    networks:
+      - core_net
+    restart: unless-stopped
+
+  frontend:
+    image: nginx:alpine
+    container_name: fullstack-frontend
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend/build:/usr/share/nginx/html:ro
+    networks:
+      - core_net
+    restart: unless-stopped
+
+  # postgres:
+  #   image: postgres:15
+  #   container_name: postgres
+  #   environment:
+  #     POSTGRES_USER: admin
+  #     POSTGRES_PASSWORD: admin
+  #     POSTGRES_DB: access_hub
+  #   volumes:
+  #     - pgdata:/var/lib/postgresql/data
+  #   networks:
+  #     - core_net
+  #   restart: unless-stopped
+
+  redis:
+    image: redis:7
+    container_name: redis
+    command: ["redis-server", "--appendonly", "yes"]
+    networks:
+      - core_net
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - core_net
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    networks:
+      - core_net
+    restart: unless-stopped
+
+  qdrant_api:
+    build:
+      context: ./qdrant-api
+      dockerfile: Dockerfile
+    environment:
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: "6333"
+      VECTOR_SIZE: "512"
+      COLLECTION_NAME: vector-embeddings_AMS
+    ports:
+      - "8000:8000"
+    depends_on:
+      - qdrant
+    networks:
+      - core_net
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+
+networks:
+  core_net:
+    name: core_net

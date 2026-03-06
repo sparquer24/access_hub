@@ -214,7 +214,7 @@ class AttendanceService:
         if data.get('notes'):
             attendance.notes = data['notes']
         
-        attendance.approved_by = current_user.get('id')
+        attendance.approved_by = current_user.id
         attendance.updated_at = datetime.utcnow()
         
         db.session.commit()

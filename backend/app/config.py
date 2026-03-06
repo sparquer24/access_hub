@@ -52,7 +52,7 @@ class Settings(BaseSettings):
 
     # Optional
     redis_url: Optional[str] = Field(None, env=["REDIS_URL"])
-    cors_origin: Optional[str] = Field("http://localhost:5001", env=["CORS_ORIGIN"])
+    cors_origin: Optional[str] = Field("*", env=["CORS_ORIGIN"])
     csrf_cookie_name: Optional[str] = Field("csrf_token", env=["CSRF_COOKIE_NAME"])
     session_cookie_name: Optional[str] = Field("vms_session", env=["SESSION_COOKIE_NAME"])
     session_cookie_samesite: Optional[str] = Field("Lax", env=["SESSION_COOKIE_SAMESITE"])
@@ -129,6 +129,7 @@ class Config:
     
     # CORS
     CORS_ORIGIN = settings.cors_origin
+    ENVIRONMENT = settings.environment
     
     # CSRF
     CSRF_COOKIE_NAME = settings.csrf_cookie_name

@@ -264,7 +264,7 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, initialTab = 'logs' }
                         <td className="px-6 py-4 text-sm font-semibold text-gray-700">
                           {(page - 1) * pageSize + index + 1}
                         </td>
-                        <td className="px-6 py-4 text-sm font-semibold text-gray-900">{log.visitor_name || '—'}</td>
+                        <td className="px-6 py-4 text-sm font-semibold text-gray-900">{log.name || '—'}</td>
                         <td className="px-6 py-4 text-sm text-gray-600">{log.visitor_phone || '—'}</td>
                         <td className="px-6 py-4 text-sm">
                           <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-md text-xs font-medium">

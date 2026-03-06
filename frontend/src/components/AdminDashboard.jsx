@@ -8,8 +8,9 @@ import Loader from './common/Loader';
 import AlertFeed from "../features/alerts/AlertFeed";
 import { AlertsProvider, AlertsContext } from "../features/alerts/alerts.context";
 import { statsAPI } from "../services/api";
+import { API_BASE } from "../config";
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001';
+const API_BASE_URL = API_BASE;
 
 const AdminDashboard = () => {
   const navigate = useNavigate();

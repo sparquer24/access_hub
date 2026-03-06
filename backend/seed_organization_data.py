@@ -290,7 +290,7 @@ def seed_data():
                 
                 vis = OrganizationVisitor(
                     organization_id=org.id,
-                    visitor_name=f"Visitor {v}-{current_date.day}",
+                    name=f"Visitor {v}-{current_date.day}",
                     mobile_number=f"+91-998800{random.randint(1000, 9999)}",
                     email=f"vis{v}{current_date.day}@example.com",
                     purpose_of_visit=random.choice(["Meeting", "Vendor", "Interview"]),

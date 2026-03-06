@@ -8,8 +8,9 @@ import StatCard from '../common/dashboard/StatCard';
 import QuickActionButton from '../common/dashboard/QuickActionButton';
 import Loader from '../common/Loader';
 import { useToast } from '../../contexts/ToastContext';
+import { API_BASE } from '../../config';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001';
+const API_BASE_URL = API_BASE;
 
 const OrgAdminDashboard = () => {
   const { user, logout } = useAuth();

@@ -299,7 +299,7 @@ class VisitorService:
         Create and persist a new OrganizationVisitor record.
 
         Expected `data` keys:
-          - visitor_name or name
+          - name or name
           - mobile_number or phone or phone_number
           - email (optional)
           - gender (optional)
@@ -307,17 +307,17 @@ class VisitorService:
         if not data or not isinstance(data, dict):
             raise ValueError('Missing visitor data')
 
-        name = data.get('visitor_name') or data.get('name')
+        name = data.get('name') or data.get('name')
         mobile = data.get('mobile_number') or data.get('phone') or data.get('phone_number')
         email = data.get('email')
         gender = data.get('gender')
 
         if not name or not mobile:
-            raise ValueError('Missing required visitor fields: visitor_name and mobile_number')
+            raise ValueError('Missing required visitor fields: name and mobile_number')
 
         visitor = OrganizationVisitor(
             organization_id=organization_id,
-            visitor_name=name,
+            name=name,
             mobile_number=mobile,
             email=email,
             gender=gender
@@ -606,7 +606,7 @@ class VisitorService:
         Update visitor information.
         
         Expected `data` keys:
-          - visitor_name
+          - name
           - email
           - gender
           - mobile_number
@@ -617,8 +617,8 @@ class VisitorService:
             raise ValueError(f'Visitor not found: {visitor_id}')
         
         # Update only allowed fields
-        if data.get('visitor_name'):
-            visitor.visitor_name = data.get('visitor_name')
+        if data.get('name'):
+            visitor.name = data.get('name')
         if data.get('email') is not None:
             visitor.email = data.get('email')
         if data.get('gender') is not None:
