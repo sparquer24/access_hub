@@ -334,7 +334,7 @@ def get_alerts(org_id):
                 alert_data.append({
                     'id': alert.id if hasattr(alert, 'id') else None,
                     'visitor_id': alert.visitor_id if hasattr(alert, 'visitor_id') else None,
-                    'visitor_name': visitor.name if visitor else None,
+                    'name': visitor.name if visitor else None,
                     'visitor_phone': visitor.phone if visitor else None,
                     'alert_type': alert.alert_type if hasattr(alert, 'alert_type') else None,
                     'current_floor': alert.current_floor if hasattr(alert, 'current_floor') else None,
@@ -458,7 +458,7 @@ def get_logs(org_id):
             log_data.append({
                 'id': log.id,
                 'visitor_id': log.visitor_id,
-                'visitor_name': visitor.name if visitor else None,
+                'name': visitor.name if visitor else None,
                 'visitor_phone': visitor.phone if visitor else None,
                 'floor': log.floor,
                 'entry_time': log.entry_time.isoformat(),

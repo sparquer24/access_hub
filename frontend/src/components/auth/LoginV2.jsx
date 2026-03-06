@@ -83,9 +83,10 @@ const LoginV2 = () => {
 
       success('Login successful! Redirecting...');
 
-      // Navigate based on role (use role.id or role.name)
-      const roleIdentifier = response.user?.role?.id || response.user?.role?.name;
-      console.log('Login successful, redirecting...', { roleIdentifier });
+      // Navigate based on role (use role.id or role.name or just role if it's a string)
+      const userRole = response.user?.role;
+      const roleIdentifier = typeof userRole === 'string' ? userRole : (userRole?.id || userRole?.name);
+      console.log('Login successful, redirecting...', { roleIdentifier, userRole });
       const from = location.state?.from?.pathname || getDefaultRoute(roleIdentifier);
 
       // Small delay to let the toast be seen and smooth transition

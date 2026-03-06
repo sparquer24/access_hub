@@ -12,7 +12,7 @@ const PreRegistrationList = ({ organizationId }) => {
 
     // Form State
     const [formData, setFormData] = useState({
-        visitor_name: '',
+        name: '',
         visitor_email: '',
         visitor_phone: '',
         expected_arrival: '',
@@ -53,7 +53,7 @@ const PreRegistrationList = ({ organizationId }) => {
                 fetchPreRegistrations();
                 setShowForm(false);
                 setFormData({
-                    visitor_name: '',
+                    name: '',
                     visitor_email: '',
                     visitor_phone: '',
                     expected_arrival: '',
@@ -135,8 +135,8 @@ const PreRegistrationList = ({ organizationId }) => {
                             <label className="block text-sm font-medium text-slate-700 mb-1">Visitor Name *</label>
                             <input
                                 type="text"
-                                name="visitor_name"
-                                value={formData.visitor_name}
+                                name="name"
+                                value={formData.name}
                                 onChange={handleInputChange}
                                 required
                                 className="w-full px-3 py-2 border border-slate-300 rounded-md"
@@ -246,7 +246,7 @@ const PreRegistrationList = ({ organizationId }) => {
                             preRegistrations.map((item) => (
                                 <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                                     <td className="px-6 py-4">
-                                        <p className="font-bold text-slate-900">{item.visitor_name}</p>
+                                        <p className="font-bold text-slate-900">{item.name}</p>
                                         <div className="text-xs text-slate-500 flex flex-col gap-1 mt-1">
                                             {item.visitor_phone && <span>📱 {item.visitor_phone}</span>}
                                             {item.visitor_email && <span>📧 {item.visitor_email}</span>}
