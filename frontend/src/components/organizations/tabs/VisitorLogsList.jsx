@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import { visitorService } from '../../../services/visitorService';
 import Loader from '../../common/Loader';
 import { useToast } from '../../../contexts/ToastContext';
 import moment from 'moment';
 
-const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
+const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'logs', showTabs = true }) => {
   const { success, error: showError } = useToast();
-  const [visitors, setVisitors] = useState([]);
   const [activeVisitors, setActiveVisitors] = useState([]);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState('logs');
+  const [selectedTab, setSelectedTab] = useState(selectedTabKey);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [fromDate, setFromDate] = useState(moment().format('YYYY-MM-DD'));
@@ -18,26 +18,6 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
   const [showAllData, setShowAllData] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [checkingOutId, setCheckingOutId] = useState(null);
-
-  const fetchVisitors = useCallback(async () => {
-    try {
-      setLoading(true);
-      const params = { page, limit: pageSize };
-      if (!showAllData) {
-        params.from_date = fromDate;
-        params.to_date = toDate;
-      }
-      const response = await visitorService.getVisitorsByOrganization(organizationId, params);
-      if (response.success) {
-        setVisitors(response.data?.visitors || []);
-        setTotalCount(response.data?.pagination?.total || 0);
-      }
-    } catch (error) {
-      showError('Failed to load visitor logs');
-    } finally {
-      setLoading(false);
-    }
-  }, [organizationId, page, pageSize, fromDate, toDate, showAllData]);
 
   const fetchActiveVisitors = useCallback(async () => {
     try {
@@ -47,6 +27,7 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
         setActiveVisitors(response.data || []);
       }
     } catch (error) {
+      console.error('Error loading active visitors:', error);
       showError('Failed to load active visitors');
     } finally {
       setLoading(false);
@@ -70,6 +51,7 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
         setTotalCount(response.data?.total || 0);
       }
     } catch (error) {
+      console.error('Error loading floor logs:', error);
       showError('Failed to load floor logs');
     } finally {
       setLoading(false);
@@ -79,7 +61,6 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
   useEffect(() => {
     if (selectedTab === 'active') fetchActiveVisitors();
     else if (selectedTab === 'logs') fetchLogs();
-    else fetchVisitors();
   }, [organizationId, refreshTrigger, selectedTab, page, fromDate, toDate, showAllData]);
 
   const handleTabChange = (tab) => {
@@ -87,6 +68,11 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
     setPage(1);
     setTotalCount(0);
   };
+
+  useEffect(() => {
+    setSelectedTab(selectedTabKey);
+    setPage(1);
+  }, [selectedTabKey]);
 
   const handlePresetDate = (type) => {
     const today = moment();
@@ -199,23 +185,25 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           {/* Tabs */}
-          <div className="flex bg-gray-100 p-1 rounded-lg w-fit">
-            {[
-              { key: 'active', label: '👥 Active Visitors' },
-              { key: 'logs', label: '📍 Floor Logs' },
-            ].map(({ key, label }) => (
-              <button
-                key={key}
-                onClick={() => handleTabChange(key)}
-                className={`px-5 py-2.5 font-semibold rounded-md transition-all duration-300 text-sm ${selectedTab === key
-                    ? 'bg-white text-indigo-600 shadow-md'
-                    : 'text-gray-600 hover:text-gray-900'
-                  }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          {showTabs && (
+            <div className="flex bg-gray-100 p-1 rounded-lg w-fit">
+              {[
+                { key: 'active', label: '👥 Active Visitors' },
+                { key: 'logs', label: '📍 Floor Logs' },
+              ].map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => handleTabChange(key)}
+                  className={`px-5 py-2.5 font-semibold rounded-md transition-all duration-300 text-sm ${selectedTab === key
+                      ? 'bg-white text-indigo-600 shadow-md'
+                      : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Date filter for tabs that support it */}
@@ -337,3 +325,10 @@ const VisitorLogsList = ({ organizationId, refreshTrigger }) => {
 };
 
 export default VisitorLogsList;
+
+VisitorLogsList.propTypes = {
+  organizationId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  refreshTrigger: PropTypes.number,
+  selectedTabKey: PropTypes.oneOf(['active', 'logs']),
+  showTabs: PropTypes.bool
+};
