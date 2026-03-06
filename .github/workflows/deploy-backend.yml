@@ -1,4 +1,4 @@
-name: Deploy Backend 2
+name: Deploy Backend
 
 on:
   push:
@@ -23,8 +23,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ap-south-1
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -47,7 +47,7 @@ jobs:
       - name: Download current task definition
         run: |
           aws ecs describe-task-definition \
-            --task-definition ${{ vars.ECS_TASK_FAMILY }} \
+            --task-definition ${{ secrets.ECS_TASK_FAMILY }} \
             --query taskDefinition \
             > task-definition.json
 
@@ -63,6 +63,6 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.render-task-def.outputs.task-definition }}
-          service: ${{ vars.ECS_SERVICE }}
-          cluster: ${{ vars.ECS_CLUSTER }}
-          wait-for-service-stability: false
+          service: ${{ secrets.ECS_SERVICE }}
+          cluster: ${{ secrets.ECS_CLUSTER }}
+          wait-for-service-stability: true

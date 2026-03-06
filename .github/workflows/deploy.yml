@@ -4,79 +4,116 @@ on:
   push:
     branches: [main]
     paths:
-      - "backend/**"
+      - frontend/**
+      - .github/workflows/deploy.yml
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Select which service to restart
+        required: true
+        default: both
+        type: choice
+        options:
+          - backend
+          - frontend
+          - both
+      working_dir:
+        description: Remote working directory
+        required: true
+        default: /var/www/fullstack
+        type: string
+      compose_file:
+        description: Compose file path relative to working_dir
+        required: true
+        default: docker-compose.yml
+        type: string
 
-env:
-  AWS_REGION: ap-south-1
-  ECR_REPOSITORY: access-hub-backend
-
-permissions:
-  id-token: write
-  contents: read
+concurrency:
+  group: fullstack-server
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+            frontend:
+              - 'frontend/**'
+            other:
+              - '**'
+              - '!backend/**'
+              - '!frontend/**'
 
-      # Configure AWS
+  # Backend deployment handled by deploy-backend.yml to avoid double triggers
+
+  deploy-frontend:
+    name: Deploy Frontend
+    needs: changes
+    if: needs.changes.outputs.other == 'false' && needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Build frontend
+        env:
+          WORKDIR: frontend
+          BUILD_CMD: npm run build
+          REACT_APP_API_BASE_URL: ${{ secrets.REACT_APP_API_BASE_URL || '' }}
+          REACT_APP_ENV: production
+        run: bash .github/scripts/build-frontend.sh
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ap-south-1
+      - name: Deploy to S3 (+ optional CloudFront invalidate)
+        env:
+          AWS_REGION: ap-south-1
+          S3_BUCKET: ${{ secrets.FRONTEND_S3_BUCKET }}
+          SOURCE_DIR: frontend/build
+          DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+        run: bash .github/scripts/deploy-frontend-s3.sh
 
-      # Login to ECR
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      # Setup Docker Buildx
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      # Build + Push Image (FAST VERSION)
-      - name: Build and push Docker image
-        id: build-image
-        uses: docker/build-push-action@v5
+  restart-services:
+    name: Restart Services
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Restart via SSH
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          context: backend
-          push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      # Save image name
-      - name: Set image output
-        id: image
-        run: |
-          echo "image=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}" >> $GITHUB_OUTPUT
-
-      # Download current task definition
-      - name: Download task definition
-        run: |
-          aws ecs describe-task-definition \
-            --task-definition ${{ vars.ECS_TASK_FAMILY }} \
-            --query taskDefinition \
-            > task-definition.json
-
-      # Update image in task definition
-      - name: Update task definition with new image
-        id: render-task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: task-definition.json
-          container-name: BackendContainer
-          image: ${{ steps.image.outputs.image }}
-
-      # Deploy to ECS
-      - name: Deploy to ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
-        with:
-          task-definition: ${{ steps.render-task-def.outputs.task-definition }}
-          service: ${{ vars.ECS_SERVICE }}
-          cluster: ${{ vars.ECS_CLUSTER }}
-          wait-for-service-stability: true
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            set -e
+            cd "${{ inputs.working_dir }}"
+            TARGET="${{ inputs.target }}"
+            CF="${{ inputs.compose_file }}"
+            if [ "$TARGET" = "backend" ]; then
+              SERVICES="backend"
+            elif [ "$TARGET" = "frontend" ]; then
+              SERVICES="frontend"
+            else
+              SERVICES="backend frontend"
+            fi
+            docker compose -f "$CF" ps
+            docker compose -f "$CF" restart $SERVICES
