@@ -3,7 +3,7 @@
  * Consolidates all environment variables and provides a single source of truth.
  */
 
-let API_BASE_URL = "http://access-alb16-o81zyqqut8kx-538769711.ap-south-1.elb.amazonaws.com";
+let API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://access-alb16-o81zyqqut8kx-538769711.ap-south-1.elb.amazonaws.com";
 
 let WS_URL = API_BASE_URL;
 
