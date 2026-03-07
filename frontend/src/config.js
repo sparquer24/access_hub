@@ -3,12 +3,18 @@
  * Consolidates all environment variables and provides a single source of truth.
  */
 
-let API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://access-alb16-o81zyqqut8kx-538769711.ap-south-1.elb.amazonaws.com";
+let API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "https://api.accesshub.sparquer.ai";
 
 let WS_URL = API_BASE_URL;
 
 export const API_BASE = API_BASE_URL;
 export const SOCKET_URL = WS_URL ;
+
+console.log('--- Dev Environment Configuration ---');
+console.log('API Base URL:', API_BASE);
+console.log('Socket URL:', SOCKET_URL);
+console.log('Environment:', process.env.NODE_ENV);
+console.log('-------------------------------------');
 
 
 export default {

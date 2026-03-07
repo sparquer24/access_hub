@@ -86,6 +86,11 @@ api.interceptors.response.use(
     }
 
     // Handle other errors
+    if (!error.response) {
+      console.error('Network Error - Check if backend is reachable and CORS/HTTPS is configured correctly');
+      console.error('Base URL:', API_BASE_URL);
+    }
+    
     if (error.response?.status === 403) {
       console.error('Access forbidden:', error.response.data?.message);
     } else if (error.response?.status >= 500) {

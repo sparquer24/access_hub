@@ -80,6 +80,13 @@ const LoginV2 = () => {
 
     try {
       const response = await login(formData.username, formData.password);
+      
+      console.log('--- Dev Login Attempt ---');
+      console.log('Login Response:', response);
+      
+      if (!response || !response.success) {
+        throw new Error(response?.message || 'Login failed');
+      }
 
       success('Login successful! Redirecting...');
 
@@ -88,6 +95,8 @@ const LoginV2 = () => {
       const roleIdentifier = typeof userRole === 'string' ? userRole : (userRole?.id || userRole?.name);
       console.log('Login successful, redirecting...', { roleIdentifier, userRole });
       const from = location.state?.from?.pathname || getDefaultRoute(roleIdentifier);
+      console.log('Target Route:', from);
+      console.log('--------------------------');
 
       // Small delay to let the toast be seen and smooth transition
       setTimeout(() => {
