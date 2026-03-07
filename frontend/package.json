@@ -27,7 +27,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "proxy": "http://access-alb16-o81zyqqut8kx-538769711.ap-south-1.elb.amazonaws.com",
+  "proxy": "https://api.accesshub.sparquer.ai",
   "eslintConfig": {
     "extends": [
       "react-app"
