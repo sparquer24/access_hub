@@ -4,10 +4,10 @@ import WebcamCapture from '../../common/WebcamCapture.jsx';
 import Loader from '../../common/Loader';
 import { useToast } from '../../../contexts/ToastContext';
 
-const OrganizationLPR = ({ organization }) => {
+const OrganizationLPR = ({ organization, activeSubTab = 'overview', onSubTabChange }) => {
     const { success, error: showError, info: showInfo } = useToast();
     const features = organization?.enabled_features || {};
-    const [activeSubTab, setActiveSubTab] = useState('overview'); // overview, hotlist, whitelist, register
+    const [internalActiveSubTab, setInternalActiveSubTab] = useState('overview'); // overview, hotlist, whitelist, register
 
     // Data State
     const [logs, setLogs] = useState([]);
@@ -70,26 +70,38 @@ const OrganizationLPR = ({ organization }) => {
     const [totalPages, setTotalPages] = useState(1);
     const PER_PAGE = 20;
 
+    const lprSubTabs = ['overview', 'register', 'hotlist', 'whitelist'];
+    const selectedSubTab = lprSubTabs.includes(activeSubTab) ? activeSubTab : internalActiveSubTab;
+
+    const setActiveSubTab = (subTabId) => {
+        if (typeof onSubTabChange === 'function') {
+            onSubTabChange(subTabId);
+            return;
+        }
+
+        setInternalActiveSubTab(subTabId);
+    };
+
     // Fetch Data on Tab Change or Filter Change
     useEffect(() => {
         if (!organization?.id) return;
         fetchData();
         // Poll for stats if on overview
         let interval;
-        if (activeSubTab === 'overview') {
+        if (selectedSubTab === 'overview') {
             interval = setInterval(() => {
                 fetchStats();
             }, 30000); // 30 seconds
         }
         return () => clearInterval(interval);
-    }, [activeSubTab, organization.id, page, searchFilters]);
+    }, [selectedSubTab, organization.id, page, searchFilters]);
 
     const fetchData = async () => {
         setLoading(true);
         try {
-            if (activeSubTab === 'overview') {
+            if (selectedSubTab === 'overview') {
                 await fetchStats();
-            } else if (activeSubTab === 'register') {
+            } else if (selectedSubTab === 'register') {
                 // Pass search filters to API
                 const params = {
                     vehicle_number: searchFilters.vehicle_number || undefined,
@@ -103,10 +115,10 @@ const OrganizationLPR = ({ organization }) => {
                     setLogs(res.data.data);
                     if (res.data.pagination) setTotalPages(res.data.pagination.pages);
                 }
-            } else if (activeSubTab === 'hotlist') {
+            } else if (selectedSubTab === 'hotlist') {
                 const res = await lprService.getHotlist(organization.id);
                 if (res.data.success) setHotlist(res.data.data);
-            } else if (activeSubTab === 'whitelist') {
+            } else if (selectedSubTab === 'whitelist') {
                 const res = await lprService.getWhitelist(organization.id);
                 if (res.data.success) setWhitelist(res.data.data);
             }
@@ -246,16 +258,22 @@ const OrganizationLPR = ({ organization }) => {
     return (
         <div className="space-y-6 relative">
             {/* Header */}
-            <div className="flex justify-between items-end border-b border-slate-200 pb-4">
-                <div>
-                    <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                        <span className="text-2xl">🚔</span> License Plate Recognition System
-                    </h2>
-                    <p className="text-slate-500 text-sm mt-1">
-                        Official Record of Vehicle Movements & Security Protocols
-                    </p>
-                </div>
-                <div className="flex gap-1 bg-slate-100 p-1 rounded-lg">
+            <div className="rounded-xl border border-teal-100/70 bg-gradient-to-r from-white via-teal-50/60 to-cyan-50/60 shadow-sm overflow-visible relative">
+                <div className="px-4 py-3.5 sm:px-5 sm:py-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between relative z-30">
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2.5">
+                            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600/10 ring-1 ring-teal-200 text-teal-700 text-sm font-bold">
+                                🚔
+                            </span>
+                            <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">
+                                License Plate Recognition System
+                            </h2>
+                        </div>
+                        <p className="mt-1 text-xs sm:text-sm text-slate-600">
+                            Official record of vehicle movements and security protocols.
+                        </p>
+                    </div>
+                    <div className="flex gap-1 rounded-xl border border-slate-200 bg-white/90 p-1.5 shadow-sm overflow-x-auto max-w-full">
                     {[
                         { id: 'overview', label: '📊 Overview' },
                         { id: 'register', label: '📋 The Register' },
@@ -265,19 +283,21 @@ const OrganizationLPR = ({ organization }) => {
                         <button
                             key={tab.id}
                             onClick={() => setActiveSubTab(tab.id)}
-                            className={`px-4 py-2 rounded-md text-sm font-semibold transition-all ${activeSubTab === tab.id
-                                ? 'bg-white text-teal-700 shadow-sm'
-                                : 'text-slate-600 hover:text-teal-600 hover:bg-slate-200'
+                            className={`inline-flex items-center whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all ${selectedSubTab === tab.id
+                                ? 'bg-teal-600 text-white shadow-sm'
+                                : 'text-slate-600 hover:text-teal-700 hover:bg-teal-50'
                                 }`}
+                            type="button"
                         >
                             {tab.label}
                         </button>
                     ))}
                 </div>
+                </div>
             </div>
 
             {/* OVERVIEW TAB */}
-            {activeSubTab === 'overview' && (
+            {selectedSubTab === 'overview' && (
                 <>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
@@ -333,7 +353,7 @@ const OrganizationLPR = ({ organization }) => {
             )}
 
             {/* THE REGISTER TAB */}
-            {activeSubTab === 'register' && (
+            {selectedSubTab === 'register' && (
                 <div className="bg-teal-50/95 border border-slate-300 rounded-lg shadow-sm overflow-hidden">
                     <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
                         <div className="flex justify-between items-end mb-4">
@@ -508,7 +528,7 @@ const OrganizationLPR = ({ organization }) => {
 
             {/* HOTLIST TAB */}
             {
-                activeSubTab === 'hotlist' && (
+                selectedSubTab === 'hotlist' && (
                     <div className="bg-teal-50/95 border border-red-200 rounded-lg shadow-sm overflow-hidden">
                         <div className="px-6 py-4 border-b border-red-100 bg-red-50 flex justify-between items-center">
                             <div>
@@ -570,7 +590,7 @@ const OrganizationLPR = ({ organization }) => {
 
             {/* WHITELIST TAB */}
             {
-                activeSubTab === 'whitelist' && (
+                selectedSubTab === 'whitelist' && (
                     <div className="bg-teal-50/95 border border-green-200 rounded-lg shadow-sm overflow-hidden">
                         <div className="px-6 py-4 border-b border-green-100 bg-green-50 flex justify-between items-center">
                             <div>

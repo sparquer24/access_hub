@@ -11,19 +11,19 @@ const DashboardHeader = ({
 }) => {
     return (
         <div className="bg-teal-50/90 backdrop-blur-sm border-b border-slate-200/60 sticky top-0 z-30 shadow-sm transition-all duration-300">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5">
+                <div className="flex items-center justify-between gap-3">
 
                     {/* Title Section */}
-                    <div className="text-center sm:text-left">
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-teal-600 bg-clip-text text-transparent">
+                    <div>
+                        <h1 className="text-xl font-bold bg-gradient-to-r from-teal-600 to-teal-600 bg-clip-text text-transparent leading-tight">
                             {title}
                         </h1>
                         {subtitle ? (
-                            <p className="text-slate-600 mt-1">{subtitle}</p>
+                            <p className="text-slate-600 mt-0.5">{subtitle}</p>
                         ) : (
                             user && (
-                                <p className="text-slate-600 mt-1">
+                                <p className="text-slate-600 mt-0.5">
                                     Welcome back, <span className="font-bold text-teal-600">{user.username || 'Admin'}</span>
                                 </p>
                             )

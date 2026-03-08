@@ -76,17 +76,17 @@ const OrganizationList = ({ showCreateButton = true, basePath = '/super-admin/or
     <div className="bg-gradient-to-br from-slate-50 via-teal-50 to-teal-50 min-h-full">
       {/* Page Header */}
       <div className="bg-teal-50/90 backdrop-blur-sm border-b border-slate-200/60 sticky top-0 z-30 shadow-sm">
-        <div className="max-w-7xl mx-auto lg:px-8 p-4">
+        <div className="max-w-7xl mx-auto lg:px-8 px-4 py-1.5">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-teal-600 bg-clip-text text-transparent">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-teal-600 to-teal-600 bg-clip-text text-transparent leading-tight">
                 Organizations
               </h1>
-              <p className="text-slate-600 mt-1">Manage all organizations in the system</p>
+              <p className="text-slate-600 mt-0.5">Manage all organizations in the system</p>
             </div>
             {showCreateButton && (
               <button
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-600 to-teal-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-teal-400/30 transition-all duration-300"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-teal-600 to-teal-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-teal-400/30 transition-all duration-300"
                 onClick={handleCreateOrganization}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,7 +113,7 @@ const OrganizationList = ({ showCreateButton = true, basePath = '/super-admin/or
 
       {/* Filters Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 ">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
           {/* Search Box */}
           <div className="md:col-span-2 justify-end">
             <input
@@ -121,34 +121,34 @@ const OrganizationList = ({ showCreateButton = true, basePath = '/super-admin/or
               placeholder="🔍 Search by name or code..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-6 py-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-100 bg-teal-50/95 shadow-sm hover:shadow-md transition-all text-lg"
+              className="w-full max-w-[780px] h-11 px-4 border border-slate-200 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-100 bg-teal-50/95 shadow-sm transition-all text-sm"
             />
           </div>
 
           {/* Filter Tabs */}
-          <div className="md:col-span-2 flex gap-3 flex-wrap justify-end">
+          <div className="md:col-span-2 flex gap-2 flex-wrap justify-end">
             <button
-              className={`px-6 py-3 rounded-xl font-bold transition-all duration-300 ${filterStatus === 'all'
+              className={`h-11 px-4 rounded-lg text-sm font-semibold transition-all duration-300 ${filterStatus === 'all'
                 ? 'bg-gradient-to-r from-teal-600 to-teal-600 text-white shadow-lg'
-                : 'bg-white text-slate-700 border-2 border-slate-200 hover:border-teal-300'
+                : 'bg-white text-slate-700 border border-slate-200 hover:border-teal-300'
                 }`}
               onClick={() => setFilterStatus('all')}
             >
               All ({organizations.length})
             </button>
             <button
-              className={`px-6 py-3 rounded-xl font-bold transition-all duration-300 ${filterStatus === 'active'
+              className={`h-11 px-4 rounded-lg text-sm font-semibold transition-all duration-300 ${filterStatus === 'active'
                 ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg'
-                : 'bg-white text-slate-700 border-2 border-slate-200 hover:border-green-300'
+                : 'bg-white text-slate-700 border border-slate-200 hover:border-green-300'
                 }`}
               onClick={() => setFilterStatus('active')}
             >
               Active ({organizations.filter(o => o.is_active).length})
             </button>
             <button
-              className={`px-6 py-3 rounded-xl font-bold transition-all duration-300 ${filterStatus === 'inactive'
+              className={`h-11 px-4 rounded-lg text-sm font-semibold transition-all duration-300 ${filterStatus === 'inactive'
                 ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
-                : 'bg-white text-slate-700 border-2 border-slate-200 hover:border-orange-300'
+                : 'bg-white text-slate-700 border border-slate-200 hover:border-orange-300'
                 }`}
               onClick={() => setFilterStatus('inactive')}
             >

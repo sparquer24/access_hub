@@ -124,7 +124,7 @@ const RoutesV2 = () => {
         }
       />
       <Route
-        path="/super-admin/organizations/:id"
+        path="/super-admin/organizations/:id/*"
         element={
           <RoleBasedRoute roles={['super_admin']}>
             <OrganizationDetail />
@@ -224,7 +224,7 @@ const RoutesV2 = () => {
 
       {/* Admin Panel - Organization Detail Routes */}
       <Route
-        path="/admin-panel/organizations/:id"
+        path="/admin-panel/organizations/:id/*"
         element={
           <RoleBasedRoute roles={['super_admin', 'org_admin']}>
             <OrganizationDetail
