@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { visitorService } from '../../../services/visitorService';
+import { socketService } from '../../../services/socketService';
 import Loader from '../../common/Loader';
 import { useToast } from '../../../contexts/ToastContext';
 import moment from 'moment';
@@ -19,9 +20,29 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
   const [totalCount, setTotalCount] = useState(0);
   const [checkingOutId, setCheckingOutId] = useState(null);
 
-  const fetchActiveVisitors = useCallback(async () => {
+  const fetchVisitors = useCallback(async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
+      const params = { page, limit: pageSize };
+      if (!showAllData) {
+        params.from_date = fromDate;
+        params.to_date = toDate;
+      }
+      const response = await visitorService.getVisitorsByOrganization(organizationId, params);
+      if (response.success) {
+        setLogs(response.data?.visitors || []);
+        setTotalCount(response.data?.pagination?.total || 0);
+      }
+    } catch (error) {
+      showError('Failed to load visitor logs');
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, [organizationId, page, pageSize, fromDate, toDate, showAllData]);
+
+  const fetchActiveVisitors = useCallback(async ({ silent = false } = {}) => {
+    try {
+      if (!silent) setLoading(true);
       const response = await visitorService.getActiveVisitors(organizationId);
       if (response.success) {
         setActiveVisitors(response.data || []);
@@ -30,13 +51,13 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
       console.error('Error loading active visitors:', error);
       showError('Failed to load active visitors');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [organizationId]);
 
-  const fetchLogs = useCallback(async () => {
+  const fetchLogs = useCallback(async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const params = {
         limit: pageSize,
         offset: (page - 1) * pageSize,
@@ -54,14 +75,35 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
       console.error('Error loading floor logs:', error);
       showError('Failed to load floor logs');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [organizationId, page, pageSize, fromDate, toDate, showAllData]);
 
   useEffect(() => {
     if (selectedTab === 'active') fetchActiveVisitors();
     else if (selectedTab === 'logs') fetchLogs();
-  }, [organizationId, refreshTrigger, selectedTab, page, fromDate, toDate, showAllData]);
+    else fetchVisitors();
+  }, [organizationId, refreshTrigger, selectedTab, fetchActiveVisitors, fetchLogs, fetchVisitors]);
+
+  useEffect(() => {
+    if (!organizationId) return;
+
+    socketService.connect(organizationId);
+    socketService.joinOrganization(organizationId);
+
+    const handleMovementLogged = (payload) => {
+      if (!payload?.organization_id || payload.organization_id !== organizationId) return;
+      if (selectedTab === 'logs') {
+        fetchLogs({ silent: true });
+      }
+    };
+
+    socketService.on('visitor_movement_logged', handleMovementLogged);
+
+    return () => {
+      socketService.off('visitor_movement_logged', handleMovementLogged);
+    };
+  }, [organizationId, selectedTab, fetchLogs]);
 
   const handleTabChange = (tab) => {
     setSelectedTab(tab);
@@ -285,7 +327,7 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
                 <table className="w-full">
                   <thead className="bg-gradient-to-r from-indigo-50 to-blue-50 border-b-2 border-indigo-200">
                     <tr>
-                      {['#', 'Visitor Name', 'Phone', 'Floor', 'Entry Time', 'Exit Time', 'Logged At'].map((h) => (
+                      {['#', 'Visitor Name', 'Phone', 'Tower', 'Floor', 'Status', 'Entry Time', 'Exit Time', 'Logged At'].map((h) => (
                         <th key={h} className="px-6 py-4 text-left text-xs font-bold text-indigo-900 uppercase tracking-wider">{h}</th>
                       ))}
                     </tr>
@@ -299,9 +341,26 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
                         <td className="px-6 py-4 text-sm font-semibold text-gray-900">{log.name || '—'}</td>
                         <td className="px-6 py-4 text-sm text-gray-600">{log.visitor_phone || '—'}</td>
                         <td className="px-6 py-4 text-sm">
+                          <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium">
+                            {log.tower || '—'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm">
                           <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-md text-xs font-medium">
                             {log.floor || '—'}
                           </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm">
+                          {(() => {
+                            const statusVal = String(log.status || 'unknown').toLowerCase();
+                            if (statusVal === 'authorised') {
+                              return <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-md text-xs font-semibold">Authorised</span>;
+                            }
+                            if (statusVal === 'unauthorised') {
+                              return <span className="px-2 py-1 bg-red-100 text-red-700 rounded-md text-xs font-semibold">Unauthorised</span>;
+                            }
+                            return <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-md text-xs font-semibold">Unknown</span>;
+                          })()}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600">{formatDateTime(log.entry_time)}</td>
                         <td className="px-6 py-4 text-sm text-gray-600">
@@ -326,9 +385,4 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
 
 export default VisitorLogsList;
 
-VisitorLogsList.propTypes = {
-  organizationId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  refreshTrigger: PropTypes.number,
-  selectedTabKey: PropTypes.oneOf(['active', 'logs']),
-  showTabs: PropTypes.bool
-};
+

@@ -362,16 +362,16 @@ export const visitorService = {
    * @param {string} organizationId - Organization ID
    * @returns {Promise<Object>}
    */
-  getAlerts: async (organizationId) => {
+  getAlerts: async (organizationId, params = {}) => {
     try {
       const response = await api.get(
         `${ORG_VISITOR_API_BASE}/${organizationId}/visitors/alerts`,
-        { params: { limit: 100 } }
+        { params: { limit: 100, ...params } }
       );
       return response.data;
     } catch (error) {
       console.error('Failed to fetch alerts:', error);
-      return { success: false, data: [], message: 'Failed to fetch alerts' };
+      return { success: false, data: { alerts: [] }, message: 'Failed to fetch alerts' };
     }
   },
 

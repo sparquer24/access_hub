@@ -216,7 +216,9 @@ class VisitorMovementLogSchema(Schema):
     """Schema for visitor movement logs"""
     id = fields.String()
     visitor_id = fields.String()
+    tower = fields.String(allow_none=True)
     floor = fields.String()
+    status = fields.String(allow_none=True)
     entry_time = fields.DateTime()
     exit_time = fields.DateTime()
     created_at = fields.DateTime()

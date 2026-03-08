@@ -13,6 +13,24 @@ import { useToast } from '../../../contexts/ToastContext';
 const { Option } = Select;
 const { TextArea } = Input;
 
+const MANAGEMENT_FLAG_PRESETS = {
+  ATTENDANCE: {
+    attendance_enabled: true,
+    visitor_tracking_enabled: false,
+    people_logs_enabled: false,
+  },
+  VISITORS: {
+    attendance_enabled: false,
+    visitor_tracking_enabled: true,
+    people_logs_enabled: false,
+  },
+  PEOPLE_LOGS: {
+    attendance_enabled: false,
+    visitor_tracking_enabled: false,
+    people_logs_enabled: true,
+  },
+};
+
 const OrganizationCameras = ({ organizationId, organization }) => {
   const { success, error: showError } = useToast();
   const [cameras, setCameras] = useState([]);
@@ -26,8 +44,19 @@ const OrganizationCameras = ({ organizationId, organization }) => {
   const [filterType, setFilterType] = useState('all');
   const [headerFilter, setHeaderFilter] = useState('all');
   const [hasCreatePermission, setHasCreatePermission] = useState(true);
-  const [selectedManagementType, setSelectedManagementType] = useState('ATTENDANCE');
 
+  const getManagementFlags = (managementType) =>
+    MANAGEMENT_FLAG_PRESETS[managementType] || MANAGEMENT_FLAG_PRESETS.ATTENDANCE;
+
+  const deriveManagementType = (camera = {}) => {
+    const explicitType = camera.management_type;
+    if (explicitType && MANAGEMENT_FLAG_PRESETS[explicitType]) {
+      return explicitType;
+    }
+    if (camera.visitor_tracking_enabled) return 'VISITORS';
+    if (camera.people_logs_enabled) return 'PEOPLE_LOGS';
+    return 'ATTENDANCE';
+  };
 
   useEffect(() => {
     fetchCameras();
@@ -66,17 +95,15 @@ const OrganizationCameras = ({ organizationId, organization }) => {
   const handleCreateCamera = () => {
     setEditingCamera(null);
     form.resetFields();
-    setSelectedManagementType('ATTENDANCE');
+    const defaultType = 'ATTENDANCE';
     form.setFieldsValue({
       fps: 10,
       resolution: '640x480',
       confidence_threshold: 0.6,
       liveness_check_enabled: true,
       // Attendance management defaults
-      management_type: 'ATTENDANCE',
-      attendance_enabled: false,
-      visitor_tracking_enabled: false,
-      people_logs_enabled: true,
+      management_type: defaultType,
+      ...getManagementFlags(defaultType),
       auto_check_out_hours: 12,
       require_manual_approval: false,
       notification_enabled: true,
@@ -86,8 +113,12 @@ const OrganizationCameras = ({ organizationId, organization }) => {
 
   const handleEditCamera = (camera) => {
     setEditingCamera(camera);
-    form.setFieldsValue(camera);
-    setSelectedManagementType(camera.management_type || 'ATTENDANCE');
+    const normalizedType = deriveManagementType(camera);
+    form.setFieldsValue({
+      ...camera,
+      management_type: normalizedType,
+      ...getManagementFlags(normalizedType),
+    });
     setShowModal(true);
   };
 
@@ -135,6 +166,8 @@ const OrganizationCameras = ({ organizationId, organization }) => {
 
   const handleSubmit = async (values) => {
     try {
+      const managementFlags = getManagementFlags(values.management_type);
+
       if (editingCamera) {
         const payload = {
           name: values.name,
@@ -148,9 +181,7 @@ const OrganizationCameras = ({ organizationId, organization }) => {
           liveness_check_enabled: values.liveness_check_enabled,
           is_active: values.is_active,
           // Attendance Management Fields
-          attendance_enabled: values.attendance_enabled,
-          visitor_tracking_enabled: values.visitor_tracking_enabled,
-          people_logs_enabled: values.people_logs_enabled,
+          ...managementFlags,
           management_type: values.management_type,
           auto_check_out_hours: values.auto_check_out_hours,
           require_manual_approval: values.require_manual_approval,
@@ -171,9 +202,7 @@ const OrganizationCameras = ({ organizationId, organization }) => {
           confidence_threshold: values.confidence_threshold,
           liveness_check_enabled: values.liveness_check_enabled,
           // Attendance Management Fields
-          attendance_enabled: values.attendance_enabled,
-          visitor_tracking_enabled: values.visitor_tracking_enabled,
-          people_logs_enabled: values.people_logs_enabled,
+          ...managementFlags,
           management_type: values.management_type,
           auto_check_out_hours: values.auto_check_out_hours,
           require_manual_approval: values.require_manual_approval,
@@ -598,14 +627,8 @@ const OrganizationCameras = ({ organizationId, organization }) => {
               >
                 <Select
                   placeholder="Select management type"
-                  defaultValue="ATTENDANCE"
                   onChange={(value) => {
-                    setSelectedManagementType(value);
-                    // Reset the related switches when management type changes
-                    form.setFieldsValue({
-                      attendance_enabled: false,
-                      visitor_tracking_enabled: false
-                    });
+                    form.setFieldsValue(getManagementFlags(value));
                   }}
                 >
                   <Option value="ATTENDANCE">⚡ Attendance Only</Option>
@@ -624,20 +647,16 @@ const OrganizationCameras = ({ organizationId, organization }) => {
                 />
               </Form.Item>
 
-              {selectedManagementType === 'ATTENDANCE' && (
-                <Form.Item name="attendance_enabled" label="Enable Attendance Tracking" valuePropName="checked">
-                  <Switch />
-                </Form.Item>
-              )}
+              <Form.Item name="attendance_enabled" label="Enable Attendance Tracking" valuePropName="checked">
+                <Switch disabled />
+              </Form.Item>
 
-              {selectedManagementType === 'VISITORS' && (
-                <Form.Item name="visitor_tracking_enabled" label="Enable Visitor Tracking" valuePropName="checked">
-                  <Switch />
-                </Form.Item>
-              )}
+              <Form.Item name="visitor_tracking_enabled" label="Enable Visitor Tracking" valuePropName="checked">
+                <Switch disabled />
+              </Form.Item>
 
               <Form.Item name="people_logs_enabled" label="Enable People Logs" valuePropName="checked">
-                <Switch defaultChecked />
+                <Switch disabled />
               </Form.Item>
 
               <Form.Item name="require_manual_approval" label="Require Manual Approval" valuePropName="checked">

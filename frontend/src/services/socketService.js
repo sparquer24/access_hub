@@ -76,6 +76,11 @@ class SocketService {
         this.emit('visitor_checkout', data);
       });
 
+      this.socket.on('visitor_movement_logged', (data) => {
+        console.log('Visitor movement logged:', data);
+        this.emit('visitor_movement_logged', data);
+      });
+
       this.socket.on('error', (data) => {
         console.error('WebSocket error:', data);
         this.emit('socket_error', data);
