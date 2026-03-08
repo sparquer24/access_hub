@@ -4,6 +4,9 @@ import threading
 from flask import Blueprint, request, jsonify                                                                                                                                                             
 
 from app.utils.face_enrollment_background import process_face_enrollment_background
+from app.utils.generate_faceenrollment_background_vms import (
+    process_face_enrollment_background_vms,
+)
 
 
 
@@ -159,5 +162,30 @@ def face_enroll():
 
       "message": "Enrollment has been started and is processing in the background"
 
+  }), 202
+
+
+@face_enroll_bp.route("/face/enroll_VMS", methods=["POST"])
+def face_enroll_vms():
+  data = request.get_json(silent=True) or {}
+  entity_id = data.get("entity_id")
+  img_b64 = data.get("img_b64")
+
+  if not entity_id or not img_b64:
+      return jsonify({
+          "ok": False,
+          "error": "entity_id and img_b64 are required"
+      }), 400
+
+  thread = threading.Thread(
+      target=process_face_enrollment_background_vms,
+      kwargs={"entity_id": entity_id, "img_b64": img_b64},
+      daemon=True,
+  )
+  thread.start()
+
+  return jsonify({
+      "ok": True,
+      "message": "VMS enrollment has been started and is processing in the background"
   }), 202
 

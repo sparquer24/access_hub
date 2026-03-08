@@ -12741,3 +12741,1409 @@ AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 
                    ^^^^^^^^^^^^^^^^^^^^
 AttributeError: 'Employee' object has no attribute 'employee_id'. Did you mean: 'employee_code'?
 
+[2026-03-05 15:16:29,360] ERROR in routes: Unhandled error in auth login
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 941, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedTable: relation "users" does not exist
+LINE 2: FROM users 
+             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\api\auth\routes.py", line 130, in login
+    result = AuthService.login(
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\auth_service.py", line 35, in login
+    ).first()
+      ^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\orm\query.py", line 2728, in first
+    return self.limit(1)._iter().first()  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\orm\query.py", line 2827, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\orm\session.py", line 2362, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\orm\session.py", line 2247, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\orm\context.py", line 293, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 1418, in execute
+    return meth(
+           ^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\sql\elements.py", line 515, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 1640, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 941, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) relation "users" does not exist
+LINE 2: FROM users 
+             ^
+
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.username AS users_username, users.password_hash AS users_password_hash, users.role_id AS users_role_id, users.organization_id AS users_organization_id, users.is_active AS users_is_active, users.last_login AS users_last_login, users.created_at AS users_created_at, users.updated_at AS users_updated_at, users.deleted_at AS users_deleted_at 
+FROM users 
+WHERE users.username = %(username_1)s OR users.email = %(email_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'username_1': 'superadmin@system.com', 'email_1': 'superadmin@system.com', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-03-05 15:18:14,411] ERROR in routes: Unhandled error in auth login
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 941, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedTable: relation "users" does not exist
+LINE 2: FROM users 
+             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\api\auth\routes.py", line 130, in login
+    result = AuthService.login(
+             ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\auth_service.py", line 35, in login
+    ).first()
+      ^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\orm\query.py", line 2728, in first
+    return self.limit(1)._iter().first()  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\orm\query.py", line 2827, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\orm\session.py", line 2362, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\orm\session.py", line 2247, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\orm\context.py", line 293, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 1418, in execute
+    return meth(
+           ^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\sql\elements.py", line 515, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 1640, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 941, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) relation "users" does not exist
+LINE 2: FROM users 
+             ^
+
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.username AS users_username, users.password_hash AS users_password_hash, users.role_id AS users_role_id, users.organization_id AS users_organization_id, users.is_active AS users_is_active, users.last_login AS users_last_login, users.created_at AS users_created_at, users.updated_at AS users_updated_at, users.deleted_at AS users_deleted_at 
+FROM users 
+WHERE users.username = %(username_1)s OR users.email = %(email_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'username_1': 'superadmin@accesshub.com', 'email_1': 'superadmin@accesshub.com', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2026-03-05 15:37:12,644] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:03:33,353] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:03:33,408] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:09:10,647] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:09:10,960] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:22:57,486] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:22:57,798] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:25:50,250] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 16:45:26,399] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 17:20:26,262] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 17:56:00,349] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 18:00:48,351] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 18:00:48,664] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 20:12:39,335] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 20:12:39,391] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 20:21:02,515] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    query = db.session.query(Alert).filter(
+                             ^^^^^
+NameError: name 'Alert' is not defined
+[2026-03-05 20:30:18,479] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+NameError: name 'Alert' is not defined
+[2026-03-05 20:31:55,938] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+NameError: name 'Alert' is not defined
+[2026-03-05 20:31:56,249] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+NameError: name 'Alert' is not defined
+[2026-03-05 20:32:00,333] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+NameError: name 'Alert' is not defined
+[2026-03-05 20:32:00,642] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+NameError: name 'Alert' is not defined
+[2026-03-05 20:33:38,417] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+NameError: name 'Alert' is not defined
+[2026-03-05 20:33:38,481] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+NameError: name 'Alert' is not defined
+[2026-03-05 20:34:27,741] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+NameError: name 'Alert' is not defined
+[2026-03-05 20:34:28,055] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+NameError: name 'Alert' is not defined
+[2026-03-05 20:37:56,883] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    filters = {}
+                 
+NameError: name 'Alert' is not defined
+[2026-03-05 20:37:57,207] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    filters = {}
+                 
+NameError: name 'Alert' is not defined
+[2026-03-05 20:38:20,941] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    filters = {}
+                 
+NameError: name 'Alert' is not defined
+[2026-03-05 20:38:21,249] ERROR in visitor_service: Failed to get visitor alerts
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\services\visitor_service.py", line 358, in get_visitor_alerts
+    filters = {}
+                 
+NameError: name 'Alert' is not defined
+[2026-03-06 12:44:56,230] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 163, in _listen_forever
+    raw_conn.poll()
+psycopg2.OperationalError: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+[2026-03-06 12:44:58,242] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 12:44:58,252] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+
+[2026-03-06 12:45:00,260] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 12:45:00,261] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+
+[2026-03-06 12:45:02,262] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 12:45:02,262] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+
+[2026-03-06 12:45:04,278] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 12:58:40,082] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 163, in _listen_forever
+    raw_conn.poll()
+psycopg2.OperationalError: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+[2026-03-06 12:58:42,083] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 12:58:42,085] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+
+[2026-03-06 12:58:44,087] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 12:58:44,087] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+
+[2026-03-06 12:58:46,089] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 12:58:46,091] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+
+[2026-03-06 12:58:48,094] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 12:58:50,135] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 146, in _listen_forever
+    raw_conn = db.engine.raw_connection()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 3302, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+                       ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 837, in get_connection
+    self.__connect()
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 621, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+[2026-03-06 13:13:06,818] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 163, in _listen_forever
+    raw_conn.poll()
+psycopg2.OperationalError: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+[2026-03-06 13:13:08,820] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 13:13:08,823] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+
+[2026-03-06 13:13:10,824] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 13:13:10,826] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+
+[2026-03-06 13:13:12,827] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 13:13:12,827] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+
+[2026-03-06 13:13:14,830] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 14:37:48,022] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 163, in _listen_forever
+    raw_conn.poll()
+psycopg2.OperationalError: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+[2026-03-06 15:40:22,491] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 163, in _listen_forever
+    raw_conn.poll()
+psycopg2.OperationalError: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+[2026-03-06 15:40:24,495] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 15:40:24,502] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+
+[2026-03-06 15:40:26,504] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 15:40:26,505] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+
+[2026-03-06 15:40:28,507] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 15:40:28,508] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+
+[2026-03-06 15:40:30,510] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 15:40:30,511] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+
+[2026-03-06 15:40:32,512] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 15:40:34,554] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 146, in _listen_forever
+    raw_conn = db.engine.raw_connection()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 3302, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+                       ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 837, in get_connection
+    self.__connect()
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 621, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+[2026-03-06 15:40:38,603] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 146, in _listen_forever
+    raw_conn = db.engine.raw_connection()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 3302, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+                       ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 837, in get_connection
+    self.__connect()
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 621, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+[2026-03-06 15:56:03,761] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 163, in _listen_forever
+    raw_conn.poll()
+psycopg2.OperationalError: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+[2026-03-06 15:56:05,765] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 15:56:05,765] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+
+[2026-03-06 15:56:07,770] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 15:56:07,771] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+
+[2026-03-06 15:56:09,773] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 15:56:09,774] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+
+[2026-03-06 15:56:11,775] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 15:56:11,775] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+
+[2026-03-06 15:56:13,777] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 15:56:15,824] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 146, in _listen_forever
+    raw_conn = db.engine.raw_connection()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 3302, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+                       ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 837, in get_connection
+    self.__connect()
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 621, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+[2026-03-06 15:56:19,871] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 146, in _listen_forever
+    raw_conn = db.engine.raw_connection()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 3302, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+                       ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 837, in get_connection
+    self.__connect()
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 621, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+[2026-03-06 15:56:23,911] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 146, in _listen_forever
+    raw_conn = db.engine.raw_connection()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 3302, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+                       ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 837, in get_connection
+    self.__connect()
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 621, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+[2026-03-06 15:56:27,951] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 146, in _listen_forever
+    raw_conn = db.engine.raw_connection()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 3302, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+                       ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 837, in get_connection
+    self.__connect()
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 621, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+[2026-03-06 16:19:42,045] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 163, in _listen_forever
+    raw_conn.poll()
+psycopg2.OperationalError: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+[2026-03-06 16:19:44,047] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 16:19:44,047] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+
+[2026-03-06 16:19:46,050] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 16:19:46,050] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+
+[2026-03-06 16:19:48,054] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 16:19:48,054] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+
+[2026-03-06 16:19:50,056] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 16:19:50,056] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+
+[2026-03-06 16:19:52,062] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 16:19:54,105] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 146, in _listen_forever
+    raw_conn = db.engine.raw_connection()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 3302, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+                       ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 837, in get_connection
+    self.__connect()
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 621, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+[2026-03-06 16:19:58,145] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 146, in _listen_forever
+    raw_conn = db.engine.raw_connection()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 3302, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+                       ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 837, in get_connection
+    self.__connect()
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 621, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+[2026-03-06 16:20:02,172] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 146, in _listen_forever
+    raw_conn = db.engine.raw_connection()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 3302, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+                       ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 837, in get_connection
+    self.__connect()
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 621, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+[2026-03-06 16:20:06,208] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 146, in _listen_forever
+    raw_conn = db.engine.raw_connection()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 3302, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+                       ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 837, in get_connection
+    self.__connect()
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 621, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+[2026-03-06 16:20:10,236] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 146, in _listen_forever
+    raw_conn = db.engine.raw_connection()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 3302, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+                       ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 837, in get_connection
+    self.__connect()
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 621, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+[2026-03-06 16:20:14,270] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 146, in _listen_forever
+    raw_conn = db.engine.raw_connection()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 3302, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+                       ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 837, in get_connection
+    self.__connect()
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 621, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+[2026-03-06 16:20:18,291] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 146, in _listen_forever
+    raw_conn = db.engine.raw_connection()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 3302, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+                       ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 837, in get_connection
+    self.__connect()
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 621, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+[2026-03-06 16:20:22,318] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 146, in _listen_forever
+    raw_conn = db.engine.raw_connection()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 3302, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+                       ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 837, in get_connection
+    self.__connect()
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 621, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+[2026-03-06 16:20:26,362] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 146, in _listen_forever
+    raw_conn = db.engine.raw_connection()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\base.py", line 3302, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1263, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 717, in checkout
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+                       ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 837, in get_connection
+    self.__connect()
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\create.py", line 643, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 621, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\durga\anaconda3\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: connection to server at "127.0.0.1", port 5432 failed: Connection refused (0x0000274D/10061)
+	Is the server running on that host and accepting TCP/IP connections?
+
+[2026-03-06 18:49:56,661] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 163, in _listen_forever
+    raw_conn.poll()
+psycopg2.OperationalError: server closed the connection unexpectedly
+	This probably means the server terminated abnormally
+	before or while processing the request.
+
+[2026-03-06 18:49:58,762] ERROR in base: Exception during reset or similar
+Traceback (most recent call last):
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 986, in _finalize_fairy
+    fairy._reset(
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\pool\base.py", line 1432, in _reset
+    pool._dialect.do_rollback(self)
+  File "C:\Users\durga\anaconda3\Lib\site-packages\sqlalchemy\engine\default.py", line 699, in do_rollback
+    dbapi_connection.rollback()
+psycopg2.InterfaceError: connection already closed
+[2026-03-06 18:49:58,805] ERROR in db_realtime: Realtime DB listener failed, retrying in 2 seconds
+Traceback (most recent call last):
+  File "C:\Users\durga\face_recognition_mastercode-feature-login-logout-csv\access_hub\backend\app\events\db_realtime.py", line 150, in _listen_forever
+    cursor.execute(f"LISTEN {ALERTS_CHANNEL};")
+psycopg2.OperationalError: could not receive data from server: Software caused connection abort (0x00002745/10053)
+

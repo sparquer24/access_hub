@@ -79,7 +79,7 @@ def check_in_visitor(org_id):
             return error_response("Request body is required", 400)
         
         # Validate required fields
-        required_fields = ['name', 'phone', 'purpose_of_visit', 'allowed_floor']
+        required_fields = ['name', 'phone', 'purpose_of_visit', 'allowed_floor', 'allowed_tower']
         missing = [f for f in required_fields if not data.get(f)]
         if missing:
             return error_response(f"Missing required fields: {', '.join(missing)}", 400)
@@ -327,22 +327,22 @@ def get_alerts(org_id):
         alerts = VisitorService.get_visitor_alerts(org_id, filters)
         
         alert_data = []
-        # Note: Alert model has been deprecated. This endpoint returns empty list for backward compatibility
         if isinstance(alerts, list):
             for alert in alerts:
                 visitor = alert.visitor if hasattr(alert, 'visitor') else None
                 alert_data.append({
                     'id': alert.id if hasattr(alert, 'id') else None,
+                    'organization_id': alert.organization_id if hasattr(alert, 'organization_id') else None,
                     'visitor_id': alert.visitor_id if hasattr(alert, 'visitor_id') else None,
                     'name': visitor.name if visitor else None,
                     'visitor_phone': visitor.phone if visitor else None,
+                    'camera_id': alert.camera_id if hasattr(alert, 'camera_id') else None,
                     'alert_type': alert.alert_type if hasattr(alert, 'alert_type') else None,
-                    'current_floor': alert.current_floor if hasattr(alert, 'current_floor') else None,
-                    'allowed_floor': alert.allowed_floor if hasattr(alert, 'allowed_floor') else None,
                     'alert_time': alert.alert_time.isoformat() if hasattr(alert, 'alert_time') and alert.alert_time else None,
-                    'acknowledged': alert.acknowledged if hasattr(alert, 'acknowledged') else False,
-                    'acknowledged_at': alert.acknowledged_at.isoformat() if hasattr(alert, 'acknowledged_at') and alert.acknowledged_at else None,
-                    'details': alert.details if hasattr(alert, 'details') else None
+                    'annotated_image_base64': alert.annotated_image_base64 if hasattr(alert, 'annotated_image_base64') else None,
+                    'alert_status': alert.alert_status if hasattr(alert, 'alert_status') else None,
+                    'handled_by': alert.handled_by if hasattr(alert, 'handled_by') else None,
+                    'handled_at': alert.handled_at.isoformat() if hasattr(alert, 'handled_at') and alert.handled_at else None
                 })
         
         return success_response({
@@ -460,7 +460,9 @@ def get_logs(org_id):
                 'visitor_id': log.visitor_id,
                 'name': visitor.name if visitor else None,
                 'visitor_phone': visitor.phone if visitor else None,
+                'tower': log.tower if hasattr(log, 'tower') else None,
                 'floor': log.floor,
+                'status': log.status if hasattr(log, 'status') else None,
                 'entry_time': log.entry_time.isoformat(),
                 'exit_time': log.exit_time.isoformat() if log.exit_time else None,
                 'created_at': log.created_at.isoformat()
@@ -620,7 +622,7 @@ def acknowledge_alert(org_id, alert_id):
         }, 200)
         
     except ValueError as e:
-        return error_response(str(e), 410)  # 410 Gone - feature deprecated
+        return error_response(str(e), 404)
     except Exception as e:
         return error_response(str(e), 400)
 
