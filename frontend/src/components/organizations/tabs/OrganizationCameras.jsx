@@ -311,19 +311,25 @@ const OrganizationCameras = ({ organizationId, organization }) => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="p-4 rounded-xl border border-gray-200 hover:border-teal-300 transition-colors duration-200 ease-out">
-        <div className="flex flex-wrap lg:flex-nowrap items-center justify-between gap-3">
-          <div className="shrink-0 min-w-[240px]">
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <svg className="w-7 h-7 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-              Camera Management
-            </h2>
-            <p className="text-xs text-gray-600 mt-1">Manage cameras and monitor live status efficiently</p>
+      <div className="rounded-xl border border-teal-100/70 bg-gradient-to-r from-white via-teal-50/60 to-cyan-50/60 shadow-sm overflow-visible relative">
+        <div className="px-4 py-3.5 sm:px-5 sm:py-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between relative z-30">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2.5">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600/10 ring-1 ring-teal-200">
+                <svg className="w-4.5 h-4.5 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </span>
+              <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">
+                Camera Management
+              </h2>
+            </div>
+            <p className="mt-1 text-xs sm:text-sm text-slate-600">
+              Manage cameras and monitor live status efficiently.
+            </p>
           </div>
 
-          <div className="flex flex-wrap lg:flex-nowrap items-center justify-end gap-2.5 w-full lg:w-auto">
+          <div className="flex flex-wrap items-center gap-2.5 xl:justify-end w-full xl:w-auto">
             <div className="relative w-full sm:w-64 md:w-72">
               <svg className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M16 10.5A5.5 5.5 0 115 10.5a5.5 5.5 0 0111 0z" />
@@ -333,7 +339,7 @@ const OrganizationCameras = ({ organizationId, organization }) => {
                 placeholder="Search by camera name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full h-10 pl-9 pr-3 text-sm border border-gray-300 rounded-lg bg-white hover:border-teal-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 ease-out"
+                className="w-full h-10 pl-9 pr-3 text-sm border border-slate-300 rounded-lg bg-white hover:border-teal-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 ease-out"
               />
             </div>
 
@@ -367,7 +373,7 @@ const OrganizationCameras = ({ organizationId, organization }) => {
                 onClick={handleCreateCamera}
                 disabled={!hasCreatePermission}
                 className={`px-4 py-2.5 text-sm rounded-lg font-semibold transition-all duration-200 ease-out border ${hasCreatePermission
-                  ? 'bg-gradient-to-r from-teal-600 to-teal-600 text-white border-teal-600 hover:border-teal-700 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer'
+                  ? 'bg-teal-600 text-white border-teal-600 hover:bg-teal-700 hover:border-teal-700 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
                   }`}
               >
@@ -405,9 +411,9 @@ const OrganizationCameras = ({ organizationId, organization }) => {
           {!searchTerm && filterStatus === 'all' && filterType === 'all' && (
             <button
               onClick={handleCreateCamera}
-              className="px-6 py-3 bg-gradient-to-r from-teal-600 to-teal-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-teal-600 text-white text-sm font-semibold rounded-lg border border-teal-600 hover:bg-teal-700 hover:border-teal-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 ease-out"
             >
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
               Add Camera

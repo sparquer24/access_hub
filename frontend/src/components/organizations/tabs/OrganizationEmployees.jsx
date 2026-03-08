@@ -19,7 +19,13 @@ import html2pdf from 'html2pdf.js';
 const { Option } = Select;
 const { TextArea } = Input;
 
-const OrganizationEmployees = ({ organizationId, organization, isAlertSidebarOpen = false }) => {
+const OrganizationEmployees = ({
+  organizationId,
+  organization,
+  isAlertSidebarOpen = false,
+  activeSubTab = 'list',
+  onSubTabChange
+}) => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -34,7 +40,7 @@ const OrganizationEmployees = ({ organizationId, organization, isAlertSidebarOpe
   const [employeePhoto, setEmployeePhoto] = useState(null);
   const [showWebcam, setShowWebcam] = useState(false);
   const [isCreateFormComplete, setIsCreateFormComplete] = useState(false);
-  const [activeTab, setActiveTab] = useState('list');
+  const [internalActiveTab, setInternalActiveTab] = useState('list');
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [attendanceLogs, setAttendanceLogs] = useState([]);
   const [loadingAttendance, setLoadingAttendance] = useState(false);
@@ -59,6 +65,18 @@ const OrganizationEmployees = ({ organizationId, organization, isAlertSidebarOpe
     { id: 'departments', label: 'Dept', icon: Building2 },
     { id: 'shifts', label: 'Shifts', icon: Clock }
   ];
+
+  const validEmployeeTabIds = employeeTabs.map((tab) => tab.id);
+  const activeTab = validEmployeeTabIds.includes(activeSubTab) ? activeSubTab : internalActiveTab;
+
+  const setActiveTab = (tabId) => {
+    if (typeof onSubTabChange === 'function') {
+      onSubTabChange(tabId);
+      return;
+    }
+
+    setInternalActiveTab(tabId);
+  };
 
   const activeTabMeta = employeeTabs.find((tab) => tab.id === activeTab) || employeeTabs[0];
 
@@ -855,29 +873,36 @@ const OrganizationEmployees = ({ organizationId, organization, isAlertSidebarOpe
 
   return (
     <div className="w-full space-y-3">
-      {/* Compact Single-Line Header */}
-      <div className="bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 overflow-visible relative">
-        <div className="px-4 py-3 flex justify-between items-center gap-4 bg-teal-50 rounded-t-lg relative z-30">
-          {/* Left: Title with small subtitle */}
-          <div>
-            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-              <Users className="w-5 h-5 text-teal-600" /> Employee Directory
-            </h2>
-            <p className="text-xs text-gray-500 mt-0.5">Manage workforce & attendance</p>
+      {/* Employee Directory Header */}
+      <div className="rounded-xl border border-teal-100/70 bg-gradient-to-r from-white via-teal-50/60 to-cyan-50/60 shadow-sm overflow-visible relative">
+        <div className="px-4 py-3.5 sm:px-5 sm:py-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between relative z-30">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2.5">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600/10 ring-1 ring-teal-200">
+                <Users className="w-4.5 h-4.5 text-teal-700" />
+              </span>
+              <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">
+                Employee Directory
+              </h2>
+              <span className="hidden sm:inline-flex items-center rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-semibold text-slate-600 ring-1 ring-slate-200">
+                {employees.length} total
+              </span>
+            </div>
+            <p className="mt-1 text-xs sm:text-sm text-slate-600">
+              Manage workforce, attendance, and department-level operations.
+            </p>
           </div>
 
-          {/* Right: Action buttons + Tabs */}
-          <div className="flex items-center gap-3">
-            {/* Action Buttons Group */}
-            <div className="flex gap-2 bg-white rounded-lg shadow-sm border border-gray-200 p-1">
+          <div className="flex flex-wrap items-center gap-2.5 xl:justify-end">
+            <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white/90 p-1.5 shadow-sm">
               <button
                 onClick={handleCreateEmployee}
-                className="px-4 py-1.5 bg-teal-600 text-white text-sm font-medium rounded hover:bg-teal-700 transition-colors flex items-center gap-1.5"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-teal-700"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                 Add Employee
               </button>
-              
+
               {(
                 (activeTab === 'list' && employees.length > 0) ||
                 (activeTab === 'analytics' && employees.length > 0) ||
@@ -889,7 +914,7 @@ const OrganizationEmployees = ({ organizationId, organization, isAlertSidebarOpe
               ) && (
                 <button
                   onClick={handleDownloadClick}
-                  className="px-4 py-1.5 bg-teal-500 text-white text-sm font-medium rounded hover:bg-teal-600 transition-colors flex items-center gap-1.5"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3.5 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-200"
                 >
                   <Download className="w-4 h-4" />
                   Download
@@ -901,14 +926,15 @@ const OrganizationEmployees = ({ organizationId, organization, isAlertSidebarOpe
               <div className="relative">
                 <button
                   onClick={() => setIsTabDropdownOpen((prev) => !prev)}
-                  className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-200 transition-colors"
+                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
                 >
                   <MoreHorizontal className="w-4 h-4" />
                   <span>{activeTabMeta.label}</span>
+                  <ChevronDown className="w-4 h-4" />
                 </button>
 
                 {isTabDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-1">
+                  <div className="absolute right-0 mt-2 w-44 rounded-lg border border-gray-200 bg-white p-1 shadow-lg z-50">
                     {employeeTabs.map((tab) => {
                       const Icon = tab.icon;
                       return (
@@ -918,7 +944,7 @@ const OrganizationEmployees = ({ organizationId, organization, isAlertSidebarOpe
                             setActiveTab(tab.id);
                             setIsTabDropdownOpen(false);
                           }}
-                          className={`w-full text-left px-3 py-2 rounded-md text-xs font-semibold transition-all flex items-center gap-2 ${activeTab === tab.id
+                          className={`w-full rounded-md px-3 py-2 text-left text-xs font-semibold transition-all flex items-center gap-2 ${activeTab === tab.id
                             ? 'bg-teal-600 text-white'
                             : 'text-gray-600 hover:text-teal-600 hover:bg-gray-100'
                             }`}
@@ -932,16 +958,16 @@ const OrganizationEmployees = ({ organizationId, organization, isAlertSidebarOpe
                 )}
               </div>
             ) : (
-              <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+              <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white/90 p-1.5 shadow-sm overflow-x-auto max-w-full">
                 {employeeTabs.map((tab) => {
                   const Icon = tab.icon;
                   return (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1 ${activeTab === tab.id
+                      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all ${activeTab === tab.id
                         ? 'bg-teal-600 text-white shadow-sm'
-                        : 'text-gray-600 hover:text-teal-600 hover:bg-gray-200'
+                        : 'text-slate-600 hover:text-teal-700 hover:bg-teal-50'
                         }`}
                     >
                       <Icon className="w-3.5 h-3.5" />
@@ -980,12 +1006,8 @@ const OrganizationEmployees = ({ organizationId, organization, isAlertSidebarOpe
       {activeTab === 'records' && (
         <div className="space-y-6">
           {/* Monthly Attendance Records Table */}
-          <div className="bg-teal-50/95 rounded-xl shadow-md overflow-hidden">
-            <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-teal-50">
-              <h3 className="text-2xl font-bold text-gray-900">📊 Monthly Attendance Records</h3>
-              <p className="text-gray-600 text-sm mt-1">View attendance statistics for all employees</p>
-            </div>
-
+          <div className="bg-teal-50/95 rounded-xl shadow-md overflow-hidden px-2">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">Monthly Attendance Records</h3>
             {/* Filters */}
             <div className="bg-teal-50/95 p-3 border-b border-gray-200 flex flex-wrap gap-3 items-center justify-between">
               <div className="flex gap-3 flex-1 min-w-[300px]">

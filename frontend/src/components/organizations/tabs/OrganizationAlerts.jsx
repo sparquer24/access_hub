@@ -1,56 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import { auditAPI } from '../../../services/apiServices';
 import { visitorService } from '../../../services/visitorService';
 import { socketService } from '../../../services/socketService';
 import { useToast } from '../../../contexts/ToastContext';
 import Loader from '../../common/Loader';
 import { X } from 'lucide-react';
-
-const TAB_ALERTS = {
-  info: [
-    { id: 'info-1', type: 'critical', title: 'Server Down', message: 'Main access server is unreachable', relativeTime: '2 mins ago' },
-    { id: 'info-2', type: 'warning', title: 'Visitor Arrived', message: 'New visitor waiting at reception', relativeTime: '8 mins ago' },
-    { id: 'info-3', type: 'info', title: 'Low Productivity', message: 'Attendance efficiency dropped below threshold', relativeTime: '20 mins ago' }
-  ],
-  employees: [
-    { id: 'emp-1', type: 'warning', title: 'Late Check-in', message: 'Monika checked in at 9:45 AM', relativeTime: '2 mins ago' },
-    { id: 'emp-2', type: 'critical', title: 'Absent Today', message: 'Komal is absent today', relativeTime: '15 mins ago' },
-    { id: 'emp-3', type: 'info', title: 'Shift Changed', message: "XYZ's shift changed to 2:00 PM", relativeTime: '30 mins ago' }
-  ],
-  visitors: [
-    { id: 'vis-1', type: 'info', title: 'New Visitor', message: 'Rakesh Kumar checked in at Gate 2', relativeTime: '4 mins ago' },
-    { id: 'vis-2', type: 'success', title: 'Visitor Exit', message: 'Priya Shah exited successfully', relativeTime: '18 mins ago' },
-    { id: 'vis-3', type: 'warning', title: 'Visitor Waiting', message: 'One visitor is waiting for host approval', relativeTime: '25 mins ago' }
-  ],
-  lpr: [
-    { id: 'lpr-1', type: 'critical', title: 'Hotlist Match', message: 'Blacklisted plate detected at Entry Lane 1', relativeTime: '1 min ago' },
-    { id: 'lpr-2', type: 'warning', title: 'OCR Confidence Low', message: 'Plate read confidence fell below 75%', relativeTime: '10 mins ago' },
-    { id: 'lpr-3', type: 'info', title: 'LPR Synced', message: 'Latest recognition logs synced to server', relativeTime: '22 mins ago' }
-  ],
-  cameras: [
-    { id: 'cam-1', type: 'critical', title: 'Camera Offline', message: 'Camera Main Entrance is offline', relativeTime: '3 mins ago' },
-    { id: 'cam-2', type: 'warning', title: 'Storage High', message: 'NVR storage crossed 90% utilization', relativeTime: '14 mins ago' },
-    { id: 'cam-3', type: 'info', title: 'Stream Recovered', message: 'Parking camera stream restored', relativeTime: '28 mins ago' }
-  ],
-  locations: [
-    { id: 'loc-1', type: 'warning', title: 'Location Delay', message: 'Floor 3 sync delayed by 5 minutes', relativeTime: '6 mins ago' },
-    { id: 'loc-2', type: 'critical', title: 'Entry Breach', message: 'Unauthorized door access attempt detected', relativeTime: '17 mins ago' },
-    { id: 'loc-3', type: 'info', title: 'Zone Updated', message: 'Lobby zone schedule updated successfully', relativeTime: '33 mins ago' }
-  ],
-  rules: [
-    { id: 'rul-1', type: 'warning', title: 'Rule Conflict', message: 'Two active rules overlap for Gate 1', relativeTime: '7 mins ago' },
-    { id: 'rul-2', type: 'critical', title: 'Rule Failed', message: 'Auto-escalation rule failed to execute', relativeTime: '16 mins ago' },
-    { id: 'rul-3', type: 'info', title: 'Rule Applied', message: 'Visitor hold rule applied to all entries', relativeTime: '29 mins ago' }
-  ],
-  statistics: [
-    { id: 'sta-1', type: 'warning', title: 'Trend Drop', message: 'Attendance trend dropped 12% this week', relativeTime: '11 mins ago' },
-    { id: 'sta-2', type: 'info', title: 'Report Ready', message: 'Weekly analytics report is generated', relativeTime: '19 mins ago' },
-    { id: 'sta-3', type: 'success', title: 'KPI Target', message: 'Gate throughput reached target for today', relativeTime: '40 mins ago' }
-  ],
-  default: [
-    { id: 'def-1', type: 'info', title: 'No New Alerts', message: 'All systems are running normally', relativeTime: 'Just now' }
-  ]
-};
 
 const TAB_HEADERS = {
   info: 'Organization Overview',
@@ -63,14 +18,124 @@ const TAB_HEADERS = {
   statistics: 'Analytics'
 };
 
-const OrganizationAlerts = ({ organizationId, activeTab = 'info', showActivityLog = true, onCloseSidebar }) => {
+const toAlertType = (rawType = '') => {
+  const type = String(rawType).toLowerCase();
+  if (type.includes('unauthorized') || type.includes('critical')) {
+    return 'critical';
+  }
+  if (type.includes('overstay') || type.includes('warning') || type.includes('pending')) {
+    return 'warning';
+  }
+  if (type.includes('success') || type.includes('resolved') || type.includes('complete')) {
+    return 'success';
+  }
+  return 'info';
+};
+
+const toRelativeTime = (timestamp) => {
+  if (!timestamp) return 'Just now';
+
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return 'Just now';
+
+  const diffMs = Date.now() - date.getTime();
+  const diffMinutes = Math.floor(diffMs / 60000);
+
+  if (diffMinutes < 1) return 'Just now';
+  if (diffMinutes < 60) return `${diffMinutes} mins ago`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours} hrs ago`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays} days ago`;
+};
+
+const extractAlertsFromResponse = (response) => {
+  const body = response?.data ? response.data : response;
+
+  if (Array.isArray(body)) {
+    return body;
+  }
+
+  if (Array.isArray(body?.alerts)) {
+    return body.alerts;
+  }
+
+  if (Array.isArray(body?.data)) {
+    return body.data;
+  }
+
+  if (Array.isArray(body?.data?.alerts)) {
+    return body.data.alerts;
+  }
+
+  return [];
+};
+
+const mapAlert = (alert) => {
+  const alertType = toAlertType(alert?.alert_type || alert?.type);
+  const rawType = alert?.alert_type || alert?.type || 'info';
+  const normalizedTypeLabel = String(rawType)
+    .replaceAll('_', ' ')
+    .split(' ')
+    .map((word) => (word ? word[0].toUpperCase() + word.slice(1) : word))
+    .join(' ');
+
+  return {
+    id: alert?.id || `${rawType}-${alert?.created_at || Date.now()}`,
+    type: alertType,
+    title:
+      alert?.title ||
+      alert?.name ||
+      normalizedTypeLabel,
+    message:
+      alert?.message ||
+      alert?.details ||
+      alert?.description ||
+      `Visitor alert: ${String(rawType).replaceAll('_', ' ')}`,
+    relativeTime: toRelativeTime(alert?.alert_time || alert?.created_at || alert?.updated_at)
+  };
+};
+
+const OrganizationAlerts = ({ organizationId, activeTab = 'info', showActivityLog = true, onCloseSidebar, onAlertCountChange }) => {
   const { success, error: showError } = useToast();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeAlerts, setActiveAlerts] = useState([]);
-  const [visitorAlerts, setVisitorAlerts] = useState([]);
   const activeHeader = TAB_HEADERS[activeTab] || 'Organization Overview';
   const showScrollableAlerts = activeAlerts.length > 6;
+
+  const fetchAlerts = useCallback(async () => {
+    if (!organizationId) {
+      setActiveAlerts([]);
+      return;
+    }
+
+    try {
+      const response = await visitorService.getVisitorAlertsNew(organizationId, {
+        unacknowledged_only: true,
+        limit: 100
+      });
+
+      const normalizedAlerts = extractAlertsFromResponse(response).map(mapAlert);
+      setActiveAlerts(normalizedAlerts);
+    } catch (error) {
+      console.error('Error fetching visitor alerts:', error);
+      setActiveAlerts([]);
+    }
+  }, [organizationId]);
+
+  const prependRealtimeAlert = useCallback((newAlert) => {
+    setActiveAlerts((prev) => {
+      const deduped = prev.filter((alert) => String(alert.id) !== String(newAlert.id));
+      return [newAlert, ...deduped];
+    });
+  }, []);
+
+  const removeAlertById = useCallback((alertId) => {
+    setActiveAlerts((prev) => prev.filter((alert) => String(alert.id) !== String(alertId)));
+  }, []);
 
   // Connect to WebSocket and subscribe to alerts
   useEffect(() => {
@@ -82,23 +147,24 @@ const OrganizationAlerts = ({ organizationId, activeTab = 'info', showActivityLo
     // Subscribe to real-time alerts
     const handleNewAlert = (data) => {
       console.log('Real-time alert received:', data);
-      // Add new alert to the list
+      // Add new live alert to the list
       const newAlert = {
-        id: data.id,
-        type: data.alert_type === 'unauthorized' ? 'critical' : 
-              data.alert_type === 'overstay' ? 'warning' : 'info',
-        title: data.alert_type?.charAt(0).toUpperCase() + data.alert_type?.slice(1) || 'New Alert',
-        message: data.details || `Visitor alert: ${data.alert_type}`,
+        id: data?.id || `rt-${Date.now()}`,
+        type: toAlertType(data?.alert_type || data?.type),
+        title: data?.title || data?.alert_type?.charAt(0).toUpperCase() + data?.alert_type?.slice(1) || 'New Alert',
+        message: data?.details || data?.message || `Visitor alert: ${data?.alert_type || 'new event'}`,
         relativeTime: 'Just now'
       };
-      setActiveAlerts(prev => [newAlert, ...prev].slice(0, 6));
+
+      prependRealtimeAlert(newAlert);
+
       success('New alert received!');
     };
 
     const handleAlertHandled = (data) => {
       console.log('Alert handled:', data);
       // Remove handled alert from list
-      setActiveAlerts(prev => prev.filter(alert => alert.id !== data.id));
+      removeAlertById(data?.id);
     };
 
     const handleVisitorCheckin = (data) => {
@@ -124,7 +190,16 @@ const OrganizationAlerts = ({ organizationId, activeTab = 'info', showActivityLo
       socketService.off('visitor_checkout', handleVisitorCheckout);
       socketService.disconnect();
     };
-  }, [organizationId, success]);
+  }, [organizationId, success, prependRealtimeAlert, removeAlertById]);
+
+  useEffect(() => {
+    fetchAlerts();
+
+    // Refresh alerts periodically to keep count and list current.
+    const intervalId = setInterval(fetchAlerts, 30000);
+
+    return () => clearInterval(intervalId);
+  }, [fetchAlerts]);
 
   useEffect(() => {
     const loadLogs = async () => {
@@ -140,80 +215,28 @@ const OrganizationAlerts = ({ organizationId, activeTab = 'info', showActivityLo
       }
     };
 
-    // Load visitor alerts if on visitors tab
-    const loadVisitorAlerts = async () => {
-      if (activeTab === 'visitors') {
-        try {
-          const response = await visitorService.getAlerts(organizationId);
-          if (response.success && response.data) {
-            // Transform visitor alerts to match component format
-            const transformedAlerts = response.data.map(alert => ({
-              id: alert.id,
-              type: alert.alert_type === 'unauthorized' ? 'critical' : 
-                    alert.alert_type === 'overstay' ? 'warning' : 'info',
-              title: alert.alert_type.charAt(0).toUpperCase() + alert.alert_type.slice(1),
-              message: `Visitor alert: ${alert.alert_type}`,
-              relativeTime: alert.alert_time ? new Date(alert.alert_time).toLocaleTimeString() : 'Just now'
-            }));
-            setVisitorAlerts(transformedAlerts);
-          }
-        } catch (error) {
-          console.error('Error fetching visitor alerts:', error);
-        }
-      }
-    };
-
     if (showActivityLog) {
       loadLogs();
-    }
-    
-    loadVisitorAlerts();
-
-    const tabAlerts = TAB_ALERTS[activeTab] || TAB_ALERTS.default;
-    
-    // Merge visitor alerts with tab alerts for visitors tab
-    let combinedAlerts = tabAlerts;
-    if (activeTab === 'visitors' && visitorAlerts.length > 0) {
-      combinedAlerts = [...visitorAlerts, ...tabAlerts].slice(0, 6);
+      return;
     }
 
-    const ensureSixAlerts = (alerts) => {
-      if (alerts.length >= 6) {
-        return alerts.slice(0, 6);
-      }
+    setLoading(false);
+  }, [organizationId, showActivityLog, showError]);
 
-      const fallbackAlerts = [
-        {
-          id: `${activeTab}-extra-1`,
-          type: 'info',
-          title: 'System Update',
-          message: 'All monitored services are functioning normally',
-          relativeTime: '45 mins ago'
-        },
-        {
-          id: `${activeTab}-extra-2`,
-          type: 'warning',
-          title: 'Pending Review',
-          message: 'Two attendance logs are pending manager review',
-          relativeTime: '52 mins ago'
-        },
-        {
-          id: `${activeTab}-extra-3`,
-          type: 'info',
-          title: 'Sync Complete',
-          message: 'Background sync completed successfully',
-          relativeTime: '1 hr ago'
-        }
-      ];
+  useEffect(() => {
+    if (typeof onAlertCountChange === 'function') {
+      onAlertCountChange(activeAlerts.length);
+    }
+  }, [activeAlerts.length, onAlertCountChange]);
 
-      return [...alerts, ...fallbackAlerts].slice(0, 6);
-    };
+  const handleDismiss = async (id) => {
+    try {
+      await visitorService.acknowledgeAlert(organizationId, id);
+    } catch (error) {
+      console.error('Error acknowledging alert:', error);
+    }
 
-    setActiveAlerts(ensureSixAlerts(combinedAlerts));
-  }, [organizationId, activeTab, showActivityLog, showError, visitorAlerts]);
-
-  const handleDismiss = (id) => {
-    setActiveAlerts(prev => prev.filter(alert => alert.id !== id));
+    removeAlertById(id);
     success('Alert dismissed');
   };
 
@@ -287,6 +310,45 @@ const OrganizationAlerts = ({ organizationId, activeTab = 'info', showActivityLo
       default:
         return 'bg-blue-50 text-blue-700 border-blue-200';
     }
+  };
+
+  const renderActivityLogContent = () => {
+    if (loading) {
+      return (
+        <div className="p-8 flex justify-center">
+          <Loader size="medium" />
+        </div>
+      );
+    }
+
+    if (logs.length > 0) {
+      return (
+        <div className="divide-y divide-gray-100">
+          {logs.map((log) => (
+            <div key={log.id} className="p-4 hover:bg-teal-50 transition-colors">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="font-medium text-gray-900">{log.action}</p>
+                  <p className="text-sm text-gray-600 mt-1">{log.details || 'No details provided'}</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs text-gray-500 block">{formatDate(log.created_at)}</span>
+                  {log.performed_by_username && (
+                    <span className="text-xs font-medium text-teal-600 block mt-1">{log.performed_by_username}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div className="p-8 text-center text-gray-500">
+        <p>No activity logs found for this organization.</p>
+      </div>
+    );
   };
 
   if (!showActivityLog) {
@@ -404,39 +466,19 @@ const OrganizationAlerts = ({ organizationId, activeTab = 'info', showActivityLo
               Activity Log
             </h3>
           </div>
-
-          {loading ? (
-            <div className="p-8 flex justify-center">
-              <Loader size="medium" />
-            </div>
-          ) : logs.length > 0 ? (
-            <div className="divide-y divide-gray-100">
-              {logs.map((log) => (
-                <div key={log.id} className="p-4 hover:bg-teal-50 transition-colors">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-medium text-gray-900">{log.action}</p>
-                      <p className="text-sm text-gray-600 mt-1">{log.details || 'No details provided'}</p>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-xs text-gray-500 block">{formatDate(log.created_at)}</span>
-                      {log.performed_by_username && (
-                        <span className="text-xs font-medium text-teal-600 block mt-1">{log.performed_by_username}</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="p-8 text-center text-gray-500">
-              <p>No activity logs found for this organization.</p>
-            </div>
-          )}
+          {renderActivityLogContent()}
         </div>
       )}
     </div>
   );
+};
+
+OrganizationAlerts.propTypes = {
+  organizationId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  activeTab: PropTypes.string,
+  showActivityLog: PropTypes.bool,
+  onCloseSidebar: PropTypes.func,
+  onAlertCountChange: PropTypes.func
 };
 
 export default OrganizationAlerts;
