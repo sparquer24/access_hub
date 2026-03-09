@@ -5,7 +5,7 @@
 
 const IS_DEV = process.env.NODE_ENV !== 'production';
 const DEFAULT_DEV_API = 'http://localhost:5001';
-const DEFAULT_PROD_API = 'https://api.accesshub.sparquer.ai';
+const DEFAULT_PROD_API = 'http://api.accesshub.sparquer.ai';
 
 // Prefer explicit env var. Fall back to local backend for dev and hosted API for production.
 let API_BASE_URL = process.env.REACT_APP_API_BASE_URL || (IS_DEV ? DEFAULT_DEV_API : DEFAULT_PROD_API);

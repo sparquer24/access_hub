@@ -12,7 +12,7 @@ def create_app():
     app.config.from_object(Config)
 
     # CORS Configuration
-    cors_origins_str = app.config.get("CORS_ORIGIN", "*")
+    cors_origins_str = "*"
     env = app.config.get("ENVIRONMENT", "dev").lower()
 
     # Define common headers for CORS
@@ -26,28 +26,8 @@ def create_app():
         "X-Department-Id"
     ]
 
-    if cors_origins_str == "*":
-        # Using a list with a regex-like string or just the list of common origins
-        # When supports_credentials=True, origins cannot be "*"
-        # Flask-CORS handles a list of origins by echoing the matching one
-        allowed_origins = [
-            "http://localhost:3000",
-            "http://127.0.0.1:3000",
-            "http://localhost:5173",  # Vite default
-            "http://127.0.0.1:5173",
-            "https://app.sparquer.ai",
-            "http://localhost:3001"
-        ]
-        # In dev/stage, we can be more permissive by adding a regex that matches anything
-        # but correctly echoes the origin for supports_credentials
-        if env != "prod":
-            # This regex matches any origin starting with http:// or https://
-            allowed_origins.append(r"https?://.*")
-        
-        if env == "prod":
-            app.logger.warning("CORS is configured to allow all origins ('*') in a production environment. This is insecure and should be restricted to specific domains.")
-    else:
-        allowed_origins = [origin.strip() for origin in cors_origins_str.split(",")]
+    # Allow all origins in every environment
+    allowed_origins = "*"
 
     CORS(
         app,
