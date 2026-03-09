@@ -21,6 +21,7 @@ from .visitor import (
     OrganizationVisitor, VisitorHistoryDetails, VisitorMovementLog
 )
 from .lpr import LPRLog, LPRHotlist, LPRWhitelist
+from .alerts import Alert
 
 __all__ = [
     "Organization",
@@ -44,6 +45,7 @@ __all__ = [
     "LPRLog",
     "LPRHotlist",
     "LPRWhitelist",
+    "Alert",
 ]
 
 # Backwards-compat: some older code and migrations expect legacy models

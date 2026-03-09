@@ -587,6 +587,10 @@ def create_app():
     # Import and register event handlers
     from . import events
     events_bp = events.bp
+
+    # Bridge Postgres row changes to websocket events (alerts + visitor movement logs)
+    from .events.db_realtime import setup_db_realtime_bridge
+    setup_db_realtime_bridge(app)
     
     return app
 

@@ -107,7 +107,9 @@ class VisitorMovementLog(db.Model):
     visitor_id = db.Column(db.String(36), db.ForeignKey('visitors.id'), nullable=False, index=True)
     
     # Floor information
+    tower = db.Column(db.String(100), nullable=True)
     floor = db.Column(db.String(100), nullable=False)
+    status = db.Column(db.String(20), nullable=True, index=True)  # authorised | unauthorised | unknown
     entry_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     exit_time = db.Column(db.DateTime, nullable=True)
     

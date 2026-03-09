@@ -91,6 +91,9 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
     if (!formData.allowed_floor) {
       newErrors.allowed_floor = 'Please select allowed floor';
     }
+    if (!formData.allowed_tower) {
+      newErrors.allowed_tower = 'Please select allowed tower';
+    }
 
     if (!formData.image_base64) {
       newErrors.image_base64 = 'Visitor photo is required';
@@ -170,6 +173,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
           from_date: visitor.from_date || prev.from_date,
           to_date: visitor.to_date || prev.to_date,
           allowed_floor: visitor.allowed_floor || prev.allowed_floor,
+          allowed_tower: visitor.allowed_tower || prev.allowed_tower,
           image_base64: visitor.image_base64 || prev.image_base64
         }));
 
@@ -414,9 +418,9 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
       const { visitor_id, history_id, check_in_time } = response.data;
       console.log('📋 Check-in data:', { visitor_id, history_id, check_in_time });
 
-      // Enroll visitor face using unified /api/v1/face/enroll endpoint
+      // Enroll visitor face using VMS endpoint /api/v1/face/enroll_VMS
       try {
-        await faceService.enrollFace(visitor_id, formData.image_base64);
+        await faceService.enrollFaceVms(visitor_id, formData.image_base64);
         console.log('✅ Face enrollment successful');
       } catch (enrollmentError) {
         // Non-blocking error - visitor check-in still successful
@@ -725,13 +729,13 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Tower
+                Tower *
               </label>
               <select
-                name="allowed_towers"
-                value={formData.allowed_towers || ''}
+                name="allowed_tower"
+                value={formData.allowed_tower || ''}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.allowed_towers
+                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.allowed_tower
                   ? 'border-red-500 bg-red-50 focus:ring-red-500'
                   : 'border-gray-300 focus:ring-teal-500'
                   }`}
@@ -742,12 +746,12 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                 <option value="Tower C">Tower C</option>
                 <option value="Tower D">Tower D</option>
               </select>
-              {errors.allowed_towers && (
+              {errors.allowed_tower && (
                 <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                  {errors.allowed_towers}
+                  {errors.allowed_tower}
                 </p>
               )}
             </div>

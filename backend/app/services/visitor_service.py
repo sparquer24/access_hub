@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
-from sqlalchemy import func, and_, or_, distinct, case, desc
+from sqlalchemy import func, and_, or_, distinct, case, desc, text
 from ..extensions import db
 from ..models import OrganizationVisitor, AttendanceRecord, Employee, Shift, VisitorHistoryDetails, Image, VisitorMovementLog
+from ..events import emit_alert_handled
 import uuid
 from flask import current_app
 
@@ -77,7 +78,7 @@ class VisitorService:
                 organization_id=org_id,
                 visitor_type=visitor_data.get('visitor_type', 'guest'),
                 host_name=visitor_data.get('host_name'),
-                host_number=visitor_data.get('host_phone'),
+                host_number=visitor_data.get('host_number') or visitor_data.get('host_phone'),
                 purpose_of_visit=visitor_data['purpose_of_visit'],
                 allowed_floor=visitor_data['allowed_floor'],
                 allowed_tower=visitor_data.get('allowed_tower'),
@@ -351,35 +352,45 @@ class VisitorService:
             List of Alert objects
         """
         try:
+            from ..models.alerts import Alert as AlertModel
+
             if filters is None:
                 filters = {}
             
             # Build query for alerts
-            query = db.session.query(Alert).filter(
-                Alert.organization_id == organization_id
+            query = db.session.query(AlertModel).filter(
+                AlertModel.organization_id == organization_id
             )
             
             # Filter by visitor if provided
             if filters.get('visitor_id'):
-                query = query.filter(Alert.visitor_id == filters['visitor_id'])
+                query = query.filter(AlertModel.visitor_id == filters['visitor_id'])
             
             # Filter by acknowledgment status
             if filters.get('unacknowledged_only'):
-                query = query.filter(Alert.alert_status == 'yet_to_handle')
+                # Some alerts may be inserted outside ORM and have NULL/empty status.
+                # Treat anything not explicitly handled as active.
+                query = query.filter(
+                    or_(
+                        AlertModel.alert_status.is_(None),
+                        AlertModel.alert_status == '',
+                        AlertModel.alert_status != 'handled'
+                    )
+                )
             
             # Filter by alert type
             if filters.get('alert_type'):
-                query = query.filter(Alert.alert_type == filters['alert_type'])
+                query = query.filter(AlertModel.alert_type == filters['alert_type'])
             
             # Filter by date range
             if filters.get('date_from'):
-                query = query.filter(Alert.alert_time >= filters['date_from'])
+                query = query.filter(AlertModel.alert_time >= filters['date_from'])
             
             if filters.get('date_to'):
-                query = query.filter(Alert.alert_time <= filters['date_to'])
+                query = query.filter(AlertModel.alert_time <= filters['date_to'])
             
             # Order by most recent first
-            query = query.order_by(Alert.alert_time.desc())
+            query = query.order_by(AlertModel.alert_time.desc())
             
             # Apply pagination
             offset = filters.get('offset', 0)
@@ -396,22 +407,44 @@ class VisitorService:
     @staticmethod
     def acknowledge_alert(organization_id, alert_id, user_id=None):
         """
-        Acknowledge a visitor alert.
-        
-        Note: Alert model has been deprecated. This method returns a deprecation message.
-        
+        Mark an alert as handled.
+
         Args:
             organization_id: Organization ID
             alert_id: Alert ID to acknowledge
             user_id: User ID who acknowledged the alert (optional)
-            
+
         Returns:
-            Deprecation notice dictionary
-            
-        Raises:
-            ValueError: Alert functionality has been deprecated
+            Updated Alert object
         """
-        raise ValueError('Alert functionality has been deprecated. Please use visitor_history for tracking visits.')
+        try:
+            from ..models.alerts import Alert as AlertModel
+
+            alert = db.session.query(AlertModel).filter(
+                AlertModel.id == alert_id,
+                AlertModel.organization_id == organization_id
+            ).first()
+
+            if not alert:
+                raise ValueError("Alert not found")
+
+            alert.alert_status = "handled"
+            alert.handled_by = str(user_id) if user_id is not None else None
+            alert.handled_at = datetime.utcnow()
+            db.session.commit()
+
+            # Best-effort realtime update to connected clients
+            try:
+                emit_alert_handled(alert)
+            except Exception:
+                current_app.logger.exception("Failed to emit alert_handled websocket event")
+
+            return alert
+        except ValueError:
+            raise
+        except Exception as e:
+            db.session.rollback()
+            raise Exception(f"Failed to acknowledge alert: {str(e)}")
 
     @staticmethod
     def create_visitor_history_record(organization_id, visitor_id, data):
@@ -529,6 +562,8 @@ class VisitorService:
         Returns:
             List of movement log records
         """
+        VisitorService._ensure_visitor_movement_status_column()
+
         # Get all visitor IDs for this organization
         visitors = db.session.query(OrganizationVisitor.id).filter_by(
             organization_id=org_id
@@ -547,10 +582,19 @@ class VisitorService:
                 query = query.filter_by(floor=filters['floor'])
             
             if filters.get('date_from'):
-                query = query.filter(VisitorMovementLog.entry_time >= filters['date_from']) # type: ignore
+                date_from = filters['date_from']
+                if isinstance(date_from, date) and not isinstance(date_from, datetime):
+                    date_from = datetime.combine(date_from, datetime.min.time())
+                query = query.filter(VisitorMovementLog.entry_time >= date_from) # type: ignore
             
             if filters.get('date_to'):
-                query = query.filter(VisitorMovementLog.entry_time <= filters['date_to'])
+                date_to = filters['date_to']
+                if isinstance(date_to, date) and not isinstance(date_to, datetime):
+                    date_to = datetime.combine(date_to, datetime.max.time())
+                elif isinstance(date_to, datetime) and date_to.time() == datetime.min.time():
+                    # Make YYYY-MM-DD filters inclusive for the full day.
+                    date_to = date_to + timedelta(days=1) - timedelta(microseconds=1)
+                query = query.filter(VisitorMovementLog.entry_time <= date_to)
         
         # Order by most recent first
         query = query.order_by(desc(VisitorMovementLog.entry_time))
@@ -1102,3 +1146,32 @@ class VisitorService:
         return {
             'hourly_gender': hourly_gender
         }
+    @staticmethod
+    def _ensure_visitor_movement_status_column():
+        """
+        Backward-compatible schema sync for status/tower in visitor_movement_logs.
+        Safe to call repeatedly.
+        """
+        try:
+            db.session.execute(
+                text(
+                    """
+                    ALTER TABLE IF EXISTS visitor_movement_logs
+                    ADD COLUMN IF NOT EXISTS status VARCHAR(20)
+                    """
+                )
+            )
+            db.session.execute(
+                text(
+                    """
+                    ALTER TABLE IF EXISTS visitor_movement_logs
+                    ADD COLUMN IF NOT EXISTS tower VARCHAR(100)
+                    """
+                )
+            )
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            current_app.logger.exception(
+                "Failed to ensure status/tower columns in visitor_movement_logs"
+            )

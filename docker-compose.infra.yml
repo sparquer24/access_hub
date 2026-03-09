@@ -17,7 +17,7 @@ services:
       - core_net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d visitor_db -h localhost"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d access_hub -h localhost"]
       interval: 5s
       timeout: 3s
       retries: 30
@@ -82,7 +82,8 @@ services:
       QDRANT_HOST: qdrant
       QDRANT_PORT: "6333"
       VECTOR_SIZE: "512"
-      COLLECTION_NAME: vector-embeddings_AMS
+      QDRANT_COLLECTION: vector-embeddings
+      QDRANT_COLLECTION_AMS: vector-embeddings_AMS
     ports:
       - "8000:8000"
     depends_on:
