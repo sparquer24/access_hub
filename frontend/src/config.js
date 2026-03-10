@@ -3,7 +3,7 @@
  * Consolidates all environment variables and provides a single source of truth.
  */
 
-const DEFAULT_PROD_API = 'http://api.accesshub.sparquer.ai';
+const DEFAULT_PROD_API = 'https://api.accesshub.sparquer.ai';
 
 // Prefer explicit env var. Fall back to local backend for dev and hosted API for production.
 let API_BASE_URL = process.env.REACT_APP_API_BASE_URL || DEFAULT_PROD_API;
