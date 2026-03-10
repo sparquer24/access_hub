@@ -11,70 +11,15 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    # CORS Configuration
-    cors_origins_str = "*"
-    env = app.config.get("ENVIRONMENT", "dev").lower()
+    # CORS: Allow all origins
+    from flask_cors import CORS
+    CORS(app, resources={r"/api/.*": {"origins": "*"}}, supports_credentials=True)
+    app.logger.info("CORS enabled for all origins: *")
 
-    # Define common headers for CORS
-    cors_headers = [
-        "Content-Type", 
-        "Authorization", 
-        "X-Requested-With", 
-        "Accept", 
-        "X-CSRF-Token",
-        "X-Organization-Id",
-        "X-Department-Id"
-    ]
-
-    # Allow all origins in every environment
-    allowed_origins = "*"
-
-    CORS(
-        app,
-        resources={
-            r"/api/.*": {
-                "origins": allowed_origins,
-                "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-                "allow_headers": cors_headers,
-                "expose_headers": ["Content-Type", "Authorization"]
-            }
-        },
-        supports_credentials=True
-    )
-    app.logger.info(f"CORS enabled for origins: {allowed_origins}")
-
+    # Set security headers after each request
     @app.after_request
     def after_request(response):
-        # Set security headers
         response.headers["Referrer-Policy"] = "no-referrer-when-downgrade"
-        
-        # Ensure CORS headers are present even for error responses that might bypass flask-cors
-        # if the origin is allowed
-        origin = request.headers.get('Origin')
-        if origin:
-            # Check if origin is in allowed_origins or matches our regex
-            # (In dev we used r"https?://.*")
-            import re
-            is_allowed = False
-            if cors_origins_str == "*":
-                is_allowed = True
-            elif isinstance(allowed_origins, list):
-                for allowed in allowed_origins:
-                    if allowed == "*" or allowed == origin:
-                        is_allowed = True
-                        break
-                    # Simple regex check for our dev permissive origin
-                    if isinstance(allowed, str) and allowed.startswith(r"https?://") and re.match(allowed, origin):
-                        is_allowed = True
-                        break
-            
-            if is_allowed:
-                response.headers["Access-Control-Allow-Origin"] = origin
-                response.headers["Access-Control-Allow-Credentials"] = "true"
-                if request.method == 'OPTIONS':
-                    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
-                    response.headers["Access-Control-Allow-Headers"] = ", ".join(cors_headers)
-        
         return response
 
     # Initialize extensions
@@ -107,11 +52,10 @@ def create_app():
         "specs_route": "/api/docs/",
     }
     
-    # Parse SWAGGER_HOST to separate scheme and host for Swagger config
-    raw_swagger_host = app.config.get("SWAGGER_HOST", "localhost:5001")
-    swagger_host_domain = raw_swagger_host
-    if "://" in raw_swagger_host:
-        _, swagger_host_domain = raw_swagger_host.split("://", 1)
+    # Use SWAGGER_HOST for Swagger config
+    swagger_host_domain = app.config.get("SWAGGER_HOST", "https://api.accesshub.sparquer.ai")
+    if "://" in swagger_host_domain:
+        _, swagger_host_domain = swagger_host_domain.split("://", 1)
     
     swagger_template = {
         "swagger": "2.0",
