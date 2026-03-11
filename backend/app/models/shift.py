@@ -16,7 +16,7 @@ class Shift(db.Model):
     organization_id = db.Column(db.String(36), db.ForeignKey("organizations.id"), nullable=False, index=True)
     organization = db.relationship("Organization", back_populates="shifts")
     
-    name = db.Column(db.String(128), nullable=False)
+    name = db.Column(db.String(128), nullable=False, index=True)  # Add index for search
     start_time = db.Column(db.Time, nullable=False)
     end_time = db.Column(db.Time, nullable=False)
     
@@ -28,7 +28,7 @@ class Shift(db.Model):
     working_days = db.Column(db.JSON, default=[1, 2, 3, 4, 5])
     
     # Status
-    is_active = db.Column(db.Boolean, nullable=False, default=True)
+    is_active = db.Column(db.Boolean, nullable=False, default=True, index=True)  # Add index for filtering
     
     # Audit timestamps
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
@@ -36,6 +36,11 @@ class Shift(db.Model):
     
     # Relationships
     employees = db.relationship("Employee", back_populates="shift")
+    
+    __table_args__ = (
+        # Composite index for common filter combinations
+        db.Index('ix_shifts_org_active', 'organization_id', 'is_active'),
+    )
 
     def to_dict(self):
         """Convert shift to dictionary"""

@@ -44,22 +44,20 @@ class ShiftService:
         return shift
     
     @staticmethod
-    def list_shifts(filters, organization_id=None):
+    def list_shifts(filters):
         """List shifts with filters and pagination"""
         query = Shift.query
         
-        # Apply tenant isolation
-        if organization_id:
-            query = query.filter_by(organization_id=organization_id)
+        # Apply organization_id filter from filters dict
+        if filters.get('organization_id'):
+            query = query.filter_by(organization_id=filters['organization_id'])
         
-        # Apply filters
+        # Apply search filter
         if filters.get('search'):
             search = f"%{filters['search']}%"
             query = query.filter(Shift.name.ilike(search))
         
-        if filters.get('organization_id'):
-            query = query.filter_by(organization_id=filters['organization_id'])
-        
+        # Apply is_active filter
         if filters.get('is_active') is not None:
             query = query.filter_by(is_active=filters['is_active'])
         

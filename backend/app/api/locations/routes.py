@@ -174,9 +174,11 @@ def list_locations():
     
     # Get current user for tenant isolation
     current_user = get_current_user()
-    organization_id = current_user.get('organization_id') if current_user else None
+    # Use organization_id from query if provided, otherwise use current user's org
+    if not filters.get('organization_id'):
+        filters['organization_id'] = current_user.get('organization_id') if current_user else None
     
-    query = LocationService.list_locations(filters, organization_id)
+    query = LocationService.list_locations(filters)
     result = paginate(query, page, per_page, LocationSchema)
     
     return success_response(data=result)

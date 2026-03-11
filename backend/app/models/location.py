@@ -17,31 +17,32 @@ class Location(db.Model):
     organization = db.relationship("Organization", back_populates="locations")
     
     # Location details
-    name = db.Column(db.String(255), nullable=False)  # e.g., "Main Gate", "Floor-1 Entry"
+    name = db.Column(db.String(255), nullable=False, index=True)  # e.g., "Main Gate", "Floor-1 Entry"
     location_type = db.Column(
         db.String(20), 
-        nullable=False, 
+        nullable=False,
+        index=True,
         default="BOTH"
     )  # ENTRY, EXIT, BOTH
     
     description = db.Column(db.Text)
     
     # Physical address/floor/building info
-    building = db.Column(db.String(128))
+    building = db.Column(db.String(128), index=True)
     floor = db.Column(db.String(50))
-    area = db.Column(db.String(128))
+    area = db.Column(db.String(128), index=True)
     
     # GPS coordinates (optional)
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
     
     # Status
-    is_active = db.Column(db.Boolean, nullable=False, default=True)
+    is_active = db.Column(db.Boolean, nullable=False, default=True, index=True)
     
     # Audit timestamps
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
-    deleted_at = db.Column(db.DateTime, nullable=True)  # Soft delete
+    deleted_at = db.Column(db.DateTime, nullable=True, index=True)  # Soft delete
     
     # Relationships
     cameras = db.relationship("Camera", back_populates="location", cascade="all, delete-orphan")
@@ -50,6 +51,8 @@ class Location(db.Model):
     # Unique constraint: org_id + name
     __table_args__ = (
         db.UniqueConstraint("organization_id", "name", name="uq_org_location_name"),
+        # Composite index for common filter combinations
+        db.Index('ix_locations_org_active_deleted', 'organization_id', 'is_active', 'deleted_at'),
     )
 
     def to_dict(self, include_cameras=False):

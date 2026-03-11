@@ -3,6 +3,7 @@ Business logic for Department management.
 """
 
 from sqlalchemy import or_, and_
+from sqlalchemy.orm import selectinload, joinedload
 from ..extensions import db
 from ..models import Department
 from ..utils.exceptions import NotFoundError, ConflictError
@@ -48,15 +49,18 @@ class DepartmentService:
         return department
     
     @staticmethod
-    def list_departments(filters, organization_id=None):
-        """List departments with filters and pagination"""
-        query = Department.query.filter_by(deleted_at=None)
+    def list_departments(filters):
+        """List departments with filters and pagination - optimized with eager loading"""
+        # Use eager loading to avoid N+1 queries for employee counting
+        query = Department.query.options(
+            selectinload(Department.employees)
+        ).filter_by(deleted_at=None)
         
-        # Apply tenant isolation
-        if organization_id:
-            query = query.filter_by(organization_id=organization_id)
+        # Apply organization_id filter from filters dict
+        if filters.get('organization_id'):
+            query = query.filter_by(organization_id=filters['organization_id'])
         
-        # Apply filters
+        # Apply search filter
         if filters.get('search'):
             search = f"%{filters['search']}%"
             query = query.filter(
@@ -67,9 +71,7 @@ class DepartmentService:
                 )
             )
         
-        if filters.get('organization_id'):
-            query = query.filter_by(organization_id=filters['organization_id'])
-        
+        # Apply is_active filter
         if filters.get('is_active') is not None:
             query = query.filter_by(is_active=filters['is_active'])
         
