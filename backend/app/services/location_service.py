@@ -48,15 +48,15 @@ class LocationService:
         return location
     
     @staticmethod
-    def list_locations(filters, organization_id=None):
+    def list_locations(filters):
         """List locations with filters and pagination"""
         query = Location.query.filter_by(deleted_at=None)
         
-        # Apply tenant isolation
-        if organization_id:
-            query = query.filter_by(organization_id=organization_id)
+        # Apply organization_id filter from filters dict
+        if filters.get('organization_id'):
+            query = query.filter_by(organization_id=filters['organization_id'])
         
-        # Apply filters
+        # Apply search filter
         if filters.get('search'):
             search = f"%{filters['search']}%"
             query = query.filter(
@@ -67,12 +67,11 @@ class LocationService:
                 )
             )
         
-        if filters.get('organization_id'):
-            query = query.filter_by(organization_id=filters['organization_id'])
-        
+        # Apply location type filter
         if filters.get('location_type'):
             query = query.filter_by(location_type=filters['location_type'])
         
+        # Apply is_active filter
         if filters.get('is_active') is not None:
             query = query.filter_by(is_active=filters['is_active'])
         
