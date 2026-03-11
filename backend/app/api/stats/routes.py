@@ -306,8 +306,8 @@ def organization_analytics():
     parameters:
       - name: organization_id
         in: query
-        type: integer
-        required: false
+        type: string
+        required: true
         description: Organization ID to get analytics for. If omitted, returns overall stats
         example: 1
     responses:
@@ -360,7 +360,7 @@ def organization_analytics():
       404:
         description: Organization not found (if organization_id specified)
     """
-    organization_id = request.args.get('organization_id', type=int)
+    organization_id = request.args.get('organization_id', type=str)
     
     # Base queries
     emp_query = db.session.query(func.count(Employee.id))
@@ -435,10 +435,11 @@ def organization_analytics():
     if VisitorDetails is not None:
         try:
             visitor_query = db.session.query(func.count(VisitorDetails.aadhaar_id))
-            if organization_id:
+            # Only filter by organization_id if the legacy model has this attribute
+            if organization_id and hasattr(VisitorDetails, 'organization_id'):
                 visitor_query = visitor_query.filter(VisitorDetails.organization_id == organization_id)
             visitors_total = visitor_query.scalar() or 0
-        except ProgrammingError as e:
+        except (ProgrammingError, AttributeError) as e:
             print(f"[organization_analytics] Error querying visitors: {e}")
             db.session.rollback()
             visitors_total = 0

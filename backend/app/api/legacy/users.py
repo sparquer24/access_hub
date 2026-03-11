@@ -156,11 +156,24 @@ def create_user():
         login_id=data.get("login_id"),
         role=role,
         password_hash=bcrypt.generate_password_hash(data["password"]).decode(),
-        is_active=True,
-        organization_id=org_id
+        is_active=True
     )
     db.session.add(user)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        # Check for specific integrity errors
+        error_str = str(e).lower()
+        if 'unique constraint' in error_str or 'duplicate' in error_str:
+            if 'login_id' in error_str:
+                return jsonify({"message": "User Name (login_id) already exists"}), 409
+            elif 'email' in error_str:
+                return jsonify({"message": "Email already exists"}), 409
+            elif 'employee_id' in error_str:
+                return jsonify({"message": "Employee ID already exists"}), 409
+        print(f"[create_user] Database error: {e}")
+        return jsonify({"message": "Database constraint violation"}), 400
 
     # Audit log
     log_audit(
@@ -173,8 +186,7 @@ def create_user():
             "full_name": user.full_name,
             "role": user.role,
             "email": user.email,
-            "employee_id": user.employee_id,
-            "organization_id": user.organization_id
+            "employee_id": user.employee_id
         }
     )
 

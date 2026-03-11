@@ -6,7 +6,6 @@ from flasgger import Swagger
 import os
 from sqlalchemy import text
 
-
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
@@ -391,7 +390,7 @@ def create_app():
     from .api.stats.routes import bp as stats_bp
     app.register_blueprint(stats_bp)
     
-    from .users.routes import bp as users_v2_bp
+    from .api.users.routes import bp as users_v2_bp
     app.register_blueprint(users_v2_bp)
     
     try:

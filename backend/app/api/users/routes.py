@@ -1,10 +1,10 @@
 from flask import Blueprint, request, jsonify
 from flasgger import swag_from
-from ..extensions import db, bcrypt
-from ..models import UserDetails
-from ..middlewares import require_csrf, require_login
-from ..utils.decorators import permission_required
-from ..utils.audit import log_audit
+from ...extensions import db, bcrypt
+from ...models import UserDetails
+from ...middlewares import require_csrf, require_login
+from ...utils.decorators import permission_required
+from ...utils.audit import log_audit
 
 bp = Blueprint("users", __name__)
 
@@ -24,11 +24,11 @@ def create_user():
       - name: X-CSRFToken
         in: header
         type: string
-        required: true
+        required: false
         description: CSRF token for security
       - name: body
         in: body
-        required: true
+        required: false
         schema:
           type: object
           required:
@@ -142,7 +142,7 @@ def create_user():
         return jsonify({"message": "Employee ID already exists"}), 409
 
     # Enforce org scoping: only super_admin can create users in any org, org_admin only in their org
-    from ..middleware.rbac_middleware import RBACMiddleware
+    from ...middleware.rbac_middleware import RBACMiddleware
     from flask import g
     org_id = None
     if hasattr(g, 'current_organization_id'):
@@ -151,7 +151,7 @@ def create_user():
       # Prevent org_admin from creating users in other orgs
       if data.get("organization_id") and data["organization_id"] != org_id:
         return jsonify({"message": "Cannot create user in another organization"}), 403
-    # Set organization_id for org_admin
+    # Create user
     user = UserDetails(
       full_name=data.get("full_name"),
       gender=data.get("gender"),
@@ -163,11 +163,24 @@ def create_user():
       login_id=data.get("login_id"),
       role=role,
       password_hash=bcrypt.generate_password_hash(data["password"]).decode(),
-      is_active=True,
-      organization_id=org_id
+      is_active=True
     )
     db.session.add(user)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        # Check for specific integrity errors
+        error_str = str(e).lower()
+        if 'unique constraint' in error_str or 'duplicate' in error_str:
+            if 'login_id' in error_str:
+                return jsonify({"message": "User Name (login_id) already exists"}), 409
+            elif 'email' in error_str:
+                return jsonify({"message": "Email already exists"}), 409
+            elif 'employee_id' in error_str:
+                return jsonify({"message": "Employee ID already exists"}), 409
+        print(f"[create_user] Database error: {e}")
+        return jsonify({"message": "Database constraint violation"}), 400
 
     # Audit log: user creation
     log_audit(
@@ -180,8 +193,7 @@ def create_user():
         "full_name": user.full_name,
         "role": user.role,
         "email": user.email,
-        "employee_id": user.employee_id,
-        "organization_id": user.organization_id
+        "employee_id": user.employee_id
       }
     )
 
@@ -252,12 +264,20 @@ def list_users():
       403:
         description: Forbidden - Admin role required
     """
-    from ..middleware.rbac_middleware import RBACMiddleware
+    from ...middleware.rbac_middleware import RBACMiddleware
     from flask import g
-    org_filter = RBACMiddleware.get_organization_filter()
-    q = UserDetails.query.filter_by(role="User")
-    if org_filter:
-      q = q.filter_by(organization_id=org_filter)
+    
+    # For super_admin, no organization filter needed
+    if RBACMiddleware.is_super_admin():
+        q = UserDetails.query.filter_by(role="User")
+    else:
+        # For org_admin, filter by organization (if context available)
+        if hasattr(g, 'current_organization_id'):
+            q = UserDetails.query.filter_by(role="User")
+            # Note: UserDetails doesn't have organization_id field, so we don't filter by it
+        else:
+            return jsonify({"success": False, "message": "Organization context required"}), 403
+    
     users = q.order_by(UserDetails.id.desc()).all()
     return jsonify([{
       "id": u.id,
