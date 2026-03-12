@@ -50,3 +50,8 @@ keras==2.14.0
 opencv-python
 deepface==0.0.93
 ultralytics==8.1.0
+
+# Employee/organization export support
+reportlab>=4.0.4
+openpyxl>=3.1.0
+pandas>=2.0.0

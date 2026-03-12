@@ -383,8 +383,7 @@ const OrganizationInfo = ({ organization, onUpdate }) => {
             )}
           </div>
         </div>
-      </div> 
-      */}
+      </div>
 
       {/* Resource Analysis - Professional Dashboard (Moved to Bottom) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6 mt-6">

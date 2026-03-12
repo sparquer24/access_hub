@@ -60,33 +60,29 @@ const EmployeesList = () => {
 
       const allEmployees = response.data.items || [];
       
-      // Calculate statistics
-      const active = allEmployees.filter(e => e.is_active).length;
-      const inactive = allEmployees.filter(e => !e.is_active).length;
-      
-      // Get unique departments
+
+      // Efficient statistics calculation
+      let active = 0, inactive = 0;
       const deptMap = {};
+      const empTypeMap = {};
+      const now = new Date();
+      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      let newThisMonth = 0;
       allEmployees.forEach(emp => {
+        if (emp.is_active) active++;
+        else inactive++;
         if (emp.department?.name) {
           deptMap[emp.department.name] = (deptMap[emp.department.name] || 0) + 1;
         }
-      });
-      
-      // Get employment type breakdown
-      const empTypeMap = {};
-      allEmployees.forEach(emp => {
         const type = emp.employment_type || 'Unspecified';
         empTypeMap[type] = (empTypeMap[type] || 0) + 1;
+        if (emp.joining_date) {
+          const joinDate = new Date(emp.joining_date);
+          if (joinDate >= firstDayOfMonth && joinDate <= now) {
+            newThisMonth++;
+          }
+        }
       });
-      
-      // Calculate new employees this month
-      const now = new Date();
-      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const newThisMonth = allEmployees.filter(emp => {
-        if (!emp.joining_date) return false;
-        const joinDate = new Date(emp.joining_date);
-        return joinDate >= firstDayOfMonth && joinDate <= now;
-      }).length;
       
       setOverviewStats({
         totalEmployees: response.data.pagination?.total_items || allEmployees.length,

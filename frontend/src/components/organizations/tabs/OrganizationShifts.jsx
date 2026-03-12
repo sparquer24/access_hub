@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, TimePicker, Switch } from 'antd';
 import moment from 'moment';
+import { Edit, Trash2 } from 'lucide-react';
 import { shiftsService } from '../../../services/organizationsService';
 import Loader from '../../common/Loader';
 import { useToast } from '../../../contexts/ToastContext';
@@ -147,9 +148,13 @@ const OrganizationShifts = ({ organizationId, organization }) => {
                     </button>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button onClick={() => openEdit(s)} className="px-3 py-1 bg-teal-50 text-teal-600 rounded">Edit</button>
-                      <button onClick={() => handleDelete(s)} className="px-3 py-1 bg-red-50 text-red-600 rounded">Delete</button>
+                    <div className="flex justify-end gap-3">
+                      <button onClick={() => openEdit(s)} title="Edit" className="w-8 h-8 inline-flex items-center justify-center bg-teal-50 text-teal-600 rounded hover:bg-teal-100 transition-all">
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => handleDelete(s)} title="Delete" className="w-8 h-8 inline-flex items-center justify-center bg-red-50 text-red-600 rounded hover:bg-red-100 transition-all">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </td>
                 </tr>

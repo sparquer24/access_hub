@@ -13,11 +13,13 @@ let WS_URL = API_BASE_URL;
 export const API_BASE = API_BASE_URL;
 export const SOCKET_URL = WS_URL ;
 
-console.log('--- Dev Environment Configuration ---');
-console.log('API Base URL:', API_BASE);
-console.log('Socket URL:', SOCKET_URL);
-console.log('Environment:', process.env.NODE_ENV);
-console.log('-------------------------------------');
+if (process.env.NODE_ENV === 'development') {
+  console.log('--- Dev Environment Configuration ---');
+  console.log('API Base URL:', API_BASE);
+  console.log('Socket URL:', SOCKET_URL);
+  console.log('Environment:', process.env.NODE_ENV);
+  console.log('-------------------------------------');
+}
 
 const config = {
   API_BASE,
