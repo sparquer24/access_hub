@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 
 import { ArrowRight, Check, Sparkles, Users, Lock, Zap } from '../icons/Icons';
+import { 
+  Video, BarChart3, Building2, Smartphone, Link, User, 
+  Shield, Camera, ShieldCheck, Home, Server, Key, 
+  Ticket, MessageSquare, Phone, Mail, Rocket, Bot, 
+  Cloud, Database, Heart, GraduationCap, Factory, 
+  UserCircle, Clock, Cpu, Search
+} from 'lucide-react';
 import DemoSection from './DemoSection';
 import { statsAPI } from '../../services/api';
 
@@ -51,14 +58,14 @@ const LandingPage = () => {
       details: ['Digital ID cards', 'Biometric authentication', 'Shift management', 'Department organization']
     },
     {
-      icon: '📹',
+      icon: <Video className="w-8 h-8" />,
       title: 'Camera Integration',
       description: 'Real-time video monitoring, facial recognition, and automated security alerts.',
       color: 'from-cyan-500 to-pink-500',
       details: ['AI-powered facial recognition', 'Motion detection', 'Live streaming', '24/7 recording']
     },
     {
-      icon: '👤',
+      icon: <User className="w-8 h-8" />,
       title: 'Visitor Tracking',
       description: 'Streamlined visitor registration, badge printing, and entry/exit monitoring.',
       color: 'from-green-500 to-teal-500',
@@ -72,14 +79,14 @@ const LandingPage = () => {
       details: ['Predictive attendance', 'Anomaly detection', 'Risk assessment', 'Smart scheduling']
     },
     {
-      icon: '📊',
+      icon: <BarChart3 className="w-8 h-8" />,
       title: 'Advanced Analytics',
       description: 'Detailed reports, AI-driven usage statistics, and predictive insights for better decision making.',
       color: 'from-orange-500 to-red-500',
       details: ['AI-powered dashboards', 'Custom reports', 'Traffic patterns', 'Security insights']
     },
     {
-      icon: '🏢',
+      icon: <Building2 className="w-8 h-8" />,
       title: 'Multi-Location Support',
       description: 'Manage multiple offices, floors, and departments from a single dashboard.',
       color: 'from-teal-500 to-teal-600',
@@ -92,20 +99,7 @@ const LandingPage = () => {
       color: 'from-gray-700 to-gray-900',
       details: ['End-to-end encryption', 'Compliance reports', 'Audit logs', 'Data privacy']
     },
-    {
-      icon: '📱',
-      title: 'Mobile Applications',
-      description: 'iOS and Android apps for on-the-go management and visitor self-service.',
-      color: 'from-pink-500 to-rose-500',
-      details: ['Native mobile apps', 'Offline capabilities', 'Push notifications', 'Self-service kiosks']
-    },
-    {
-      icon: '🔗',
-      title: 'API Integrations',
-      description: 'Connect with existing systems through our comprehensive REST API.',
-      color: 'from-teal-500 to-green-500',
-      details: ['RESTful API', 'Webhooks', 'SSO integration', 'Custom connectors']
-    },
+
     {
       icon: <Zap className="w-8 h-8" />,
       title: 'Real-time Alerts',
@@ -119,37 +113,37 @@ const LandingPage = () => {
     {
       category: 'Security Systems',
       items: [
-        { name: 'HIKVISION', logo: '🔐', description: 'Camera systems integration' },
-        { name: 'Axis Communications', logo: '📹', description: 'Video surveillance' },
-        { name: 'Bosch Security', logo: '🛡️', description: 'Access control systems' },
-        { name: 'Honeywell', logo: '🏠', description: 'Building automation' }
+        { name: 'HIKVISION', logo: <Shield className="w-5 h-5" />, description: 'Camera systems integration' },
+        { name: 'Axis Communications', logo: <Camera className="w-5 h-5" />, description: 'Video surveillance' },
+        { name: 'Bosch Security', logo: <ShieldCheck className="w-5 h-5" />, description: 'Access control systems' },
+        { name: 'Honeywell', logo: <Home className="w-5 h-5" />, description: 'Building automation' }
       ]
     },
     {
       category: 'Identity & Access',
       items: [
-        { name: 'Active Directory', logo: '🏢', description: 'Employee directory sync' },
-        { name: 'LDAP', logo: '🔑', description: 'Authentication protocol' },
-        { name: 'SAML SSO', logo: '🎫', description: 'Single sign-on' },
-        { name: 'OAuth 2.0', logo: '🔐', description: 'Secure authorization' }
+        { name: 'Active Directory', logo: <Server className="w-5 h-5" />, description: 'Employee directory sync' },
+        { name: 'LDAP', logo: <Key className="w-5 h-5" />, description: 'Authentication protocol' },
+        { name: 'SAML SSO', logo: <Ticket className="w-5 h-5" />, description: 'Single sign-on' },
+        { name: 'OAuth 2.0', logo: <Shield className="w-5 h-5" />, description: 'Secure authorization' }
       ]
     },
     {
       category: 'Communication',
       items: [
-        { name: 'Slack', logo: '💬', description: 'Team notifications' },
-        { name: 'Microsoft Teams', logo: '👥', description: 'Collaboration platform' },
-        { name: 'Twilio', logo: '📱', description: 'SMS notifications' },
-        { name: 'SendGrid', logo: '📧', description: 'Email delivery' }
+        { name: 'Slack', logo: <MessageSquare className="w-5 h-5" />, description: 'Team notifications' },
+        { name: 'Microsoft Teams', logo: <Users className="w-5 h-5" />, description: 'Collaboration platform' },
+        { name: 'Twilio', logo: <Phone className="w-5 h-5" />, description: 'SMS notifications' },
+        { name: 'SendGrid', logo: <Mail className="w-5 h-5" />, description: 'Email delivery' }
       ]
     },
     {
       category: 'AI & Cloud',
       items: [
-        { name: 'Google Cloud AI', logo: '🚀', description: 'Advanced ML models' },
-        { name: 'OpenAI', logo: '🤖', description: 'Intelligent automation' },
-        { name: 'AWS SageMaker', logo: '☁️', description: 'Predictive analytics' },
-        { name: 'Qdrant', logo: '🧬', description: 'Vector search for facial identification' }
+        { name: 'Google Cloud AI', logo: <Rocket className="w-5 h-5" />, description: 'Advanced ML models' },
+        { name: 'OpenAI', logo: <Bot className="w-5 h-5" />, description: 'Intelligent automation' },
+        { name: 'AWS SageMaker', logo: <Cloud className="w-5 h-5" />, description: 'Predictive analytics' },
+        { name: 'Qdrant', logo: <Database className="w-5 h-5" />, description: 'Vector search for facial identification' }
       ]
     }
   ];
@@ -157,28 +151,28 @@ const LandingPage = () => {
   const useCases = [
     {
       industry: 'Corporate Offices',
-      icon: '🏢',
+      icon: <Building2 className="w-12 h-12" />,
       description: 'Manage employee access and visitor registration for office buildings.',
       features: ['Digital visitor badges', 'Host notifications', 'Meeting room access', 'Contractor tracking'],
       stats: { users: '2,500+', locations: '45' }
     },
     {
       industry: 'Healthcare Facilities',
-      icon: '🏥',
+      icon: <Heart className="w-12 h-12" />,
       description: 'HIPAA-compliant visitor management for medical facilities.',
       features: ['Patient privacy protection', 'Staff credential verification', 'Emergency protocols', 'Audit trails'],
       stats: { users: '1,200+', locations: '18' }
     },
     {
       industry: 'Educational Institutions',
-      icon: '🎓',
+      icon: <GraduationCap className="w-12 h-12" />,
       description: 'Campus security and visitor control for schools and universities.',
       features: ['Parent check-in', 'Campus events management', 'Student safety', 'Visitor screening'],
       stats: { users: '3,100+', locations: '32' }
     },
     {
       industry: 'Manufacturing',
-      icon: '🏭',
+      icon: <Factory className="w-12 h-12" />,
       description: 'Industrial site access control with safety compliance.',
       features: ['Safety certification checks', 'Contractor management', 'Restricted area access', 'Compliance reporting'],
       stats: { users: '800+', locations: '12' }
@@ -195,10 +189,6 @@ const LandingPage = () => {
       answer: 'We follow industry-standard security practices including data encryption and comply with GDPR and HIPAA requirements where applicable.'
     },
     {
-      question: 'Can AccessHub integrate with existing systems?',
-      answer: 'Yes, we offer integration with common security systems and identity providers through our API. Integration complexity varies by system.'
-    },
-    {
       question: 'What support options are available?',
       answer: 'We provide email support during business hours, comprehensive documentation, and video tutorials.'
     }
@@ -210,21 +200,21 @@ const LandingPage = () => {
       author: "Sarah Johnson",
       role: "Facilities Manager",
       company: "Riverside Office Park",
-      avatar: "👩‍💼"
+      avatar: <UserCircle className="w-12 h-12" />
     },
     {
       quote: "The reporting features help us track visitor patterns and improve our security protocols. Good value for the price.",
       author: "Michael Chen",
       role: "Security Coordinator",
       company: "Metro Manufacturing",
-      avatar: "👨‍💼"
+      avatar: <UserCircle className="w-12 h-12" />
     },
     {
       quote: "We needed a HIPAA-compliant solution for our medical center. AccessHub met our requirements and was easy to implement.",
       author: "Dr. Emily Rodriguez",
       role: "Administrator",
       company: "Westside Medical Center",
-      avatar: "👩‍⚕️"
+      avatar: <UserCircle className="w-12 h-12" />
     }
   ];
 
@@ -249,8 +239,64 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Inline CSS for animations */}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-6px); }
+        }
+        
+        @keyframes bounceSoft {
+          0%, 100% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-10px) scale(1.05); }
+        }
+        
+        @keyframes pulseGlow {
+          0%, 100% { box-shadow: 0 0 20px rgba(20, 184, 166, 0.3); }
+          50% { box-shadow: 0 0 30px rgba(20, 184, 166, 0.6); }
+        }
+        
+        @keyframes gradientShift {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(40px) scale(0.95); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        .animate-bounce-soft { animation: bounceSoft 2s ease-in-out infinite; }
+        .animate-pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+        .animate-gradient { background-size: 200% 200%; animation: gradientShift 3s ease-in-out infinite; }
+        .animate-slide-up { animation: slideUp 0.6s ease-out forwards; }
+        
+        .glass-morphism {
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(15px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .shadow-3d {
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 1px 8px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+        
+        .text-3d {
+          text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .perspective-card { perspective: 1000px; transform-style: preserve-3d; }
+        .card-content { transform-origin: center center; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .perspective-card:hover .card-content { transform: rotateX(5deg) rotateY(5deg) translateZ(20px); }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(148, 163, 184, 0.1); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: linear-gradient(135deg, #0e7490 0%, #0891b2 100%); }
+      `}</style>
       {/* Hero Section */}
-      <section className="relative bg-white pt-16">
+      <section className="relative bg-gradient-to-br from-slate-50 via-white to-teal-50 pt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="pt-20 pb-16 text-center lg:pt-32">
             <h1 className="mx-auto max-w-4xl font-display text-5xl font-medium tracking-tight text-slate-900 sm:text-6xl">
@@ -267,27 +313,34 @@ const LandingPage = () => {
             <div className="mt-10 flex justify-center gap-x-6">
               <button
                 onClick={() => window.location.href = '/login'}
-                className="group inline-flex items-center justify-center rounded-full py-3 px-6 text-sm font-semibold focus:outline-none bg-slate-900 text-white hover:bg-slate-700 transition-colors"
+                className="group inline-flex items-center justify-center rounded-full py-3 px-6 text-sm font-semibold focus:outline-none text-white bg-teal-600 hover:bg-teal-700 transition-colors"
               >
                 Get started
               </button>
             </div>
 
-            {/* Simple Stats */}
+            {/* Stats */}
             <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-2xl mx-auto">
               {stats.map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className="text-2xl font-semibold text-slate-900">{stat.value}</div>
-                  <div className="text-sm text-slate-600 mt-1">{stat.label}</div>
+                <div 
+                  key={index} 
+                  className="text-center p-4 rounded-xl bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg animate-float"
+                  style={{ animationDelay: `${index * 0.2}s` }}
+                >
+                  <div className="text-2xl font-bold text-teal-600 mb-1">
+                    {stat.value}
+                  </div>
+                  <div className="text-sm text-slate-600">{stat.label}</div>
                 </div>
               ))}
             </div>
           </div>
         </div>
+
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-slate-50">
+      <section className="py-20 bg-gradient-to-br from-slate-50 via-teal-50/30 to-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-slate-900 mb-4">
@@ -300,21 +353,39 @@ const LandingPage = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="bg-teal-50/95 rounded-lg p-6 border border-slate-200 hover:border-teal-300 transition-all hover:shadow-lg group">
-                <div className="text-3xl mb-4 group-hover:scale-110 transition-transform">{feature.icon}</div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">{feature.title}</h3>
-                <p className="text-slate-600 text-sm mb-4">{feature.description}</p>
+              <div 
+                key={index} 
+                className="rounded-2xl p-8 border border-white/20 group cursor-pointer relative bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow perspective-card"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <div className="card-content">
+                <div className="text-teal-600 text-4xl mb-6">
+                  {feature.icon}
+                </div>
+                
+                <h3 className="text-xl font-bold text-slate-900 mb-3">
+                  {feature.title}
+                </h3>
+                
+                <p className="text-slate-600 text-base mb-6 leading-relaxed">
+                  {feature.description}
+                </p>
+
                 {feature.details && (
-                  <ul className="text-xs text-slate-500 space-y-1">
+                  <ul className="space-y-2">
                     {feature.details.map((detail, detailIndex) => (
-                      <li key={detailIndex} className="flex items-center">
-                        <Check className="w-3 h-3 text-green-500 mr-2 flex-shrink-0" />
-                        {detail}
+                      <li 
+                        key={detailIndex} 
+                        className="flex items-center text-sm text-slate-600"
+                      >
+                        <div className="w-4 h-4 rounded-full mr-3 flex items-center justify-center flex-shrink-0 bg-green-500">
+                          <Check className="w-2.5 h-2.5 text-white" />
+                        </div>
+                        <span>{detail}</span>
                       </li>
                     ))}
                   </ul>
-                )}
-              </div>
+                )}                </div>              </div>
             ))}
           </div>
         </div>
@@ -322,39 +393,6 @@ const LandingPage = () => {
 
       {/* Demo Section */}
       <DemoSection />
-
-      {/* Integrations Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Seamless Integrations
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Connect AccessHub VMS with your existing systems and tools. Over 100+ integrations available.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {integrations.map((category, categoryIndex) => (
-              <div key={categoryIndex} className="bg-teal-50 rounded-2xl p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">{category.category}</h3>
-                <div className="space-y-3">
-                  {category.items.map((item, itemIndex) => (
-                    <div key={itemIndex} className="flex items-center space-x-3 p-3 bg-teal-50/95 rounded-lg hover:shadow-sm transition-shadow">
-                      <div className="text-2xl">{item.logo}</div>
-                      <div>
-                        <div className="font-medium text-gray-900">{item.name}</div>
-                        <div className="text-sm text-gray-600">{item.description}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Testimonials Section */}
       <section className="py-20 bg-white">
@@ -371,7 +409,7 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
               <div key={index} className="bg-gradient-to-br from-teal-50 to-white rounded-2xl p-8 border border-teal-100">
-                <div className="text-4xl mb-4">{testimonial.avatar}</div>
+                <div className="text-teal-600 mb-4">{testimonial.avatar}</div>
                 <blockquote className="text-gray-700 mb-6 italic">
                   "{testimonial.quote}"
                 </blockquote>
@@ -416,41 +454,8 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Integrations Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Seamless Integrations
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Connect AccessHub VMS with your existing systems and tools. Over 100+ integrations available.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {integrations.map((category, categoryIndex) => (
-              <div key={categoryIndex} className="bg-teal-50 rounded-2xl p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">{category.category}</h3>
-                <div className="space-y-3">
-                  {category.items.map((item, itemIndex) => (
-                    <div key={itemIndex} className="flex items-center space-x-3 p-3 bg-teal-50/95 rounded-lg hover:shadow-sm transition-shadow">
-                      <div className="text-2xl">{item.logo}</div>
-                      <div>
-                        <div className="font-medium text-gray-900">{item.name}</div>
-                        <div className="text-sm text-gray-600">{item.description}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Use Cases Section */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-white">
+      <section className="py-20 bg-gradient-to-br from-slate-50 via-teal-50/30 to-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
@@ -463,24 +468,43 @@ const LandingPage = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {useCases.map((useCase, index) => (
-              <div key={index} className="bg-teal-50/95 rounded-2xl p-8 border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300">
+              <div 
+                key={index} 
+                className="rounded-2xl p-8 border border-white/20 group cursor-pointer bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow"
+              >
                 <div className="flex items-center mb-6">
-                  <div className="text-4xl mr-4">{useCase.icon}</div>
+                  <div className="text-teal-600 mr-6">
+                    {useCase.icon}
+                  </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-900">{useCase.industry}</h3>
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      {useCase.industry}
+                    </h3>
                     <div className="flex space-x-4 text-sm text-gray-600 mt-1">
-                      <span>{useCase.stats.users} users</span>
-                      <span>•</span>
-                      <span>{useCase.stats.locations} locations</span>
+                      <span className="px-3 py-1 rounded-full bg-teal-600 text-white text-xs">
+                        {useCase.stats.users} users
+                      </span>
+                      <span className="px-3 py-1 rounded-full bg-teal-500 text-white text-xs">
+                        {useCase.stats.locations} locations
+                      </span>
                     </div>
                   </div>
                 </div>
-                <p className="text-gray-600 mb-6">{useCase.description}</p>
+                
+                <p className="text-gray-700 mb-8 text-base leading-relaxed">
+                  {useCase.description}
+                </p>
+                
                 <div className="grid grid-cols-2 gap-3">
                   {useCase.features.map((feature, featureIndex) => (
-                    <div key={featureIndex} className="flex items-center text-sm">
-                      <Check className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                      <span className="text-gray-700">{feature}</span>
+                    <div 
+                      key={featureIndex} 
+                      className="flex items-center text-sm"
+                    >
+                      <div className="w-5 h-5 rounded-full mr-3 flex items-center justify-center flex-shrink-0 bg-green-500">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                      <span className="text-gray-700 font-medium">{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -489,68 +513,6 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-
-      {/* Testimonials Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              What Our Customers Say
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Don't just take our word for it. Here's what industry leaders say about AccessHub VMS.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-gradient-to-br from-teal-50 to-white rounded-2xl p-8 border border-teal-100">
-                <div className="text-4xl mb-4">{testimonial.avatar}</div>
-                <blockquote className="text-gray-700 mb-6 italic">
-                  "{testimonial.quote}"
-                </blockquote>
-                <div>
-                  <div className="font-semibold text-gray-900">{testimonial.author}</div>
-                  <div className="text-sm text-gray-600">{testimonial.role}</div>
-                  <div className="text-sm text-teal-600 font-medium">{testimonial.company}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="py-20 bg-teal-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Frequently Asked Questions
-            </h2>
-            <p className="text-xl text-gray-600">
-              Got questions? We have answers. Can't find what you're looking for? Contact our support team.
-            </p>
-          </div>
-
-          <div className="space-y-6">
-            {faqItems.map((faq, index) => (
-              <div key={index} className="bg-teal-50/95 rounded-xl p-6 border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">{faq.question}</h3>
-                <p className="text-gray-600">{faq.answer}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <p className="text-gray-600 mb-4">Still have questions?</p>
-            <button className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
-              Contact Support
-            </button>
-          </div>
-        </div>
-      </section>
-
-
 
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-teal-600 to-teal-600">
@@ -659,21 +621,21 @@ const LandingPage = () => {
           <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="p-6">
               <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">📧</span>
+                <Mail className="w-6 h-6 text-teal-600" />
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Email</h3>
               <p className="text-gray-600">support@accesshub.com</p>
             </div>
             <div className="p-6">
               <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">📞</span>
+                <Phone className="w-6 h-6 text-teal-600" />
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Phone</h3>
               <p className="text-gray-600">+1 (555) 123-4567</p>
             </div>
             <div className="p-6">
               <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🕒</span>
+                <Clock className="w-6 h-6 text-teal-600" />
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">Response Time</h3>
               <p className="text-gray-600">Within 24 hours</p>

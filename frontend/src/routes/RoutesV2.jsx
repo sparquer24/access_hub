@@ -30,6 +30,8 @@ import EmployeeAttendance from '../pages/EmployeeAttendance';
 import AttendanceMarking from '../pages/AttendanceMarking';
 import EmployeeLeaves from '../pages/EmployeeLeaves';
 import EmployeeProfile from '../pages/EmployeeProfile';
+import Profile from '../pages/Profile';
+import Settings from '../pages/Settings';
 import AdminPanelDashboard from '../components/admin/AdminPanelDashboard';
 
 
@@ -95,6 +97,25 @@ const RoutesV2 = () => {
 
       {/* Unauthorized page */}
       <Route path="/unauthorized" element={<Unauthorized />} />
+
+      {/* Generic Profile and Settings routes for all authenticated users */}
+      <Route
+        path="/profile"
+        element={
+          <PrivateRoute>
+            <Profile />
+          </PrivateRoute>
+        }
+      />
+      
+      <Route
+        path="/settings"
+        element={
+          <PrivateRoute>
+            <Settings />
+          </PrivateRoute>
+        }
+      />
 
       {/* Super Admin Routes */}
       <Route
