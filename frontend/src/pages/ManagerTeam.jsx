@@ -318,19 +318,39 @@ function ManagerTeam() {
                   </div>
                   <div className="bg-green-50 p-4 rounded-lg">
                     <div className="text-2xl font-bold text-green-600">
-                      {teamMembers.filter(m => m.attendanceToday === 'present').length}
+                      {(() => {
+                        let present = 0, onLeave = 0, active = 0;
+                        teamMembers.forEach(m => {
+                          if (m.attendanceToday === 'present') present++;
+                          if (m.status === 'on_leave') onLeave++;
+                          if (m.status === 'active') active++;
+                        });
+                        return present;
+                      })()}
                     </div>
                     <div className="text-sm text-green-600">Present Today</div>
                   </div>
                   <div className="bg-yellow-50 p-4 rounded-lg">
                     <div className="text-2xl font-bold text-yellow-600">
-                      {teamMembers.filter(m => m.status === 'on_leave').length}
+                      {(() => {
+                        let onLeave = 0;
+                        teamMembers.forEach(m => {
+                          if (m.status === 'on_leave') onLeave++;
+                        });
+                        return onLeave;
+                      })()}
                     </div>
                     <div className="text-sm text-yellow-600">On Leave</div>
                   </div>
                   <div className="bg-teal-50 p-4 rounded-lg">
                     <div className="text-2xl font-bold text-teal-600">
-                      {teamMembers.filter(m => m.status === 'active').length}
+                      {(() => {
+                        let active = 0;
+                        teamMembers.forEach(m => {
+                          if (m.status === 'active') active++;
+                        });
+                        return active;
+                      })()}
                     </div>
                     <div className="text-sm text-teal-600">Active</div>
                   </div>

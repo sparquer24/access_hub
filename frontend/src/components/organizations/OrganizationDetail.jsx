@@ -142,7 +142,7 @@ const OrganizationDetail = ({
       default: 'activeVisitors'
     },
     lpr: {
-      valid: ['overview', 'register', 'hotlist', 'whitelist'],
+      valid: ['overview', 'logs', 'manualEntry'],
       default: 'overview'
     }
   };
@@ -432,7 +432,7 @@ const OrganizationDetail = ({
 
       {/* Tabs + Right Sidebar Alerts */}
       <div className="max-w-screen-2xl mx-auto px-2 sm:px-3 lg:px-4 py-2">
-        <div className={`grid grid-cols-1 lg:grid-cols-12 gap-3 ${isAlertSidebarOpen ? 'h-[calc(100vh-178px)]' : ''}`}>
+        <div className={`grid grid-cols-1 lg:grid-cols-12 gap-3 ${isAlertSidebarOpen ? 'h-[calc(100vh-90px)]' : ''}`}>
           <div className={`${isAlertSidebarOpen ? 'lg:col-span-10 h-full overflow-hidden' : 'lg:col-span-12'} min-w-0 transition-all duration-300`}>
             <div className={`bg-teal-50/95 rounded-lg shadow-sm overflow-hidden ${isAlertSidebarOpen ? 'h-full flex flex-col' : ''}`}>
               {/* Tab Content */}

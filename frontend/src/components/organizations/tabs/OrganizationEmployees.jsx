@@ -13,7 +13,7 @@ import EmployeeAttendanceCalendar from './EmployeeAttendanceCalendar';
 import OrganizationDepartments from './OrganizationDepartments';
 import OrganizationShifts from './OrganizationShifts';
 import { authService } from '../../../services/authService';
-import { Users, BarChart3, ClipboardList, Calendar as CalendarIcon, Building2, Clock, FileText, Download, MoreHorizontal, ChevronDown, CheckCircle2, XCircle, Search, ListFilter, Trash2 } from 'lucide-react';
+import { Users, UserPlus, BarChart3, ClipboardList, Calendar as CalendarIcon, Building2, Clock, FileText, Download, MoreHorizontal, ChevronDown, CheckCircle2, XCircle, Search, ListFilter, Trash2 } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 
 const { Option } = Select;
@@ -52,6 +52,7 @@ const OrganizationEmployees = ({
   const [recordsItemsPerPage, setRecordsItemsPerPage] = useState(10);
   const [allAttendanceRecords, setAllAttendanceRecords] = useState([]);
   const [isTabDropdownOpen, setIsTabDropdownOpen] = useState(false);
+  const tabDropdownRef = React.useRef(null);
   const calendarRef = React.useRef(null);
   const analyticsRef = React.useRef(null);
   const { success, error: showError } = useToast();
@@ -669,6 +670,11 @@ const OrganizationEmployees = ({
   };
 
   const handleCreateEmployee = () => {
+    // The create/edit modal is rendered in the list tab section.
+    // Route to list first so the modal is mounted before opening it.
+    if (activeTab !== 'list') {
+      setActiveTab('list');
+    }
     setEditingEmployee(null);
     setEmployeePhoto(null);
     setShowWebcam(false);
@@ -678,6 +684,9 @@ const OrganizationEmployees = ({
   };
 
   const handleEditEmployee = (employee) => {
+    if (activeTab !== 'list') {
+      setActiveTab('list');
+    }
     setEditingEmployee(employee);
     setEmployeePhoto(employee.photo_base64 || null);
     setShowWebcam(false);
@@ -820,8 +829,11 @@ const OrganizationEmployees = ({
     return matchesSearch && matchesStatus;
   });
 
-  const activeEmployeesCount = employees.filter((employee) => employee.is_active).length;
-  const inactiveEmployeesCount = employees.filter((employee) => !employee.is_active).length;
+  let activeEmployeesCount = 0, inactiveEmployeesCount = 0;
+  employees.forEach(employee => {
+    if (employee.is_active) activeEmployeesCount++;
+    else inactiveEmployeesCount++;
+  });
 
   useEffect(() => {
     setCurrentPage(1);
@@ -860,6 +872,32 @@ const OrganizationEmployees = ({
     }
   }, [isAlertSidebarOpen]);
 
+  useEffect(() => {
+    if (!isTabDropdownOpen) {
+      return undefined;
+    }
+
+    const handleOutsideClick = (event) => {
+      if (tabDropdownRef.current && !tabDropdownRef.current.contains(event.target)) {
+        setIsTabDropdownOpen(false);
+      }
+    };
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        setIsTabDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isTabDropdownOpen]);
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] bg-white/50 backdrop-blur-sm rounded-xl border border-gray-100 shadow-inner">
@@ -868,6 +906,15 @@ const OrganizationEmployees = ({
     );
   }
 
+  const canDownload =
+    (activeTab === 'list' && employees.length > 0) ||
+    (activeTab === 'analytics' && employees.length > 0) ||
+    activeTab === 'logs' ||
+    activeTab === 'records' ||
+    (activeTab === 'calendar' && employees.length > 0) ||
+    activeTab === 'departments' ||
+    activeTab === 'shifts';
+
 
 
 
@@ -875,7 +922,7 @@ const OrganizationEmployees = ({
     <div className="w-full space-y-3">
       {/* Employee Directory Header */}
       <div className="rounded-xl border border-teal-100/70 bg-gradient-to-r from-white via-teal-50/60 to-cyan-50/60 shadow-sm overflow-visible relative">
-        <div className="px-4 py-3.5 sm:px-5 sm:py-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between relative z-30">
+        <div className="px-4 py-5 sm:px-5 sm:py-6 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between relative z-30">
           <div className="min-w-0">
             <div className="flex items-center gap-2.5">
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600/10 ring-1 ring-teal-200">
@@ -893,37 +940,32 @@ const OrganizationEmployees = ({
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 xl:justify-end">
+          <div className="flex flex-wrap items-center gap-2.5 xl:gap-3 w-full xl:w-auto">
             <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white/90 p-1.5 shadow-sm">
               <button
                 onClick={handleCreateEmployee}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-teal-700"
+                title="Add Employee"
+                aria-label="Add Employee"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                Add Employee
+                <UserPlus className="w-4 h-4" />
               </button>
 
-              {(
-                (activeTab === 'list' && employees.length > 0) ||
-                (activeTab === 'analytics' && employees.length > 0) ||
-                (activeTab === 'logs') ||
-                (activeTab === 'records') ||
-                (activeTab === 'calendar' && employees.length > 0) ||
-                (activeTab === 'departments') ||
-                (activeTab === 'shifts')
-              ) && (
+              {canDownload && (
                 <button
                   onClick={handleDownloadClick}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3.5 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-200"
+                  className="inline-flex items-center justify-center rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-teal-700"
+                  title="Download"
+                  aria-label="Download"
                 >
                   <Download className="w-4 h-4" />
-                  Download
                 </button>
               )}
             </div>
 
             {isAlertSidebarOpen ? (
-              <div className="relative">
+              <div className="flex items-center gap-2">
+                <div ref={tabDropdownRef} className="relative">
                 <button
                   onClick={() => setIsTabDropdownOpen((prev) => !prev)}
                   className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
@@ -956,9 +998,10 @@ const OrganizationEmployees = ({
                     })}
                   </div>
                 )}
+                </div>
               </div>
             ) : (
-              <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white/90 p-1.5 shadow-sm overflow-x-auto max-w-full">
+              <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white/90 p-1.5 shadow-sm overflow-x-auto flex-1 xl:flex-none">
                 {employeeTabs.map((tab) => {
                   const Icon = tab.icon;
                   return (
@@ -1302,10 +1345,10 @@ const OrganizationEmployees = ({
                 <tbody className="divide-y divide-gray-200">
                   {paginatedEmployees.map((employee, index) => (
                     <tr key={employee.id} className="hover:bg-teal-50 transition-colors">
-                      <td className="px-4 py-3 text-sm font-medium text-gray-700">
+                      <td className="px-4 py-4 text-sm font-medium text-gray-700">
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
                           {employee.photo_base64 || employee.photo || employee.photo_url ? (
                             <img
@@ -1323,23 +1366,23 @@ const OrganizationEmployees = ({
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-4">
                         <span className="font-mono text-sm font-semibold text-teal-600">
                           {employee.employee_code}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">
+                      <td className="px-4 py-4 text-sm text-gray-700">
                         {employee.phone_number || 'N/A'}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">
+                      <td className="px-4 py-4 text-sm text-gray-700">
                         {employee.designation || 'N/A'}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-4">
                         <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
                           {employee.employment_type?.replace('_', ' ').toUpperCase() || 'N/A'}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-4">
                         <button
                           onClick={() => handleToggleStatus(employee)}
                           className={`px-3 py-1 rounded-full text-xs font-semibold cursor-pointer transition-all inline-flex items-center gap-1.5 ${employee.is_active
@@ -1351,7 +1394,7 @@ const OrganizationEmployees = ({
                           {employee.is_active ? 'Active' : 'Inactive'}
                         </button>
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-4 text-right">
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => handleEditEmployee(employee)}
