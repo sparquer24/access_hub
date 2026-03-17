@@ -160,13 +160,113 @@ def face_enroll():
 
       "ok": True,
 
-      "message": "Enrollment has been started and is processing in the background"
+      "message": "Attendance Enrollment has been started and is processing in the background"
 
   }), 202
 
 
 @face_enroll_bp.route("/face/enroll_VMS", methods=["POST"])
 def face_enroll_vms():
+  """
+  Enroll face for VMS recognition
+
+  ---
+
+  tags:
+
+    - Face Recognition
+
+  security:
+
+    - Bearer: []
+
+  parameters:
+
+    - in: body
+
+      name: body
+
+      required: true
+
+      schema:
+
+        type: object
+
+        required:
+
+          - entity_id
+
+          - img_b64
+
+        properties:
+
+          entity_id:
+
+            type: string
+
+            description: Entity ID (Employee or Visitor) for VMS enrollment
+
+            example: "emp-123"
+
+          img_b64:
+
+            type: string
+
+            description: Base64 encoded image
+
+            example: "iVBORw0KGgoAAAANS..."
+
+  responses:
+
+    202:
+
+      description: VMS face enrollment accepted and processing in background
+
+      schema:
+
+        type: object
+
+        properties:
+
+          ok:
+
+            type: boolean
+
+            example: true
+
+          message:
+
+            type: string
+
+            example: "VMS enrollment started"
+
+    400:
+
+      description: Missing required fields
+
+      schema:
+
+        type: object
+
+        properties:
+
+          ok:
+
+            type: boolean
+
+            example: false
+
+          error:
+
+            type: string
+
+            example: "entity_id and img_b64 are required"
+
+    401:
+
+      $ref: '#/responses/UnauthorizedError'
+
+  """
   data = request.get_json(silent=True) or {}
   entity_id = data.get("entity_id")
   img_b64 = data.get("img_b64")
