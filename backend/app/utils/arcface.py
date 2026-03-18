@@ -30,6 +30,9 @@ class FaceEmbedder:
                 enforce_detection=False,
                 detector_backend='skip'
             )
+            if not result or len(result) == 0:
+                print("[ERROR] DeepFace returned empty result")
+                return None
             return np.array(result[0]["embedding"], dtype=np.float32)
         except Exception as e:
             print(f"[ERROR] Failed to extract embedding: {e}")
