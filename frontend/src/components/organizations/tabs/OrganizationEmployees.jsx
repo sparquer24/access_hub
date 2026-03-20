@@ -727,8 +727,23 @@ const OrganizationEmployees = ({
     }
   };
 
+  // Track if submit was triggered by button
+  const submitTriggeredByButton = React.useRef(false);
+
   const handleSubmit = async (values) => {
+    console.log('[FORM SUBMIT] values:', values, 'submitTriggeredByButton:', submitTriggeredByButton.current);
+    if (!submitTriggeredByButton.current) {
+      console.warn('Form submit blocked: not triggered by button');
+      return;
+    }
+    submitTriggeredByButton.current = false;
     try {
+      // ...existing code...
+      let photoBase64Clean = undefined;
+      if (employeePhoto) {
+        const match = employeePhoto.match(/^data:(image\/\w+);base64,(.+)$/);
+        photoBase64Clean = match ? match[2] : employeePhoto;
+      }
       if (editingEmployee) {
         const payload = {
           full_name: values.full_name,
@@ -742,17 +757,15 @@ const OrganizationEmployees = ({
           shift_id: values.shift_id,
           address: values.address,
           is_active: values.is_active,
-          photo_base64: employeePhoto || undefined,
+          photo_base64: photoBase64Clean,
         };
+        console.log('[EMPLOYEE UPDATE] payload:', payload, 'employeePhoto:', employeePhoto);
         const updateResponse = await employeesService.update(editingEmployee.id, payload);
         success('Successfully updated');
-
-        // Enroll employee face if photo was updated
         if (employeePhoto) {
           try {
             await faceService.enrollFace(editingEmployee.id, employeePhoto);
           } catch (enrollmentError) {
-            // Non-blocking error - employee update still successful
             console.warn('⚠️ Face enrollment failed for update:', enrollmentError);
           }
         }
@@ -778,22 +791,19 @@ const OrganizationEmployees = ({
           department_id: values.department_id,
           shift_id: values.shift_id,
           address: values.address,
-          photo_base64: employeePhoto || undefined,
+          photo_base64: photoBase64Clean,
         };
+        console.log('[EMPLOYEE CREATE] payload:', payload, 'employeePhoto:', employeePhoto);
         const createResponse = await employeesService.create(payload);
         success('Successfully created');
-
-        // Enroll employee face using unified /api/v1/face/enroll endpoint
         if (employeePhoto && createResponse.data?.id) {
           try {
             await faceService.enrollFace(createResponse.data.id, employeePhoto);
           } catch (enrollmentError) {
-            // Non-blocking error - employee creation still successful
             console.warn('⚠️ Face enrollment failed for new employee:', enrollmentError);
           }
         }
       }
-
       setShowModal(false);
       setEmployeePhoto(null);
       setShowWebcam(false);
@@ -1352,7 +1362,13 @@ const OrganizationEmployees = ({
                         <div className="flex items-center gap-3">
                           {employee.photo_base64 || employee.photo || employee.photo_url ? (
                             <img
-                              src={employee.photo_base64 || employee.photo || employee.photo_url}
+                              src={
+                                employee.photo_base64
+                                  ? (employee.photo_base64.startsWith('data:')
+                                      ? employee.photo_base64
+                                      : `data:image/jpeg;base64,${employee.photo_base64}`)
+                                  : (employee.photo || employee.photo_url)
+                              }
                               alt={employee.full_name}
                               className="w-10 h-10 rounded-full object-cover border border-white shadow-sm"
                             />
@@ -1680,13 +1696,17 @@ const OrganizationEmployees = ({
                   Cancel
                 </button>
                 <button
-                  type="submit"
-                  disabled={!editingEmployee && !isCreateFormComplete}
+                  type="button"
+                  disabled={(!editingEmployee && !isCreateFormComplete) || !employeePhoto}
                   className={`px-6 py-2 rounded-lg transition-all font-semibold ${
-                    !editingEmployee && !isCreateFormComplete
+                    (!editingEmployee && !isCreateFormComplete) || !employeePhoto
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-gradient-to-r from-teal-600 to-teal-600 text-white hover:shadow-lg'
                   }`}
+                  onClick={() => {
+                    submitTriggeredByButton.current = true;
+                    form.submit();
+                  }}
                 >
                   {editingEmployee ? 'Update Employee' : 'Create Employee'}
                 </button>
