@@ -32,7 +32,7 @@ const OrganizationVisitors = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 flex-1 h-[60vh] overflow-y-auto">
       {/* Header */}
       <div className="rounded-xl border border-teal-100/70 bg-gradient-to-r from-white via-teal-50/60 to-cyan-50/60 shadow-sm overflow-visible relative">
         <div className="px-4 py-3.5 sm:px-5 sm:py-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between relative z-30">

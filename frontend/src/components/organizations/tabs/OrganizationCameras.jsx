@@ -338,7 +338,7 @@ const OrganizationCameras = ({ organizationId, organization }) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 h-[60vh] overflow-y-auto">
       {/* Header */}
       <div className="rounded-xl border border-teal-100/70 bg-gradient-to-r from-white via-teal-50/60 to-cyan-50/60 shadow-sm overflow-visible relative">
         <div className="px-4 py-3.5 sm:px-5 sm:py-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between relative z-30">
@@ -455,6 +455,7 @@ const OrganizationCameras = ({ organizationId, organization }) => {
             <table className="min-w-full">
               <thead className="bg-gradient-to-r from-teal-500/10 to-teal-500/10 border-b border-gray-200">
                 <tr>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">S.No.</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">Name</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">Type</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">Status</th>
@@ -467,8 +468,9 @@ const OrganizationCameras = ({ organizationId, organization }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredCameras.map((camera) => (
+                {filteredCameras.map((camera, idx) => (
                   <tr key={camera.id} className="hover:bg-teal-500/5 transition-colors">
+                    <td className="px-4 py-3 text-gray-700 font-semibold">{idx + 1}</td>
                     <td className="px-4 py-3">
                       <div className="font-semibold text-gray-900">{camera.name}</div>
                     </td>

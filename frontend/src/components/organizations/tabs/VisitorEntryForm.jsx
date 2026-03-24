@@ -501,506 +501,248 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
   const floors = ['Ground Floor', 'Floor 1', 'Floor 2', 'Floor 3', 'Floor 4', 'Floor 5'];
 
   return (
-    <div className="max-w-6xl mx-auto px-2">
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 md:p-8">
-        <div className="mb-6 pb-4 border-b border-gray-200">
-          <h3 className="text-2xl font-bold text-gray-900">Visitor Check-In</h3>
-          <p className="text-gray-500 mt-1">Fill in the visitor details below. All fields marked <span className="text-red-500">*</span> are required.</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            <div className="xl:col-span-2 space-y-6">
-              <div className="rounded-xl border border-gray-200 p-5 md:p-6">
-                <h4 className="text-2xl font-bold text-gray-900 mb-5">Visitor Information</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Mobile Number *
-              </label>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleInputChange}
-                placeholder="Enter mobile number"
-                required
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.phone
-                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                  : 'border-gray-300 focus:ring-teal-500'
-                  }`}
-              />
-              {errors.phone && (
-                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.phone}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Visitor Name *
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder="Enter full name"
-                required
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.name
-                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                  : 'border-gray-300 focus:ring-teal-500'
-                  }`}
-              />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.name}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Email Address *
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="visitor@example.com"
-                required
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.email
-                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                  : 'border-gray-300 focus:ring-teal-500'
-                  }`}
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Gender *
-              </label>
-              <select
-                name="gender"
-                value={formData.gender}
-                onChange={handleInputChange}
-                required
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.gender
-                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                  : 'border-gray-300 focus:ring-teal-500'
-                  }`}
-              >
-                <option value="">Select gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-                <option value="prefer_not_to_say">Prefer not to say</option>
-              </select>
-              {errors.gender && (
-                <p className="mt-1 text-sm text-red-600">{errors.gender}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Visitor Type *
-              </label>
-              <select
-                name="visitor_type"
-                value={formData.visitor_type}
-                onChange={handleInputChange}
-                required
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.visitor_type
-                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                  : 'border-gray-300 focus:ring-teal-500'
-                  }`}
-              >
-                <option value="guest">👤 Guest</option>
-                <option value="contractor">👷 Contractor</option>
-                <option value="vendor">🏢 Vendor</option>
-                <option value="interview_candidate">💼 Interview Candidate</option>
-                <option value="delivery">📦 Delivery Personnel</option>
-                <option value="service_provider">🔧 Service Provider</option>
-                <option value="vip">👑 VIP</option>
-              </select>
-              {errors.visitor_type && (
-                <p className="mt-1 text-sm text-red-600">{errors.visitor_type}</p>
-              )}
-            </div>
+    <div className="min-h-screen bg-teal-50 flex items-center justify-center">
+      <div className="max-w-7xl w-full mx-auto mt-0 ">
+        <div className="bg-white rounded-lg border border-teal-200 shadow-lg p-5">
+          {/* Header */}
+          <div className="mb-4 pb-3 border-b border-teal-200">
+            <h3 className="text-2xl font-extrabold text-teal-700">Visitor Check-In</h3>
+            <p className="text-gray-600 text-sm mt-1">
+              Fill in the visitor details below. All fields marked <span className="text-red-500">*</span> are required.
+            </p>
           </div>
-              </div>
-
-              <div className="rounded-xl border border-gray-200 p-5 md:p-6 space-y-6">
-                <h4 className="text-xl font-bold text-gray-900">Host & Visit Details</h4>
-
-                {/* Host Contact Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Host Name *
-              </label>
-              <input
-                type="text"
-                name="host_name"
-                value={formData.host_name}
-                onChange={handleInputChange}
-                placeholder="Person/Department to visit"
-                required
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.host_name
-                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                  : 'border-gray-300 focus:ring-teal-500'
-                  }`}
-              />
-              {errors.host_name && (
-                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.host_name}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Host Phone *
-              </label>
-              <input
-                type="tel"
-                name="host_number"
-                value={formData.host_number}
-                onChange={handleInputChange}
-                placeholder="Host contact number"
-                required
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.host_number
-                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                  : 'border-gray-300 focus:ring-teal-500'
-                  }`}
-              />
-              {errors.host_number && (
-                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.host_number}
-                </p>
-              )}
-            </div>
-          </div>
-
-                {/* Purpose of Visit */}
-                <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Purpose of Visit *
-            </label>
-            <input
-              type="text"
-              name="purpose_of_visit"
-              value={formData.purpose_of_visit}
-              onChange={handleInputChange}
-              placeholder="e.g., Meeting, Delivery, Service"
-              className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.purpose_of_visit
-                ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                : 'border-gray-300 focus:ring-teal-500'
-                }`}
-            />
-            {errors.purpose_of_visit && (
-              <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-                {errors.purpose_of_visit}
-              </p>
-            )}
-          </div>
-
-                {/* Floor and Tower */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Tower *
-              </label>
-              <select
-                name="allowed_tower"
-                value={formData.allowed_tower || ''}
-                onChange={handleInputChange}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.allowed_tower
-                  ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                  : 'border-gray-300 focus:ring-teal-500'
-                  }`}
-              >
-                <option value="">Select a tower</option>
-                <option value="Tower A">Tower A</option>
-                <option value="Tower B">Tower B</option>
-                <option value="Tower C">Tower C</option>
-                <option value="Tower D">Tower D</option>
-              </select>
-              {errors.allowed_tower && (
-                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.allowed_tower}
-                </p>
-              )}
-            </div>
-            
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Allowed Floor *
-              </label>
-              <select
-                name="allowed_floor"
-                value={formData.allowed_floor}
-                onChange={handleInputChange}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.allowed_floor
-                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                  : 'border-gray-300 focus:ring-teal-500'
-                  }`}
-              >
-                <option value="">Select a floor</option>
-                {floors.map((floor) => (
-                  <option key={floor} value={floor}>
-                    {floor}
-                  </option>
-                ))}
-              </select>
-              {errors.allowed_floor && (
-                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.allowed_floor}
-                </p>
-              )}
-            </div>
-
-
-          </div>
-
-                {/* Duration of Visit */}
-                <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
-            <h4 className="font-semibold text-gray-900 mb-4">Duration of Visit</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  From Date *
-                </label>
-                <input
-                  type="date"
-                  name="from_date"
-                  value={formData.from_date}
-                  onChange={handleInputChange}
-                  required
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.from_date
-                    ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                    : 'border-gray-300 focus:ring-teal-500'
-                    }`}
-                />
-                {errors.from_date && (
-                  <p className="mt-1 text-sm text-red-600">{errors.from_date}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  To Date *
-                </label>
-                <input
-                  type="date"
-                  name="to_date"
-                  value={formData.to_date}
-                  onChange={handleInputChange}
-                  required
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.to_date
-                    ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                    : 'border-gray-300 focus:ring-teal-500'
-                    }`}
-                />
-                {errors.to_date && (
-                  <p className="mt-1 text-sm text-red-600">{errors.to_date}</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-                {/* Additional Options */}
-                <div className="flex flex-col gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="is_recurring"
-                name="is_recurring"
-                checked={formData.is_recurring}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  is_recurring: e.target.checked
-                }))}
-                className="w-4 h-4 text-teal-600 rounded"
-              />
-              <label htmlFor="is_recurring" className="text-sm font-semibold text-gray-700 cursor-pointer">
-                🔄 Mark as Recurring Visitor (for frequent visitors)
-              </label>
-            </div>
-          </div>
-              </div>
-            </div>
-
-            <div className="xl:col-span-1">
-              <div className="rounded-xl border border-gray-200 p-5 md:p-6 xl:sticky xl:top-6">
-                <h4 className="text-2xl font-bold text-gray-900 mb-5">Visitor Photo</h4>
-
-            {!showWebcam && !imagePreview && (
-              <div className={`${errors.image_base64 ? 'error-field' : ''}`}>
-                <button
-                  type="button"
-                  onClick={() => setShowWebcam(true)}
-                  className={`w-full px-6 py-3.5 font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md mb-4 ${errors.image_base64
-                    ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-2 border-red-500'
-                    : 'bg-gradient-to-r from-teal-600 to-teal-600 hover:from-teal-700 hover:to-teal-700 text-white'
-                    }`}
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Capture Visitor Photo
-                </button>
-                {errors.image_base64 && (
-                  <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    {errors.image_base64}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {showWebcam && (
-              <div className="mb-6">
-                <WebcamCapture
-                  onImageCapture={handleImageCapture}
-                  onBack={handleCloseWebcam}
-                />
-              </div>
-            )}
-
-            {imagePreview && (
-              <div className="bg-green-50 rounded-xl p-4 border border-green-200">
-                <div className="mb-3 flex items-center gap-2">
-                  <div className="flex items-center justify-center w-7 h-7 bg-green-500 rounded-full">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
+          <form onSubmit={handleSubmit} className="space-y-2">
+            <div className="grid grid-cols-3 gap-8">
+              {/* Visitor Information */}
+              <div className="col-span-1 bg-white rounded-xl border border-teal-100 shadow-sm p-6 flex flex-col gap-3">
+                <h4 className="text-lg font-bold text-teal-700 mb-2">Visitor Information</h4>
+                <div className="space-y-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Mobile Number *</label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="Enter mobile number"
+                      required
+                      className={`w-full px-3 py-2.5 border rounded focus:outline-none ${errors.phone ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
+                    />
+                    {errors.phone && <p className="mt-1 text-xs text-red-600">{errors.phone}</p>}
                   </div>
-                  <p className="text-green-700 font-semibold text-sm">
-                    {isUsingExistingImage ? 'Existing image loaded from previous visit' : 'Photo captured successfully!'}
-                  </p>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Email Address *</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="visitor@example.com"
+                      required
+                      className={`w-full px-3 py-2.5 border rounded focus:outline-none ${errors.email ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
+                    />
+                    {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Gender *</label>
+                    <select
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleInputChange}
+                      required
+                      className={`w-full px-3 py-2.5 border rounded focus:outline-none ${errors.gender ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
+                    >
+                      <option value="">Select gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                      <option value="prefer_not_to_say">Prefer not to say</option>
+                    </select>
+                    {errors.gender && <p className="mt-1 text-xs text-red-600">{errors.gender}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Visitor Type *</label>
+                    <select
+                      name="visitor_type"
+                      value={formData.visitor_type}
+                      onChange={handleInputChange}
+                      required
+                      className={`w-full px-3 py-2.5 border rounded focus:outline-none ${errors.visitor_type ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
+                    >
+                      <option value="guest">👤 Guest</option>
+                      <option value="contractor">👷 Contractor</option>
+                      <option value="vendor">🏢 Vendor</option>
+                      <option value="interview_candidate">💼 Interview Candidate</option>
+                      <option value="delivery">📦 Delivery Personnel</option>
+                      <option value="service_provider">🔧 Service Provider</option>
+                      <option value="vip">👑 VIP</option>
+                    </select>
+                    {errors.visitor_type && <p className="mt-1 text-xs text-red-600">{errors.visitor_type}</p>}
+                  </div>
                 </div>
-                <div className="relative inline-block w-full">
-                  <img
-                    src={imagePreview}
-                    alt="Captured visitor"
-                    className="w-full h-72 object-cover rounded-xl border border-gray-200"
-                  />
-                  {isUsingExistingImage && !isExistingImageConfirmed ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-                      <button
-                        type="button"
-                        onClick={handleConfirmExistingImage}
-                        className="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all duration-300"
-                      >
-                        Confirm Image
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleRetakeImage}
-                        className="w-full px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition-all duration-300"
-                      >
-                        Retake
-                      </button>
-                    </div>
-                  ) : (
+              </div>
+              {/* Capture Visitor Photo */}
+              <div className="col-span-1 bg-white rounded-xl border border-teal-100 shadow-sm p-6 flex flex-col items-center justify-center gap-3">
+                <h4 className="text-lg font-bold text-teal-700 mb-2">Capture Visitor Photo</h4>
+                {!showWebcam && !imagePreview && (
+                  <div className={`${errors.image_base64 ? 'error-field' : ''} w-full`}>
                     <button
                       type="button"
-                      onClick={isUsingExistingImage ? handleRetakeImage : handleClearImage}
-                        className="mt-4 w-full px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                      onClick={() => setShowWebcam(true)}
+                      className={`w-full px-4 py-2.5 font-semibold rounded transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md mb-2 ${errors.image_base64 ? 'bg-red-500 text-white' : 'bg-teal-600 text-white'}`}
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                      </svg>
-                      Retake Photo
+                      Capture Visitor Photo
                     </button>
-                  )}
+                    {errors.image_base64 && <p className="mt-1 text-xs text-red-600">{errors.image_base64}</p>}
+                  </div>
+                )}
+                {showWebcam && (
+                  <div className="mb-2 w-full">
+                    <WebcamCapture onImageCapture={handleImageCapture} onBack={handleCloseWebcam} />
+                  </div>
+                )}
+                {imagePreview && (
+                  <div className="bg-green-50 rounded p-2 border border-green-200 w-full">
+                    <img src={imagePreview} alt="Captured visitor" className="w-full h-48 object-cover rounded border border-gray-200" />
+                    <div className="mt-2 flex gap-2">
+                      {isUsingExistingImage && !isExistingImageConfirmed ? (
+                        <>
+                          <button type="button" onClick={handleConfirmExistingImage} className="flex-1 px-4 py-2 bg-green-600 text-white rounded">Confirm Image</button>
+                          <button type="button" onClick={handleRetakeImage} className="flex-1 px-4 py-2 bg-amber-500 text-white rounded">Retake</button>
+                        </>
+                      ) : (
+                        <button type="button" onClick={isUsingExistingImage ? handleRetakeImage : handleClearImage} className="flex-1 px-4 py-2 bg-orange-500 text-white rounded">Retake Photo</button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+              {/* Host Details */}
+              <div className="col-span-1 bg-white rounded-xl border border-teal-100 shadow-sm p-6 flex flex-col gap-3">
+                <h4 className="text-lg font-bold text-teal-700 mb-2">Host Details</h4>
+                <div className="space-y-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Host Name *</label>
+                    <input
+                      type="text"
+                      name="host_name"
+                      value={formData.host_name}
+                      onChange={handleInputChange}
+                      placeholder="Person/Department to visit"
+                      required
+                      className={`w-full px-3 py-2.5 border rounded focus:outline-none ${errors.host_name ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
+                    />
+                    {errors.host_name && <p className="mt-1 text-xs text-red-600">{errors.host_name}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Host Phone *</label>
+                    <input
+                      type="tel"
+                      name="host_number"
+                      value={formData.host_number}
+                      onChange={handleInputChange}
+                      placeholder="Host contact number"
+                      required
+                      className={`w-full px-3 py-2.5 border rounded focus:outline-none ${errors.host_number ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
+                    />
+                    {errors.host_number && <p className="mt-1 text-xs text-red-600">{errors.host_number}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Purpose of Visit *</label>
+                    <input
+                      type="text"
+                      name="purpose_of_visit"
+                      value={formData.purpose_of_visit}
+                      onChange={handleInputChange}
+                      placeholder="e.g., Meeting, Delivery, Service"
+                      className={`w-full px-3 py-2.5 border rounded focus:outline-none ${errors.purpose_of_visit ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
+                    />
+                    {errors.purpose_of_visit && <p className="mt-1 text-xs text-red-600">{errors.purpose_of_visit}</p>}
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Tower *</label>
+                      <select
+                        name="allowed_tower"
+                        value={formData.allowed_tower || ''}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2.5 border rounded focus:outline-none ${errors.allowed_tower ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
+                      >
+                        <option value="">Select a tower</option>
+                        <option value="Tower A">Tower A</option>
+                        <option value="Tower B">Tower B</option>
+                        <option value="Tower C">Tower C</option>
+                        <option value="Tower D">Tower D</option>
+                      </select>
+                      {errors.allowed_tower && <p className="mt-1 text-xs text-red-600">{errors.allowed_tower}</p>}
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">Allowed Floor *</label>
+                      <select
+                        name="allowed_floor"
+                        value={formData.allowed_floor}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2.5 border rounded focus:outline-none ${errors.allowed_floor ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
+                      >
+                        <option value="">Select a floor</option>
+                        {floors.map((floor) => (
+                          <option key={floor} value={floor}>{floor}</option>
+                        ))}
+                      </select>
+                      {errors.allowed_floor && <p className="mt-1 text-xs text-red-600">{errors.allowed_floor}</p>}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <input
+                      type="checkbox"
+                      id="is_recurring"
+                      name="is_recurring"
+                      checked={formData.is_recurring}
+                      onChange={(e) => setFormData(prev => ({ ...prev, is_recurring: e.target.checked }))}
+                      className="w-4 h-4 text-teal-600 rounded"
+                    />
+                    <label htmlFor="is_recurring" className="text-xs font-semibold text-gray-700 cursor-pointer">
+                      Mark as Recurring Visitor
+                    </label>
+                  </div>
                 </div>
               </div>
-            )}
+            </div>
+            {/* Note Box */}
+            <div className="mt-6 flex items-center">
+              <div className="border-l-4 border-blue-500 bg-blue-50 rounded-lg px-6 py-3 w-full">
+                <span className="font-semibold text-blue-800">Note:</span>
+                <span className="text-blue-800 ml-2">
+                  The visitor photo will be stored for identification purposes only. Please ensure the visitor is clearly visible in the photo.
+                </span>
               </div>
             </div>
-          </div>
-
-          {/* Submit Button */}
-          <div className="flex justify-center pt-2">
-            <button
-              type="submit"
-              disabled={loading || isSubmitting}
-              className={`w-full md:w-auto px-8 py-3 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md min-w-[220px] ${loading || isSubmitting
-                ? 'bg-gray-400 cursor-not-allowed text-white'
-                : 'bg-green-600 hover:bg-green-700 text-white'
-                }`}
-            >
-              {loading || isSubmitting ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  Checking In...
-                </>
-              ) : (
-                <>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  ✅ Check In Visitor
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-
-        {/* Information Box */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-800">
-            <span className="font-semibold">ℹ️ Note:</span> The visitor photo will be stored for identification purposes only. Please ensure the visitor is clearly visible in the photo.
-          </p>
+            {/* Submit Button */}
+            <div className="flex justify-center mt-8">
+              <button
+                type="submit"
+                disabled={loading || isSubmitting}
+                className={`w-full max-w-md px-10 py-4 font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-md hover:shadow-lg text-lg ${loading || isSubmitting ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-teal-600 hover:bg-teal-700 text-white'}`}
+              >
+                {loading || isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    Checking In...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Check In Visitor
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
         </div>
-      </div >
-
-      {/* Visitor Slip Modal */}
-      {
-        showVisitorSlip && checkedInVisitor && (
-          <VisitorSlipModal
-            visitor={checkedInVisitor}
-            onClose={() => setShowVisitorSlip(false)}
-            onPrint={() => {
-              window.print();
-              setShowVisitorSlip(false);
-            }}
-          />
-        )
-      }
-    </div >
+      </div>
+    </div>
   );
 };
 

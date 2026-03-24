@@ -347,7 +347,7 @@ function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-teal-50/20 animate-gradient-x">
+      <div className="min-h-screen h-[60vh] bg-gradient-to-br from-slate-50 via-blue-50/30 to-teal-50/20 animate-gradient-x overflow-y-auto scrollbar-thin scrollbar-thumb-teal-400 scrollbar-track-slate-100">
         <div className="flex justify-center items-center min-h-screen">
           <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-slate-200/50 shadow-xl p-12 transform transition-all duration-1000 animate-fade-in">
             <div className="flex flex-col items-center space-y-6">
@@ -386,7 +386,7 @@ function Profile() {
 
   if (!profile && !loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-teal-50/20 animate-gradient-x">
+      <div className="min-h-screen h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-teal-50/20 animate-gradient-x overflow-y-auto scrollbar-thin scrollbar-thumb-teal-400 scrollbar-track-slate-100">
         <div className="max-w-5xl mx-auto px-6 py-12">
           <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-red-200/50 shadow-xl overflow-hidden transform transition-all duration-500 animate-slide-up">
             {/* Enhanced Error Header */}
@@ -519,7 +519,7 @@ function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-teal-50/20 animate-fade-in">
+    <div className="min-h-screen overflow-y-auto bg-gradient-to-br from-slate-50 via-blue-50/30 to-teal-50/20 animate-fade-in scrollbar-thin scrollbar-thumb-teal-400 scrollbar-track-slate-100">
       {/* Inline CSS Styles */}
       <style dangerouslySetInnerHTML={{ __html: inlineStyles }} />
       
@@ -600,7 +600,7 @@ function Profile() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 space-y-8">
+      <div className="max-w-7xl mx-auto px-6 space-y-8 mb-40">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Personal Information Card */}
@@ -702,7 +702,7 @@ function Profile() {
         </div>
 
         {/* Role & Permissions Section */}
-        <div className="profile-card glassmorphism rounded-2xl border border-slate-200/50 shadow-lg overflow-hidden animate-slide-up" style={{animationDelay: '0.3s'}}>
+        <div className="profile-card glassmorphism rounded-2xl border border-slate-200/50 shadow-lg overflow-hidden  animate-slide-up" style={{animationDelay: '0.3s'}}>
           <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 p-6 border-b border-slate-200/50">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
