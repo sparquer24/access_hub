@@ -288,8 +288,8 @@ const OrganizationInfo = ({ organization, onUpdate }) => {
   }
 
   return (
-    <div className="space-y-6 animate-fadeIn bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen py-6">
-      <div className="px-2 mb-6">
+    <div className="space-y-6 animate-fadeIn bg-gradient-to-br from-slate-50 to-slate-100 max-h-[70vh] overflow-y-auto py-6 pb-24">
+      <div className="px-2 mb-6 ">
         <div className="bg-gradient-to-r from-teal-900 via-cyan-900 to-slate-900 rounded-2xl p-6 shadow-2xl relative overflow-hidden group border border-teal-500/30">
           <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-30 transition-opacity duration-1000 pointer-events-none">
             <Sparkles className="h-64 w-64 text-cyan-400 animate-pulse" />
@@ -297,7 +297,7 @@ const OrganizationInfo = ({ organization, onUpdate }) => {
           <div className="absolute -top-24 -left-24 w-64 h-64 bg-teal-600/20 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-cyan-600/20 rounded-full blur-3xl animate-pulse delay-700"></div>
 
-          <div className="relative z-10">
+          <div className="relative z-10 ">
             <div className="flex items-center gap-3 mb-6">
               <div className="bg-white/10 p-2.5 rounded-xl backdrop-blur-md border border-white/20 shadow-[0_0_15px_rgba(45,212,191,0.5)]">
                 <Loader type="ai" size="small" />
@@ -463,7 +463,7 @@ const OrganizationInfo = ({ organization, onUpdate }) => {
       </div>
 
       {/* Executive Summary KPI Section */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 ">
         <div className="bg-white rounded-xl p-4 border-l-4 border-teal-600 shadow-lg hover:shadow-xl transition-all">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Total Employees</span>

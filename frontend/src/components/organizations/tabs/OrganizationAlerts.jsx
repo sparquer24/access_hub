@@ -273,7 +273,7 @@ const OrganizationAlerts = ({ organizationId, activeTab = 'info', showActivityLo
   if (!showActivityLog) {
     return (
       <>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-full flex flex-col">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-[63vh] flex flex-col">
           <div className="px-3 py-2.5 border-b border-gray-200 flex items-center justify-between">
             <div>
               <p className="text-lg font-semibold text-red-800 leading-tight">Alerts {alerts.length}</p>

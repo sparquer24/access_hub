@@ -320,7 +320,7 @@ const OrganizationDetail = ({
   }
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 via-teal-50 to-cyan-50 min-h-full">
+    <div className="bg-gradient-to-br from-slate-50 via-teal-50 to-cyan-50 min-h-[90vh] h-auto">
       {/* Enhanced Page Header */}
       <div className="sticky top-0 z-30 bg-teal-50/95 backdrop-blur-sm shadow-sm">
         <div className="max-w-screen-2xl mx-auto px-2 sm:px-3 lg:px-4 py-1.5">

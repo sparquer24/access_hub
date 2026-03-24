@@ -254,7 +254,7 @@ const SuperAdminDashboard = () => {
   // Since I can't easily inject imports at the top without replacing the whole file, I will rewrite the return statement and rely on a separate edit for imports.)
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 via-teal-50 to-teal-50 min-h-full">
+    <div className="bg-gradient-to-br from-slate-50 via-teal-50 to-teal-50 min-h-full h-screen overflow-y-auto">
       <DashboardHeader
         title="Super Admin Dashboard"
         subtitle="Platform overview and management"
