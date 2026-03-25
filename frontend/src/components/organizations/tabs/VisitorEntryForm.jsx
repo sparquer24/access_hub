@@ -501,22 +501,73 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
   const floors = ['Ground Floor', 'Floor 1', 'Floor 2', 'Floor 3', 'Floor 4', 'Floor 5'];
 
   return (
-    <div className="min-h-screen bg-teal-50 flex items-center justify-center">
-      <div className="max-w-7xl w-full mx-auto mt-0 ">
-        <div className="bg-white rounded-lg border border-teal-200 shadow-lg p-5">
+    <>
+      <style>{`
+        .visitor-form-container {
+          height: calc(100vh - 120px);
+          min-height: 600px;
+          overflow-y: scroll !important;
+        }
+        .visitor-form-container::-webkit-scrollbar {
+          width: 12px;
+          background: #f3f4f6;
+        }
+        .visitor-form-container::-webkit-scrollbar-track {
+          background: #e5e7eb;
+          border-radius: 6px;
+        }
+        .visitor-form-container::-webkit-scrollbar-thumb {
+          background: #6b7280;
+          border-radius: 6px;
+          border: 1px solid #e5e7eb;
+        }
+        .visitor-form-container::-webkit-scrollbar-thumb:hover {
+          background: #374151;
+        }
+        .visitor-form-container {
+          scrollbar-width: auto;
+          scrollbar-color: #6b7280 #e5e7eb;
+        }
+        .photo-capture-bg {
+          background: linear-gradient(135deg, rgba(15, 118, 110, 0.1) 0%, rgba(20, 184, 166, 0.05) 100%),
+                      url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="camera-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="2" fill="%23d1fae5" opacity="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23camera-pattern)"/></svg>');
+          background-size: 20px 20px, cover;
+          position: relative;
+        }
+        .photo-capture-bg::before {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 60px;
+          height: 60px;
+          background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="%23059669" viewBox="0 0 24 24"><path d="M12 9a3 3 0 110 6 3 3 0 010-6z"/><path d="M17 5h1a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h1l1-2h8l1 2z" fill="none" stroke="%23059669" stroke-width="1.5"/></svg>') no-repeat center;
+          opacity: 0.3;
+          pointer-events: none;
+        }
+      `}</style>
+      <div className="w-full h-full bg-teal-50">
+        <div 
+          className="visitor-form-container bg-white border border-teal-200 shadow-lg p-3 overflow-y-auto w-full"
+          style={{
+            maxHeight: 'calc(100vh - 120px)',
+            minHeight: '600px',
+            height: '100%'
+          }}>
           {/* Header */}
-          <div className="mb-4 pb-3 border-b border-teal-200">
-            <h3 className="text-2xl font-extrabold text-teal-700">Visitor Check-In</h3>
-            <p className="text-gray-600 text-sm mt-1">
+          <div className="mb-2 pb-2 border-b border-teal-200 text-center">
+            <h3 className="text-xl font-extrabold text-teal-700">Visitor Check-In</h3>
+            <p className="text-gray-600 text-xs mt-1">
               Fill in the visitor details below. All fields marked <span className="text-red-500">*</span> are required.
             </p>
           </div>
-          <form onSubmit={handleSubmit} className="space-y-2">
-            <div className="grid grid-cols-3 gap-8">
+          <form onSubmit={handleSubmit} className="space-y-3 pb-16" style={{ minHeight: '700px' }}>
+            <div className="grid grid-cols-3 gap-3">
               {/* Visitor Information */}
-              <div className="col-span-1 bg-white rounded-xl border border-teal-100 shadow-sm p-6 flex flex-col gap-3">
-                <h4 className="text-lg font-bold text-teal-700 mb-2">Visitor Information</h4>
-                <div className="space-y-2">
+              <div className="col-span-1 bg-white rounded-lg border border-teal-100 shadow-sm p-3 flex flex-col gap-2">
+                <h4 className="text-base font-bold text-teal-700 mb-1">Visitor Information</h4>
+                <div className="space-y-1.5">
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1">Mobile Number *</label>
                     <input
@@ -526,7 +577,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                       onChange={handleInputChange}
                       placeholder="Enter mobile number"
                       required
-                      className={`w-full px-3 py-2.5 border rounded focus:outline-none ${errors.phone ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
+                      className={`w-full px-3 py-2 border rounded focus:outline-none ${errors.phone ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
                     />
                     {errors.phone && <p className="mt-1 text-xs text-red-600">{errors.phone}</p>}
                   </div>
@@ -539,7 +590,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                       onChange={handleInputChange}
                       placeholder="visitor@example.com"
                       required
-                      className={`w-full px-3 py-2.5 border rounded focus:outline-none ${errors.email ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
+                      className={`w-full px-3 py-2 border rounded focus:outline-none ${errors.email ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
                     />
                     {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
                   </div>
@@ -550,7 +601,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                       value={formData.gender}
                       onChange={handleInputChange}
                       required
-                      className={`w-full px-3 py-2.5 border rounded focus:outline-none ${errors.gender ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
+                      className={`w-full px-3 py-2 border rounded focus:outline-none ${errors.gender ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
                     >
                       <option value="">Select gender</option>
                       <option value="male">Male</option>
@@ -567,7 +618,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                       value={formData.visitor_type}
                       onChange={handleInputChange}
                       required
-                      className={`w-full px-3 py-2.5 border rounded focus:outline-none ${errors.visitor_type ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
+                      className={`w-full px-3 py-2 border rounded focus:outline-none ${errors.visitor_type ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
                     >
                       <option value="guest">👤 Guest</option>
                       <option value="contractor">👷 Contractor</option>
@@ -582,16 +633,16 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                 </div>
               </div>
               {/* Capture Visitor Photo */}
-              <div className="col-span-1 bg-white rounded-xl border border-teal-100 shadow-sm p-6 flex flex-col items-center justify-center gap-3">
-                <h4 className="text-lg font-bold text-teal-700 mb-2">Capture Visitor Photo</h4>
+              <div className="col-span-1 bg-white rounded-lg border border-teal-100 shadow-sm p-3 flex flex-col items-center justify-center gap-2 photo-capture-bg relative">
+                <h4 className="text-base font-bold text-teal-700 mb-1">Capture Visitor Photo</h4>
                 {!showWebcam && !imagePreview && (
                   <div className={`${errors.image_base64 ? 'error-field' : ''} w-full`}>
                     <button
                       type="button"
                       onClick={() => setShowWebcam(true)}
-                      className={`w-full px-4 py-2.5 font-semibold rounded transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md mb-2 ${errors.image_base64 ? 'bg-red-500 text-white' : 'bg-teal-600 text-white'}`}
+                      className={`w-full px-4 py-2 font-semibold rounded transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md mb-2 ${errors.image_base64 ? 'bg-red-500 text-white' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white'}`}
                     >
-                      Capture Visitor Photo
+                      📷 Capture Visitor Photo
                     </button>
                     {errors.image_base64 && <p className="mt-1 text-xs text-red-600">{errors.image_base64}</p>}
                   </div>
@@ -603,7 +654,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                 )}
                 {imagePreview && (
                   <div className="bg-green-50 rounded p-2 border border-green-200 w-full">
-                    <img src={imagePreview} alt="Captured visitor" className="w-full h-48 object-cover rounded border border-gray-200" />
+                    <img src={imagePreview} alt="Captured visitor" className="w-full h-32 object-cover rounded border border-gray-200" />
                     <div className="mt-2 flex gap-2">
                       {isUsingExistingImage && !isExistingImageConfirmed ? (
                         <>
@@ -618,9 +669,9 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                 )}
               </div>
               {/* Host Details */}
-              <div className="col-span-1 bg-white rounded-xl border border-teal-100 shadow-sm p-6 flex flex-col gap-3">
-                <h4 className="text-lg font-bold text-teal-700 mb-2">Host Details</h4>
-                <div className="space-y-2">
+              <div className="col-span-1 bg-white rounded-lg border border-teal-100 shadow-sm p-3 flex flex-col gap-2">
+                <h4 className="text-base font-bold text-teal-700 mb-1">Host Details</h4>
+                <div className="space-y-1.5">
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1">Host Name *</label>
                     <input
@@ -630,7 +681,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                       onChange={handleInputChange}
                       placeholder="Person/Department to visit"
                       required
-                      className={`w-full px-3 py-2.5 border rounded focus:outline-none ${errors.host_name ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
+                      className={`w-full px-3 py-2 border rounded focus:outline-none ${errors.host_name ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
                     />
                     {errors.host_name && <p className="mt-1 text-xs text-red-600">{errors.host_name}</p>}
                   </div>
@@ -643,7 +694,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                       onChange={handleInputChange}
                       placeholder="Host contact number"
                       required
-                      className={`w-full px-3 py-2.5 border rounded focus:outline-none ${errors.host_number ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
+                      className={`w-full px-3 py-2 border rounded focus:outline-none ${errors.host_number ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
                     />
                     {errors.host_number && <p className="mt-1 text-xs text-red-600">{errors.host_number}</p>}
                   </div>
@@ -655,7 +706,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                       value={formData.purpose_of_visit}
                       onChange={handleInputChange}
                       placeholder="e.g., Meeting, Delivery, Service"
-                      className={`w-full px-3 py-2.5 border rounded focus:outline-none ${errors.purpose_of_visit ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
+                      className={`w-full px-3 py-2 border rounded focus:outline-none ${errors.purpose_of_visit ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
                     />
                     {errors.purpose_of_visit && <p className="mt-1 text-xs text-red-600">{errors.purpose_of_visit}</p>}
                   </div>
@@ -666,7 +717,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                         name="allowed_tower"
                         value={formData.allowed_tower || ''}
                         onChange={handleInputChange}
-                        className={`w-full px-3 py-2.5 border rounded focus:outline-none ${errors.allowed_tower ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
+                        className={`w-full px-3 py-2 border rounded focus:outline-none ${errors.allowed_tower ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
                       >
                         <option value="">Select a tower</option>
                         <option value="Tower A">Tower A</option>
@@ -682,7 +733,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                         name="allowed_floor"
                         value={formData.allowed_floor}
                         onChange={handleInputChange}
-                        className={`w-full px-3 py-2.5 border rounded focus:outline-none ${errors.allowed_floor ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
+                        className={`w-full px-3 py-2 border rounded focus:outline-none ${errors.allowed_floor ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
                       >
                         <option value="">Select a floor</option>
                         {floors.map((floor) => (
@@ -708,21 +759,12 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                 </div>
               </div>
             </div>
-            {/* Note Box */}
-            <div className="mt-6 flex items-center">
-              <div className="border-l-4 border-blue-500 bg-blue-50 rounded-lg px-6 py-3 w-full">
-                <span className="font-semibold text-blue-800">Note:</span>
-                <span className="text-blue-800 ml-2">
-                  The visitor photo will be stored for identification purposes only. Please ensure the visitor is clearly visible in the photo.
-                </span>
-              </div>
-            </div>
             {/* Submit Button */}
-            <div className="flex justify-center mt-8">
+            <div className="flex justify-center mt-4 mb-8">
               <button
                 type="submit"
                 disabled={loading || isSubmitting}
-                className={`w-full max-w-md px-10 py-4 font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-md hover:shadow-lg text-lg ${loading || isSubmitting ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-teal-600 hover:bg-teal-700 text-white'}`}
+                className={`w-full max-w-md px-8 py-3 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-md hover:shadow-lg text-base ${loading || isSubmitting ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-teal-600 hover:bg-teal-700 text-white'}`}
               >
                 {loading || isSubmitting ? (
                   <>
@@ -739,10 +781,19 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                 )}
               </button>
             </div>
+            
+            {/* Scroll Helper - Extra spacing to ensure scrolling */}
+            <div className="text-center text-gray-400 text-xs pb-4">
+              <div className="flex items-center justify-center gap-2">
+                <div className="h-px bg-gray-200 flex-1"></div>
+                <span>End of Form</span>
+                <div className="h-px bg-gray-200 flex-1"></div>
+              </div>
+            </div>
           </form>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

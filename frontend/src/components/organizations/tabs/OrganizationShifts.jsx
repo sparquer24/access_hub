@@ -121,8 +121,9 @@ const OrganizationShifts = ({ organizationId, organization }) => {
           <p className="text-gray-600">Create a shift to get started</p>
         </div>
       ) : (
-        <div className="overflow-x-auto bg-teal-50/95 rounded-xl shadow-md">
-          <table className="w-full">
+        <div className="bg-teal-50/95 rounded-xl shadow-md max-h-[60vh] overflow-hidden">
+          <div className="overflow-x-auto overflow-y-auto max-h-[55vh]">
+            <table className="w-full">
             <thead className="bg-teal-50 border-b">
               <tr>
                 <th className="px-6 py-3 text-left">S.No</th>
@@ -162,6 +163,7 @@ const OrganizationShifts = ({ organizationId, organization }) => {
             </tbody>
           </table>
         </div>
+      </div>
       )}
 
       <Modal

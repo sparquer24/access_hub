@@ -207,7 +207,7 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
   };
 
   return (
-    <div className="space-y-6 rounded-2xl border border-slate-200/80 bg-slate-100/60 p-4">
+    <div className="space-y-6 rounded-2xl border border-slate-200/80 bg-slate-100/60 p-4 overflow-y-auto max-h-[calc(100vh-310px)] pb-16">
       {/* Top Summary Layout */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         <div className="xl:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">

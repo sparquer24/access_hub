@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
   PieChart, Pie, Legend, RadarChart, Radar, AreaChart, Area, LineChart, Line,
@@ -16,41 +16,59 @@ import { useToast } from '../../../contexts/ToastContext';
 const OrganizationInfo = ({ organization, onUpdate }) => {
   const { error: showError } = useToast();
   const [copiedField, setCopiedField] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  
+  // Single loading state for all data
+  const [loading, setLoading] = useState(true);
+  
+  // Data states
   const [attendanceStats, setAttendanceStats] = useState(null);
   const [visitorStats, setVisitorStats] = useState(null);
   const [departmentStats, setDepartmentStats] = useState(null);
 
-  // Fetch organization statistics
+  // Fetch all data when component mounts
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchAllData = async () => {
       if (!organization?.id && !organization?.uuid) return;
-
-      setIsLoading(true);
+      
+      setLoading(true);
+      const orgId = organization.id || organization.uuid;
+      
       try {
-        const orgId = organization.id || organization.uuid;
-
-        // Fetch all stats in parallel
+        // Fetch all data in parallel
         const [attendanceData, visitorData, deptData] = await Promise.all([
-          organizationsService.getAttendanceStats(orgId),
-          organizationsService.getVisitorStats(orgId),
-          organizationsService.getDepartmentAttendance(orgId)
+          organizationsService.getAttendanceStats(orgId).catch(err => {
+            console.error('Error fetching attendance stats:', err);
+            return { success: false };
+          }),
+          organizationsService.getVisitorStats(orgId).catch(err => {
+            console.error('Error fetching visitor stats:', err);
+            return { success: false };
+          }),
+          organizationsService.getDepartmentAttendance(orgId).catch(err => {
+            console.error('Error fetching department stats:', err);
+            return { success: false };
+          })
         ]);
-
-        if (attendanceData.success) setAttendanceStats(attendanceData.data);
-        if (visitorData.success) setVisitorStats(visitorData.data);
-        if (deptData.success) setDepartmentStats(deptData.data);
-
+        
+        if (attendanceData.success) {
+          setAttendanceStats(attendanceData.data);
+        }
+        if (visitorData.success) {
+          setVisitorStats(visitorData.data);
+        }
+        if (deptData.success) {
+          setDepartmentStats(deptData.data);
+        }
       } catch (error) {
-        console.error('Error fetching organization stats:', error);
+        console.error('Error fetching organization statistics:', error);
         showError('Failed to fetch organization statistics');
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
-
-    fetchStats();
-  }, [organization?.id, organization?.uuid]);
+    
+    fetchAllData();
+  }, [organization?.id, organization?.uuid, showError]);
 
   const copyToClipboard = (text, field) => {
     navigator.clipboard.writeText(text);
@@ -279,17 +297,9 @@ const OrganizationInfo = ({ organization, onUpdate }) => {
 
   const aiInsights = getAIInsights();
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px] w-full bg-slate-50/50 backdrop-blur-sm rounded-xl border border-slate-100 shadow-inner">
-        <Loader type="ai" size="large" text="Analyzing Organization Data..." />
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6 animate-fadeIn bg-gradient-to-br from-slate-50 to-slate-100 max-h-[70vh] overflow-y-auto py-6 pb-24">
-      <div className="px-2 mb-6 ">
+    <div className="space-y-3 animate-fadeIn bg-gradient-to-br from-white/80 via-cyan-50/80 to-teal-50/80 py-2 backdrop-blur-sm overflow-y-auto max-h-[calc(100vh-280px)]">
+      <div className="px-2 mb-3">
         <div className="bg-gradient-to-r from-teal-900 via-cyan-900 to-slate-900 rounded-2xl p-6 shadow-2xl relative overflow-hidden group border border-teal-500/30">
           <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-30 transition-opacity duration-1000 pointer-events-none">
             <Sparkles className="h-64 w-64 text-cyan-400 animate-pulse" />
@@ -395,7 +405,13 @@ const OrganizationInfo = ({ organization, onUpdate }) => {
             </h3>
           </div>
           <div className="p-6">
-            <div className="h-80 w-full">
+            {loading ? (
+              <div className="h-80 w-full flex items-center justify-center">
+                <Loader type="spin" size="large" text="Loading Chart Data..." />
+              </div>
+            ) : (
+              <>
+                <div className="h-80 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={resourceData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <defs>
@@ -419,15 +435,17 @@ const OrganizationInfo = ({ organization, onUpdate }) => {
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            </div>
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              {resourceData.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-2 text-sm">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                  <span className="text-gray-700">{item.name}: <strong>{item.count}</strong></span>
                 </div>
-              ))}
-            </div>
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  {resourceData.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-2 text-sm">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
+                      <span className="text-gray-700">{item.name}: <strong>{item.count}</strong></span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -629,7 +647,11 @@ const OrganizationInfo = ({ organization, onUpdate }) => {
                   </h3>
                 </div>
                 <div className="p-6">
-                  {departmentAttendanceData.length > 0 ? (
+                  {loading ? (
+                    <div className="h-80 w-full flex items-center justify-center">
+                      <Loader type="spin" size="large" text="Loading Department Data..." />
+                    </div>
+                  ) : departmentAttendanceData.length > 0 ? (
                     <>
                       <div className="h-80 w-full">
                         <ResponsiveContainer width="100%" height="100%">

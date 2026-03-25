@@ -203,7 +203,7 @@ const OrganizationDetail = ({
 
     if (enabledFeatures.employee_attendance) {
       tabs.push(
-        { id: 'employees', name: '▣ Employees Attendance', component: 'employees' }
+        { id: 'employees', name: '▣ Employee Directory', component: 'employees' }
       );
     }
 
@@ -309,7 +309,7 @@ const OrganizationDetail = ({
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-cyan-50">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-100 via-cyan-50 to-teal-100">
         <Loader size="large" text="Loading organization details..." />
       </div>
     );
@@ -320,10 +320,10 @@ const OrganizationDetail = ({
   }
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 via-teal-50 to-cyan-50 min-h-[90vh] h-auto">
+    <div className="bg-gradient-to-br from-slate-100 via-cyan-50 to-teal-100 min-h-[90vh] h-auto">
       {/* Enhanced Page Header */}
-      <div className="sticky top-0 z-30 bg-teal-50/95 backdrop-blur-sm shadow-sm">
-        <div className="max-w-screen-2xl mx-auto px-2 sm:px-3 lg:px-4 py-1.5">
+      <div className="sticky top-0 z-30 bg-gradient-to-r from-cyan-100/95 via-teal-100/95 to-slate-100/95 backdrop-blur-sm shadow-lg border-b border-teal-200/50">
+        <div className="max-w-screen-2xl mx-auto px-2 sm:px-3 lg:px-4 py-1">
           {/* Top Row - Back Button and Organization Name */}
           <div className="flex items-center justify-between gap-2 flex-nowrap overflow-x-auto">
             <div className="flex items-center gap-2.5 min-w-0 flex-nowrap">
@@ -357,16 +357,16 @@ const OrganizationDetail = ({
             {/* Action Buttons */}
             <div className="flex items-center gap-2 shrink-0 whitespace-nowrap">
               <button
-                className="px-3.5 py-1.5 bg-white text-teal-700 hover:bg-teal-50 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow flex items-center gap-1.5 text-sm"
+                className="px-3.5 py-1.5 bg-gradient-to-r from-white to-cyan-50 text-teal-800 hover:from-cyan-50 hover:to-teal-50 rounded-lg font-semibold transition-all duration-200 shadow-md hover:shadow-lg border border-teal-200/50 flex items-center gap-1.5 text-sm"
                 onClick={handleEdit}
               >
                 <Edit2 className="w-4 h-4" />
                 Edit
               </button>
               <button
-                className={`px-3.5 py-1.5 rounded-lg font-semibold transition-all duration-200 shadow-sm hover:shadow flex items-center gap-1.5 text-sm ${organization.is_active
-                  ? 'bg-red-500 hover:bg-red-600 text-white'
-                  : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                className={`px-3.5 py-1.5 rounded-lg font-semibold transition-all duration-200 shadow-md hover:shadow-lg border flex items-center gap-1.5 text-sm ${organization.is_active
+                  ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-red-400/50'
+                  : 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white border-emerald-400/50'
                   }`}
                 onClick={handleDisable}
               >
@@ -381,16 +381,16 @@ const OrganizationDetail = ({
           </div>
 
           {/* Unified Second Row - Tabs + Alerts */}
-          <div className="mt-2 pt-2">
-            <div className="flex items-center gap-3 bg-white/60 rounded-xl px-3 py-2">
+          <div className="mt-1 pt-1">
+            <div className="flex items-center gap-3 bg-gradient-to-r from-white/80 via-cyan-50/80 to-teal-50/80 rounded-xl px-3 py-1.5 backdrop-blur-sm border border-white/40 shadow-md">
               <div className="flex-1 overflow-x-auto">
-                <div className="flex items-center gap-1.5 bg-slate-100/70 p-1 rounded-xl w-max min-w-full">
+                <div className="flex items-center gap-1.5 bg-gradient-to-r from-slate-100/90 via-cyan-100/70 to-teal-100/70 p-1 rounded-xl w-max min-w-full shadow-inner border border-slate-200/50">
                   {availableTabs.map((tab) => (
                     <button
                       key={tab.id}
                       className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap flex items-center gap-1 transition-all duration-200 ${activeTab === tab.id
-                        ? 'text-teal-700 bg-white shadow-sm font-semibold underline underline-offset-8 decoration-2 decoration-teal-500'
-                        : 'text-slate-700 bg-transparent hover:text-slate-900 hover:bg-white/80'
+                        ? 'text-teal-800 bg-gradient-to-r from-white to-cyan-50 shadow-md font-semibold border border-teal-200/50'
+                        : 'text-slate-700 bg-transparent hover:text-slate-900 hover:bg-gradient-to-r hover:from-white hover:to-slate-50'
                         }`}
                       onClick={() => setActiveTab(tab.id)}
                     >
@@ -406,8 +406,8 @@ const OrganizationDetail = ({
                   setIsAlertSidebarOpen(true);
                 }}
                 className={`relative inline-flex items-center justify-center p-2.5 rounded-xl text-xs font-medium transition-all duration-200 ${isAlertSidebarOpen && alertCount > 0
-                  ? 'bg-teal-50 text-teal-700 shadow-sm'
-                  : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-teal-700'
+                  ? 'bg-gradient-to-r from-teal-100 to-cyan-100 text-teal-800 shadow-md border border-teal-200/50'
+                  : 'bg-gradient-to-r from-white to-slate-50 text-slate-600 hover:bg-gradient-to-r hover:from-slate-50 hover:to-teal-50 hover:text-teal-700 shadow-sm border border-slate-200/50'
                   }`}
                 aria-label="Toggle alerts sidebar"
               >
@@ -431,12 +431,12 @@ const OrganizationDetail = ({
 
 
       {/* Tabs + Right Sidebar Alerts */}
-      <div className="max-w-screen-2xl mx-auto px-2 sm:px-3 lg:px-4 py-2">
+      <div className="max-w-screen-2xl mx-auto px-2 sm:px-3 lg:px-4 py-1">
         <div className={`grid grid-cols-1 lg:grid-cols-12 gap-3 ${isAlertSidebarOpen ? 'h-[calc(100vh-90px)]' : ''}`}>
           <div className={`${isAlertSidebarOpen ? 'lg:col-span-10 h-full overflow-hidden' : 'lg:col-span-12'} min-w-0 transition-all duration-300`}>
-            <div className={`bg-teal-50/95 rounded-lg shadow-sm overflow-hidden ${isAlertSidebarOpen ? 'h-full flex flex-col' : ''}`}>
+            <div className={`bg-gradient-to-br from-white/95 via-cyan-50/90 to-teal-50/95 rounded-lg shadow-md border border-white/50 backdrop-blur-sm overflow-hidden ${isAlertSidebarOpen ? 'h-full flex flex-col' : ''}`}>
               {/* Tab Content */}
-              <div className={`p-4 ${isAlertSidebarOpen ? 'flex-1 overflow-y-auto' : ''}`}>
+              <div className="p-2">
                 {activeTab === 'info' && (
                   <OrganizationInfo
                     organization={organization}
@@ -511,8 +511,8 @@ const OrganizationDetail = ({
           )}
         </div>
       </div>
-
     </div>
+  
   );
 };
 

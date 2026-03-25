@@ -6,11 +6,16 @@ import { managerAPI, managerLeaveAPI, managerAttendanceChangeAPI } from '../../s
 import Loader from '../common/Loader';
 import { useToast } from '../../contexts/ToastContext';
 import '../../styles/Dashboard.css';
+import { getThemeClasses, getRoleBasedTheme } from '../../utils/roleBasedTheme';
 
 const ManagerDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { success, error: showError } = useToast();
+  
+  // Role-based theming
+  const theme = getRoleBasedTheme(user);
+  const themeClasses = getThemeClasses(user);
 
   // State for stats and data
   const [stats, setStats] = useState({
@@ -203,16 +208,16 @@ const ManagerDashboard = () => {
   // Show loading screen
   if (loading && !stats.total_members && teamMembers.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-50 flex items-center justify-center">
+      <div className={`min-h-screen ${themeClasses.page} flex items-center justify-center`}>
         <Loader size="large" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-50">
+    <div className={`min-h-screen ${themeClasses.page}`}>
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-gradient-to-r from-teal-600 via-purple-600 to-teal-700 shadow-xl border-b border-purple-400/30">
+      <div className={`sticky top-0 z-40 ${themeClasses.header}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div>
             <h1 className="text-4xl sm:text-5xl font-black text-white mb-2 drop-shadow-lg">

@@ -400,8 +400,9 @@ const EmployeeAttendanceLogs = ({ employees = [], onEmployeeClick, organizationI
             </div>
 
             {/* Table */}
-            <div className="bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <Table
+            <div className="bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 overflow-hidden max-h-[60vh]">
+                <div className="overflow-x-auto overflow-y-auto max-h-[55vh]">
+                    <Table
                     className="attendance-logs-table"
                     dataSource={logs}
                     columns={columns}
@@ -416,6 +417,7 @@ const EmployeeAttendanceLogs = ({ employees = [], onEmployeeClick, organizationI
                     onChange={handleTableChange}
                     size="small"
                 />
+                </div>
             </div>
         </div>
     );

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { LogOut, ChevronDown } from 'lucide-react';
+import { LogOut, ChevronDown, Users, MapPin } from 'lucide-react';
 import { Select } from 'antd';
 import { visitorService } from '../../../services/visitorService';
 import { socketService } from '../../../services/socketService';
@@ -245,9 +245,9 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
           {showTabs && (
             <div className="flex bg-gray-100 p-1 rounded-lg w-fit">
               {[
-                { key: 'active', label: '👥 Active Visitors' },
-                { key: 'logs', label: '📍 Floor Logs' },
-              ].map(({ key, label }) => (
+                { key: 'active', label: 'Active Visitors', icon: Users },
+                { key: 'logs', label: 'Floor Logs', icon: MapPin },
+              ].map(({ key, label, icon: Icon }) => (
                 <button
                   key={key}
                   onClick={() => handleTabChange(key)}
@@ -256,7 +256,7 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
                       : 'text-gray-600 hover:text-gray-900'
                     }`}
                 >
-                  {label}
+                  <Icon className="w-4 h-4" /> {label}
                 </button>
               ))}
             </div>
@@ -273,54 +273,54 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
 
       {/* ===== ACTIVE VISITORS TAB ===== */}
       {selectedTab === 'active' && (
-        <div className="bg-green-50 rounded-xl shadow-md overflow-hidden border border-green-200">
+        <div className="overflow-x-auto bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 max-h-[60vh] overflow-y-auto">
           {loading ? (
             <div className="flex justify-center items-center py-12"><Loader size="large" /></div>
           ) : activeVisitors.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-4xl mb-2">🚪</p>
+              <Users className="w-16 h-16 text-gray-400 mx-auto mb-3" />
               <p className="text-gray-600 font-semibold text-lg">No active visitors</p>
               <p className="text-gray-500 text-sm mt-1">All visitors have checked out</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-green-100 border-b-2 border-green-300">
+                <thead className="bg-teal-50 border-b border-gray-200">
                   <tr>
-                    {['S.NO.', 'Name', 'Phone', 'Type', 'Purpose', 'Floor', 'Check-in Time', 'Host', 'Actions'].map((h) => (
-                      <th key={h} className="px-6 py-3 text-left text-xs font-bold text-green-800 uppercase tracking-wider">{h}</th>
+                    {['S.No.', 'Name', 'Phone', 'Type', 'Purpose', 'Floor', 'Check-in Time', 'Host', 'Actions'].map((h) => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-green-200">
+                <tbody className="divide-y divide-gray-200">
                   {activeVisitors.map((visitor, index) => (
-                    <tr key={visitor.history_id || visitor.id} className="hover:bg-green-100/50 transition-colors duration-150">
-                      <td className="px-6 py-3 text-sm font-semibold text-gray-700">{index + 1}</td>
-                      <td className="px-6 py-3 text-sm font-semibold text-gray-900">{visitor.name}</td>
-                      <td className="px-6 py-3 text-sm text-gray-600">{visitor.phone}</td>
-                      <td className="px-6 py-3 text-sm">
-                        <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium">
+                    <tr key={visitor.history_id || visitor.id} className="hover:bg-teal-50 transition-colors">
+                      <td className="px-4 py-4 text-sm font-medium text-gray-700">{index + 1}</td>
+                      <td className="px-4 py-4 text-sm font-semibold text-gray-900">{visitor.name}</td>
+                      <td className="px-4 py-4 text-sm text-gray-700">{visitor.phone}</td>
+                      <td className="px-4 py-4">
+                        <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
                           {visitor.visitor_type || 'Guest'}
                         </span>
                       </td>
-                      <td className="px-6 py-3 text-sm text-gray-600">{visitor.purpose_of_visit || '—'}</td>
-                      <td className="px-6 py-3 text-sm">
-                        <span className="inline-flex items-center whitespace-nowrap px-2 py-1 bg-purple-100 text-purple-700 rounded-md text-xs font-medium">
+                      <td className="px-4 py-4 text-sm text-gray-700">{visitor.purpose_of_visit || '—'}</td>
+                      <td className="px-4 py-4">
+                        <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
                           {formatFloorLabel(visitor.allowed_floor)}
                         </span>
                       </td>
-                      <td className="px-6 py-3 text-sm text-gray-600">{formatDateTime(visitor.check_in_time)}</td>
-                      <td className="px-6 py-3 text-sm text-gray-600">{visitor.host_name || '—'}</td>
-                      <td className="px-6 py-3 text-sm">
+                      <td className="px-4 py-4 text-sm text-gray-700">{formatDateTime(visitor.check_in_time)}</td>
+                      <td className="px-4 py-4 text-sm text-gray-700">{visitor.host_name || '—'}</td>
+                      <td className="px-4 py-4 text-right">
                         <button
                           onClick={() => handleCheckout(visitor)}
                           disabled={checkingOutId === (visitor.history_id || visitor.id)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-xs font-semibold disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all text-xs font-semibold disabled:opacity-50"
                           title="Check Out"
                         >
                           {checkingOutId === (visitor.history_id || visitor.id) ? (
                             <>
-                              <span className="inline-block w-3.5 h-3.5 border-2 border-red-700 border-t-transparent rounded-full animate-spin" />
+                              <span className="inline-block w-3.5 h-3.5 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
                               ...
                             </>
                           ) : (
@@ -342,12 +342,12 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
 
       {/* ===== FLOOR LOGS TAB ===== */}
       {selectedTab === 'logs' && (
-        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+        <div className="overflow-x-auto bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 max-h-[60vh] overflow-y-auto">
           {loading ? (
             <div className="flex justify-center items-center py-12"><Loader size="large" /></div>
           ) : logs.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-4xl mb-3">📍</p>
+              <MapPin className="w-16 h-16 text-gray-400 mx-auto mb-3" />
               <p className="text-gray-600 font-semibold text-lg">No floor movement logs</p>
               <p className="text-gray-500 text-sm mt-1">Try adjusting your date range</p>
             </div>
@@ -355,50 +355,50 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
             <>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gradient-to-r from-indigo-50 to-blue-50 border-b-2 border-indigo-200">
+                  <thead className="bg-teal-50 border-b border-gray-200">
                     <tr>
                       {['S.No.', 'Visitor Name', 'Phone', 'Tower', 'Floor', 'Status', 'Entry Time', 'Exit Time', 'Logged At'].map((h) => (
-                        <th key={h} className="px-6 py-3 text-left text-xs font-bold text-indigo-900 uppercase tracking-wider">{h}</th>
+                        <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {logs.map((log, index) => (
-                      <tr key={log.id} className="hover:bg-indigo-50 transition-colors duration-150">
-                        <td className="px-6 py-3 text-sm font-semibold text-gray-700">
+                      <tr key={log.id} className="hover:bg-teal-50 transition-colors">
+                        <td className="px-4 py-4 text-sm font-medium text-gray-700">
                           {(page - 1) * pageSize + index + 1}
                         </td>
-                        <td className="px-6 py-3 text-sm font-semibold text-gray-900">{log.name || '—'}</td>
-                        <td className="px-6 py-3 text-sm text-gray-600">{log.visitor_phone || '—'}</td>
-                        <td className="px-6 py-3 text-sm">
-                          <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium">
+                        <td className="px-4 py-4 text-sm font-semibold text-gray-900">{log.name || '—'}</td>
+                        <td className="px-4 py-4 text-sm text-gray-700">{log.visitor_phone || '—'}</td>
+                        <td className="px-4 py-4">
+                          <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
                             {log.tower || '—'}
                           </span>
                         </td>
-                        <td className="px-6 py-3 text-sm">
-                          <span className="inline-flex items-center whitespace-nowrap px-2 py-1 bg-purple-100 text-purple-700 rounded-md text-xs font-medium">
+                        <td className="px-4 py-4">
+                          <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
                             {formatFloorLabel(log.floor)}
                           </span>
                         </td>
-                        <td className="px-6 py-3 text-sm">
+                        <td className="px-4 py-4">
                           {(() => {
                             const statusVal = String(log.status || 'unknown').toLowerCase();
                             if (statusVal === 'authorised') {
-                              return <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-md text-xs font-semibold">Authorised</span>;
+                              return <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-semibold">Authorised</span>;
                             }
                             if (statusVal === 'unauthorised') {
-                              return <span className="px-2 py-1 bg-red-100 text-red-700 rounded-md text-xs font-semibold">Unauthorised</span>;
+                              return <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">Unauthorised</span>;
                             }
-                            return <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-md text-xs font-semibold">Unknown</span>;
+                            return <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold">Unknown</span>;
                           })()}
                         </td>
-                        <td className="px-6 py-3 text-sm text-gray-600">{formatDateTime(log.entry_time)}</td>
-                        <td className="px-6 py-3 text-sm text-gray-600">
+                        <td className="px-4 py-4 text-sm text-gray-700">{formatDateTime(log.entry_time)}</td>
+                        <td className="px-4 py-4 text-sm text-gray-700">
                           {log.exit_time ? formatDateTime(log.exit_time) : (
                             <span className="text-green-600 text-xs font-semibold">Still on floor</span>
                           )}
                         </td>
-                        <td className="px-6 py-3 text-sm text-gray-500">{formatDateTime(log.created_at)}</td>
+                        <td className="px-4 py-4 text-sm text-gray-500">{formatDateTime(log.created_at)}</td>
                       </tr>
                     ))}
                   </tbody>
