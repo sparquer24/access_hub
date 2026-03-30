@@ -22,7 +22,10 @@ class VisitorCreateSchema(Schema):
     
     # VISIT HISTORY DETAILS (goes to visitor_history_details table)
     purpose_of_visit = fields.String(required=True)
-    allowed_floor = fields.String(required=True)
+    allowed_location_id = fields.String(required=True)  # Reference to locations table
+    
+    # Legacy fields for backward compatibility (optional during transition)
+    allowed_floor = fields.String(allow_none=True)
     allowed_tower = fields.String(allow_none=True)  # Tower or zone for visitor access
     
     # Visitor type
@@ -71,7 +74,8 @@ class VisitorCreateSchema(Schema):
 class VisitorUpdateSchema(Schema):
     """Schema for updating visitor information"""
     purpose_of_visit = fields.String()
-    allowed_floor = fields.String()
+    allowed_location_id = fields.String()
+    allowed_floor = fields.String()  # Legacy field
     current_floor = fields.String()
     visitor_type = fields.String()
     special_instructions = fields.String()
@@ -97,8 +101,10 @@ class VisitorResponseSchema(Schema):
     visitor_id = fields.Method('get_visitor_id', dump_only=True)  # Same as 'id' but for reference
     visitor_type = fields.Method('get_visitor_type', dump_only=True)
     purpose_of_visit = fields.Method('get_purpose_of_visit', dump_only=True)
-    allowed_floor = fields.Method('get_allowed_floor', dump_only=True)
-    allowed_tower = fields.Method('get_allowed_tower', dump_only=True)
+    allowed_location_id = fields.Method('get_allowed_location_id', dump_only=True)
+    allowed_location = fields.Method('get_allowed_location', dump_only=True)  # Full location data
+    allowed_floor = fields.Method('get_allowed_floor', dump_only=True)  # Legacy field
+    allowed_tower = fields.Method('get_allowed_tower', dump_only=True)  # Legacy field
     host_name = fields.Method('get_host_name', dump_only=True)
     host_number = fields.Method('get_host_number', dump_only=True)
     from_date = fields.Method('get_from_date', dump_only=True)  # duration_date_from mapped to from_date
@@ -150,6 +156,24 @@ class VisitorResponseSchema(Schema):
     def get_allowed_tower(self, obj):
         history = self._get_latest_history(obj)
         return history.allowed_tower if history else None
+    
+    def get_allowed_location_id(self, obj):
+        history = self._get_latest_history(obj)
+        return history.allowed_location_id if history else None
+
+    def get_allowed_location(self, obj):
+        """Get full location data"""
+        history = self._get_latest_history(obj)
+        if history and history.allowed_location:
+            return {
+                'id': history.allowed_location.id,
+                'name': history.allowed_location.name,
+                'building': history.allowed_location.building,
+                'floor': history.allowed_location.floor,
+                'area': history.allowed_location.area,
+                'description': history.allowed_location.description
+            }
+        return None
 
     def get_host_name(self, obj):
         history = self._get_latest_history(obj)

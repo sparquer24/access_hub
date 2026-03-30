@@ -45,14 +45,55 @@ def check_in_visitor(org_id):
         schema:
           type: object
           required:
-            - visitor_id
+            - name
+            - phone
+            - purpose_of_visit
           properties:
-            visitor_id:
+            name:
               type: string
-              example: "visitor-uuid-123"
-            check_in_location:
+              example: "John Doe"
+            phone:
               type: string
-              example: "Main Gate"
+              example: "6301424989"
+            email:
+              type: string
+              example: "john@example.com"
+            gender:
+              type: string
+              example: "Male"
+            visitor_type:
+              type: string
+              example: "guest"
+            host_name:
+              type: string
+              example: "Jane Smith"
+            host_number:
+              type: string
+              example: "6301424990"
+            purpose_of_visit:
+              type: string
+              example: "Meeting"
+            allowed_location_id:
+              type: string
+              example: "location-123"
+              description: "Location ID (new system, preferred)"
+            allowed_floor:
+              type: string
+              example: "1st Floor"
+              description: "Legacy field - use allowed_location_id instead"
+            allowed_tower:
+              type: string  
+              example: "Tower A"
+              description: "Legacy field - use allowed_location_id instead"
+            from_date:
+              type: string
+              example: "2024-03-30"
+            to_date:
+              type: string
+              example: "2024-03-30"
+            image_base64:
+              type: string
+              example: "data:image/jpeg;base64,..."
     responses:
       200:
         description: Visitor checked in successfully
@@ -78,8 +119,16 @@ def check_in_visitor(org_id):
         if not data:
             return error_response("Request body is required", 400)
         
-        # Validate required fields
-        required_fields = ['name', 'phone', 'purpose_of_visit', 'allowed_floor', 'allowed_tower']
+        # Validate required fields - Updated for new location system
+        required_fields = ['name', 'phone', 'purpose_of_visit']
+        
+        # Check for location field (new system) or legacy floor/tower
+        has_location = data.get('allowed_location_id')
+        has_legacy = data.get('allowed_floor') and data.get('allowed_tower')
+        
+        if not (has_location or has_legacy):
+            return error_response("Either 'allowed_location_id' (new system) or 'allowed_floor' + 'allowed_tower' (legacy) must be provided", 400)
+        
         missing = [f for f in required_fields if not data.get(f)]
         if missing:
             return error_response(f"Missing required fields: {', '.join(missing)}", 400)
@@ -1023,5 +1072,139 @@ def get_visitor_analytics(org_id):
         analytics = VisitorService.get_visitor_analytics(org_id, period)
         
         return success_response(analytics, 200)
+    except Exception as e:
+        return error_response(str(e), 400)
+
+
+@bp.route('/<org_id>/visitors/locations', methods=['GET'])
+@jwt_required()
+def get_visitor_locations(org_id):
+    """
+    Get locations organized by tower and floor for visitor registration
+    ---
+    tags:
+      - Visitors
+    security:
+      - Bearer: []
+    parameters:
+      - name: org_id
+        in: path
+        type: string
+        required: true
+        description: Organization ID
+    responses:
+      200:
+        description: Locations retrieved successfully
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            data:
+              type: object
+              properties:
+                towers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: Tower/Building name
+                      floors:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Floor name
+                            locations:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  name:
+                                    type: string
+                                  description:
+                                    type: string
+      401:
+        description: Unauthorized
+      404:
+        description: Organization not found
+    """
+    try:
+        from ...models.location import Location
+        
+        # Get all active locations for the organization
+        locations = Location.query.filter_by(
+            organization_id=org_id,
+            is_active=True,
+            deleted_at=None
+        ).all()
+        
+        if not locations:
+            return success_response({
+                "towers": [],
+                "locations": []
+            }, 200)
+        
+        # Organize locations by tower and floor
+        towers_dict = {}
+        all_locations = []
+        
+        for location in locations:
+            location_data = {
+                "id": location.id,
+                "name": location.name,
+                "description": location.description,
+                "building": location.building,
+                "floor": location.floor,
+                "area": location.area,
+                "location_type": location.location_type
+            }
+            all_locations.append(location_data)
+            
+            # Organize by tower/building
+            building_name = location.building or "Default Building"
+            floor_name = location.floor or "Ground Floor"
+            
+            if building_name not in towers_dict:
+                towers_dict[building_name] = {}
+            
+            if floor_name not in towers_dict[building_name]:
+                towers_dict[building_name][floor_name] = []
+            
+            towers_dict[building_name][floor_name].append(location_data)
+        
+        # Convert to structured format for frontend
+        towers = []
+        for building_name, floors_dict in towers_dict.items():
+            floors = []
+            for floor_name, floor_locations in floors_dict.items():
+                floors.append({
+                    "name": floor_name,
+                    "locations": floor_locations
+                })
+            towers.append({
+                "name": building_name,
+                "floors": floors
+            })
+        
+        return success_response({
+            "items": all_locations,
+            "pagination": {
+                "page": 1,
+                "per_page": 100,
+                "total_items": len(all_locations),
+                "total_pages": 1,
+                "has_next": False,
+                "has_prev": False
+            }
+        }, 200)
+        
     except Exception as e:
         return error_response(str(e), 400)

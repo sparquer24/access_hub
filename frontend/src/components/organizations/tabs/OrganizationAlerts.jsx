@@ -9,7 +9,7 @@ import Loader from '../../common/Loader';
 
 const TAB_HEADERS = {
   info: 'Organization Overview',
-  employees: 'Employees Attendance',
+  employees: 'Employee Directory',
   visitors: 'Visitor Management',
   lpr: 'License Plate Recognition',
   cameras: 'Cameras',

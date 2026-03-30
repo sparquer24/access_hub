@@ -104,7 +104,6 @@ const OrganizationDepartments = ({ organizationId, organization }) => {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">Departments</h2>
-          <p className="text-gray-600 mt-1">Manage departments for {organization?.name}</p>
         </div>
         <button onClick={openCreate} className="px-4 py-2 bg-teal-600 text-white rounded-lg">➕ Create Department</button>
       </div>
@@ -120,8 +119,9 @@ const OrganizationDepartments = ({ organizationId, organization }) => {
           <p className="text-gray-600">Create a department to get started</p>
         </div>
       ) : (
-        <div className="overflow-x-auto bg-teal-50/95 rounded-xl shadow-md">
-          <table className="w-full">
+        <div className="bg-teal-50/95 rounded-xl shadow-md max-h-[60vh] overflow-hidden">
+          <div className="overflow-x-auto overflow-y-auto max-h-[55vh]">
+            <table className="w-full">
             <thead className="bg-teal-50 border-b">
               <tr>
                 <th className="px-6 py-3 text-left">S.No</th>
@@ -156,6 +156,7 @@ const OrganizationDepartments = ({ organizationId, organization }) => {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

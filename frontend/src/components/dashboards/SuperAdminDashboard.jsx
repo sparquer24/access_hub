@@ -5,6 +5,7 @@ import { statsAPI } from '../../services/api';
 import Loader from '../common/Loader';
 import { useToast } from '../../contexts/ToastContext';
 import '../../styles/Dashboard.css';
+import { getThemeClasses, getRoleBasedTheme } from '../../utils/roleBasedTheme';
 
 import {
   LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
@@ -29,6 +30,10 @@ const SuperAdminDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { success, error: showError } = useToast();
+  
+  // Role-based theming
+  const theme = getRoleBasedTheme(user);
+  const themeClasses = getThemeClasses(user);
 
   // State for dashboard data
   const [loading, setLoading] = useState(true);
@@ -254,10 +259,10 @@ const SuperAdminDashboard = () => {
   // Since I can't easily inject imports at the top without replacing the whole file, I will rewrite the return statement and rely on a separate edit for imports.)
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 via-teal-50 to-teal-50 min-h-full h-screen overflow-y-auto">
+    <div className={`${themeClasses.page} min-h-full h-screen overflow-y-auto`}>
       <DashboardHeader
         title="Super Admin Dashboard"
-        subtitle="Platform overview and management"
+        subtitle={`Platform overview and management | ${theme.description}`}
         onRefresh={() => fetchDashboardStats(true)}
         refreshing={refreshing}
         user={user}

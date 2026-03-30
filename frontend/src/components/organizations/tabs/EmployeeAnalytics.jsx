@@ -498,7 +498,7 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
     };
 
     return (
-        <div className="space-y-8 animate-fadeIn">
+        <div className="space-y-3 p-2 animate-fadeIn overflow-y-auto max-h-[calc(100vh-310px)] pb-16">
             {/* SECTION 1: HEADLINE METRICS - 4 Key KPI Cards */}
             <div>
                 <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">

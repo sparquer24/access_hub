@@ -860,16 +860,24 @@ const OrganizationEmployees = ({
   );
 
   const getAttendanceRecordEmployeePhoto = (record) => {
+    // First try direct photo from record
     const directPhoto = record.employee?.photo_base64 || record.employee?.photo || record.employee?.photo_url;
     if (directPhoto) return directPhoto;
 
+    // Find matched employee using multiple ID fields
     const matchedEmployee = employees.find((emp) =>
       emp.id === record.employee_id ||
       emp.employee_id === record.employee_id ||
-      (record.employee?.employee_code && emp.employee_code === record.employee.employee_code)
+      emp.id === record.entity_id ||
+      emp.employee_id === record.entity_id ||
+      (record.employee?.employee_code && emp.employee_code === record.employee.employee_code) ||
+      (record.employee?.full_name && emp.full_name === record.employee.full_name)
     );
 
-    return matchedEmployee?.photo_base64 || matchedEmployee?.photo || matchedEmployee?.photo_url || null;
+    const employeePhoto = matchedEmployee?.photo_base64 || matchedEmployee?.photo || matchedEmployee?.photo_url;
+    
+    // Return photo if found, otherwise return null for fallback
+    return employeePhoto || null;
   };
 
   useEffect(() => {
@@ -929,10 +937,10 @@ const OrganizationEmployees = ({
 
 
   return (
-    <div className="w-full space-y-3 h-[60vh] overflow-y-auto ">
+    <div className="w-full space-y-3 pb-16">
       {/* Employee Directory Header */}
       <div className="rounded-xl border border-teal-100/70 bg-gradient-to-r from-white via-teal-50/60 to-cyan-50/60 shadow-sm overflow-visible relative">
-        <div className="px-4 py-5 sm:px-5 sm:py-6 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between relative z-30">
+        <div className="px-4 py-2.5 sm:px-5 sm:py-3 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between relative z-30">
           <div className="min-w-0">
             <div className="flex items-center gap-2.5">
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600/10 ring-1 ring-teal-200">
@@ -1059,11 +1067,11 @@ const OrganizationEmployees = ({
       {activeTab === 'records' && (
         <div className="space-y-6">
           {/* Monthly Attendance Records Table */}
-          <div className="bg-teal-50/95 rounded-xl shadow-md overflow-hidden px-2">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">Monthly Attendance Records</h3>
-            {/* Filters */}
+          <div className="bg-teal-50/95 rounded-xl shadow-md overflow-hidden px-2 max-h-[60vh]">
+            {/* Title and Filters in one line */}
             <div className="bg-teal-50/95 p-3 border-b border-gray-200 flex flex-wrap gap-3 items-center justify-between">
-              <div className="flex gap-3 flex-1 min-w-[300px]">
+              <div className="flex items-center gap-4">
+                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2 whitespace-nowrap">Monthly Attendance Records</h3>
                 <Input
                   prefix={<span>🔍</span>}
                   placeholder="Search by name or code..."
@@ -1119,7 +1127,7 @@ const OrganizationEmployees = ({
                 <p className="text-gray-600 mb-6">Attendance data will appear here once employees check in</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+            <div className="overflow-x-auto overflow-y-auto max-h-[55vh]">
                 <table className="w-full">
                   <thead className="bg-teal-50 border-b border-gray-200">
                     <tr>
@@ -1155,7 +1163,9 @@ const OrganizationEmployees = ({
                         key={record.entity_id }
                         className="hover:bg-teal-50 transition-colors cursor-pointer"
                         onClick={() => {
-                          setSelectedCalendarEmployee(record.entity_id );
+                          const employeeId = record.employee_id || record.entity_id || record.employee?.id;
+                          console.log('Record clicked, employee ID:', employeeId, 'Record:', record);
+                          setSelectedCalendarEmployee(employeeId);
                           setActiveTab('calendar');
                         }}
                         title="Click to view attendance calendar"
@@ -1177,13 +1187,13 @@ const OrganizationEmployees = ({
                                   className="w-10 h-10 rounded-full object-cover border border-white shadow-sm"
                                 />
                               ) : (
-                                <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold">
-                                  {(recordName || 'U').charAt(0).toUpperCase()}
+                                <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                                  {recordName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                                 </div>
                               )}
                             <div>
-                              <div className="font-semibold text-gray-900">{record.employee?.full_name || 'N/A'}</div>
-                              <div className="text-xs text-gray-500">{record.employee?.employee_code || 'N/A'}</div>
+                              <div className="font-semibold text-gray-900 text-sm">{recordName}</div>
+                              <div className="text-xs text-gray-500">{record.employee?.employee_code || 'No Code'}</div>
                             </div>
                           </div>
                         </td>
@@ -1322,7 +1332,7 @@ const OrganizationEmployees = ({
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto bg-teal-50/95 rounded-lg shadow-sm border border-gray-200">
+            <div className="overflow-x-auto bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 max-h-[60vh] overflow-y-auto">
               <table className="w-full">
                 <thead className="bg-teal-50 border-b border-gray-200">
                   <tr>
