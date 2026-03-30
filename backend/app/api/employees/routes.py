@@ -360,6 +360,7 @@ def delete_employee(employee_id):
     return success_response(message='Employee deleted successfully')
 
 
+
 @bp.route('/<string:employee_id>/attendance', methods=['GET'])
 @jwt_required()
 @require_permission('employees:read')

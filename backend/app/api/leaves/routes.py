@@ -213,7 +213,7 @@ def list_leave_requests():
     
     # Get current user for tenant isolation
     current_user = get_current_user()
-    organization_id = current_user.get('organization_id') if current_user else None
+    organization_id = getattr(current_user, 'organization_id', None) if current_user else None
     
     query = LeaveService.list_leave_requests(filters, organization_id)
     result = paginate(query, page, per_page, LeaveRequestSchema)

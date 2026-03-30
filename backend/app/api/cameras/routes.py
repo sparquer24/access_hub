@@ -113,7 +113,6 @@ def create_camera():
 
 @bp.route('', methods=['GET'])
 @jwt_required()
-@require_permission('cameras:read')
 @validate_query(CameraListSchema)
 def list_cameras():
     """
@@ -201,7 +200,6 @@ def list_cameras():
 
 @bp.route('/<string:camera_id>', methods=['GET'])
 @jwt_required()
-@require_permission('cameras:read')
 def get_camera(camera_id):
     """
     Get camera by ID

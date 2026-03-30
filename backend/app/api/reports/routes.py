@@ -4,9 +4,11 @@ Handles creation and delivery of various report types
 """
 
 from flask import Blueprint, request, jsonify, send_file
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from ...utils.decorators import role_required
 from ...utils.helpers import success_response, error_response
+from ...services.reports_service import ReportsService
+from ...models import User
 import os
 import csv
 import tempfile
@@ -17,6 +19,385 @@ logger = logging.getLogger(__name__)
 
 bp = Blueprint('reports', __name__, url_prefix='/api/v2/reports')
 
+
+# ==================== GET ENDPOINTS (DATA RETRIEVAL) ====================
+
+@bp.route('', methods=['GET'])
+@jwt_required()
+@role_required('employee', 'manager', 'org_admin', 'super_admin')
+def get_available_reports():
+    """
+    Get available report types and their metadata
+    ---
+    tags:
+      - Reports
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: List of available report types
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            data:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    example: "attendance"
+                  name:
+                    type: string
+                    example: "Attendance Report"
+                  description:
+                    type: string
+                  icon:
+                    type: string
+                  parameters:
+                    type: array
+                    items:
+                      type: string
+      401:
+        $ref: '#/responses/UnauthorizedError'
+    """
+    try:
+        result = ReportsService.get_available_reports()
+        return success_response(
+            data=result['data'],
+            message='Available reports retrieved successfully'
+        )
+    except Exception as e:
+        logger.error(f"Error retrieving available reports: {str(e)}")
+        return error_response(
+            message="Error retrieving available reports",
+            status_code=500
+        )
+
+
+@bp.route('/attendance', methods=['GET'])
+@jwt_required()
+@role_required('employee', 'manager', 'org_admin', 'super_admin')
+def get_attendance_report():
+    """
+    Get attendance report data
+    ---
+    tags:
+      - Reports
+    security:
+      - Bearer: []
+    parameters:
+      - in: query
+        name: start_date
+        type: string
+        format: date
+        description: Start date (YYYY-MM-DD)
+      - in: query
+        name: end_date
+        type: string
+        format: date
+        description: End date (YYYY-MM-DD)
+      - in: query
+        name: employee_id
+        type: string
+        description: Filter by employee ID
+      - in: query
+        name: department_id
+        type: string
+        description: Filter by department ID
+    responses:
+      200:
+        description: Attendance report data
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+            data:
+              type: object
+              properties:
+                summary:
+                  type: object
+                  properties:
+                    total_records:
+                      type: integer
+                    present_count:
+                      type: integer
+                    absent_count:
+                      type: integer
+                    average_work_hours:
+                      type: number
+                employee_stats:
+                  type: array
+                  items:
+                    type: object
+                records:
+                  type: array
+                  items:
+                    type: object
+      400:
+        $ref: '#/responses/BadRequestError'
+      401:
+        $ref: '#/responses/UnauthorizedError'
+    """
+    try:
+        # Get current user's organization
+        current_user_id = get_jwt_identity()
+        from ...models import User as UserModel
+        user = UserModel.query.get(current_user_id)
+        
+        if not user or not user.organization_id:
+            return error_response(
+                message="User organization not found",
+                status_code=400
+            )
+        
+        # Get query parameters
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        employee_id = request.args.get('employee_id')
+        
+        # Get report data
+        result = ReportsService.get_attendance_report_data(
+            organization_id=user.organization_id,
+            employee_id=employee_id,
+            start_date=start_date,
+            end_date=end_date
+        )
+        
+        if not result['success']:
+            return error_response(
+                message=result.get('error', 'Error fetching attendance report'),
+                status_code=500
+            )
+        
+        return success_response(
+            data=result['data'],
+            message='Attendance report retrieved successfully'
+        )
+    
+    except Exception as e:
+        logger.error(f"Error retrieving attendance report: {str(e)}")
+        return error_response(
+            message="Error retrieving attendance report",
+            status_code=500
+        )
+
+
+@bp.route('/leaves', methods=['GET'])
+@jwt_required()
+@role_required('employee', 'manager', 'org_admin', 'super_admin')
+def get_leaves_report():
+    """
+    Get leave requests report data
+    ---
+    tags:
+      - Reports
+    security:
+      - Bearer: []
+    parameters:
+      - in: query
+        name: start_date
+        type: string
+        format: date
+        description: Start date (YYYY-MM-DD)
+      - in: query
+        name: end_date
+        type: string
+        format: date
+        description: End date (YYYY-MM-DD)
+      - in: query
+        name: employee_id
+        type: string
+        description: Filter by employee ID
+      - in: query
+        name: department_id
+        type: string
+        description: Filter by department ID
+    responses:
+      200:
+        description: Leave requests report data
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+            data:
+              type: object
+              properties:
+                summary:
+                  type: object
+                  properties:
+                    total_requests:
+                      type: integer
+                    approved_count:
+                      type: integer
+                    pending_count:
+                      type: integer
+                    rejected_count:
+                      type: integer
+                leave_types:
+                  type: object
+                employee_stats:
+                  type: array
+                  items:
+                    type: object
+                records:
+                  type: array
+                  items:
+                    type: object
+      400:
+        $ref: '#/responses/BadRequestError'
+      401:
+        $ref: '#/responses/UnauthorizedError'
+    """
+    try:
+        # Get current user's organization
+        current_user_id = get_jwt_identity()
+        from ...models import User as UserModel
+        user = UserModel.query.get(current_user_id)
+        
+        if not user or not user.organization_id:
+            return error_response(
+                message="User organization not found",
+                status_code=400
+            )
+        
+        # Get query parameters
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        employee_id = request.args.get('employee_id')
+        
+        # Get report data
+        result = ReportsService.get_leaves_report_data(
+            organization_id=user.organization_id,
+            employee_id=employee_id,
+            start_date=start_date,
+            end_date=end_date
+        )
+        
+        if not result['success']:
+            return error_response(
+                message=result.get('error', 'Error fetching leaves report'),
+                status_code=500
+            )
+        
+        return success_response(
+            data=result['data'],
+            message='Leaves report retrieved successfully'
+        )
+    
+    except Exception as e:
+        logger.error(f"Error retrieving leaves report: {str(e)}")
+        return error_response(
+            message="Error retrieving leaves report",
+            status_code=500
+        )
+
+
+@bp.route('/performance', methods=['GET'])
+@jwt_required()
+@role_required('employee', 'manager', 'org_admin', 'super_admin')
+def get_performance_report():
+    """
+    Get performance report data
+    ---
+    tags:
+      - Reports
+    security:
+      - Bearer: []
+    parameters:
+      - in: query
+        name: start_date
+        type: string
+        format: date
+        description: Start date (YYYY-MM-DD)
+      - in: query
+        name: end_date
+        type: string
+        format: date
+        description: End date (YYYY-MM-DD)
+      - in: query
+        name: employee_id
+        type: string
+        description: Filter by employee ID
+    responses:
+      200:
+        description: Performance report data
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+            data:
+              type: object
+              properties:
+                summary:
+                  type: object
+                  properties:
+                    total_employees_evaluated:
+                      type: integer
+                    average_attendance:
+                      type: number
+                    average_work_hours:
+                      type: number
+                employee_performance:
+                  type: array
+                  items:
+                    type: object
+      400:
+        $ref: '#/responses/BadRequestError'
+      401:
+        $ref: '#/responses/UnauthorizedError'
+    """
+    try:
+        # Get current user's organization
+        current_user_id = get_jwt_identity()
+        from ...models import User as UserModel
+        user = UserModel.query.get(current_user_id)
+        
+        if not user or not user.organization_id:
+            return error_response(
+                message="User organization not found",
+                status_code=400
+            )
+        
+        # Get query parameters
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        employee_id = request.args.get('employee_id')
+        
+        # Get report data
+        result = ReportsService.get_performance_report_data(
+            organization_id=user.organization_id,
+            employee_id=employee_id,
+            start_date=start_date,
+            end_date=end_date
+        )
+        
+        if not result['success']:
+            return error_response(
+                message=result.get('error', 'Error fetching performance report'),
+                status_code=500
+            )
+        
+        return success_response(
+            data=result['data'],
+            message='Performance report retrieved successfully'
+        )
+    
+    except Exception as e:
+        logger.error(f"Error retrieving performance report: {str(e)}")
+        return error_response(
+            message="Error retrieving performance report",
+            status_code=500
+        )
+
+
+# ==================== POST ENDPOINTS (FILE GENERATION) ====================
 
 @bp.route('/download', methods=['POST'])
 @jwt_required()
