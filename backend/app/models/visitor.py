@@ -71,7 +71,12 @@ class VisitorHistoryDetails(db.Model):
     host_name = db.Column(db.String(255), nullable=True)
     host_number = db.Column(db.String(20), nullable=True)
     purpose_of_visit = db.Column(db.String(500), nullable=False)
-    allowed_floor = db.Column(db.String(100), nullable=False)
+    
+    # Location references - replacing hardcoded floor/tower strings
+    allowed_location_id = db.Column(db.String(36), db.ForeignKey('locations.id'), nullable=False, index=True)
+    
+    # Legacy fields - keep for backward compatibility during transition (nullable for migration)
+    allowed_floor = db.Column(db.String(100), nullable=True)
     allowed_tower = db.Column(db.String(100), nullable=True)
     
     # Duration
@@ -83,8 +88,9 @@ class VisitorHistoryDetails(db.Model):
     check_out_time = db.Column(db.DateTime, nullable=True)
     is_checked_in = db.Column(db.Boolean, default=False)
     
-    # Current location
-    current_floor = db.Column(db.String(100), nullable=True)
+    # Current location tracking (can be different from allowed location)
+    current_location_id = db.Column(db.String(36), db.ForeignKey('locations.id'), nullable=True, index=True)
+    current_floor = db.Column(db.String(100), nullable=True)  # Keep for legacy/free-text tracking
     
     # Audit
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
@@ -92,6 +98,8 @@ class VisitorHistoryDetails(db.Model):
     
     # Relationships
     organization = db.relationship('Organization', backref='visitor_history')
+    allowed_location = db.relationship('Location', foreign_keys=[allowed_location_id], backref='allowed_visitors')
+    current_location = db.relationship('Location', foreign_keys=[current_location_id], backref='current_visitors')
 
     def __repr__(self):
         return f"<VisitorHistoryDetails {self.visitor_id} - {self.purpose_of_visit}>"

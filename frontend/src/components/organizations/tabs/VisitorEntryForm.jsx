@@ -2,20 +2,24 @@ import React, { useEffect, useState } from 'react';
 import { useToast } from '../../../contexts/ToastContext';
 import { visitorService } from '../../../services/visitorService';
 import { faceService } from '../../../services/faceService';
+import { visitorsAPI } from '../../../services/apiServices';
 import WebcamCapture from '../../common/WebcamCapture.jsx';
 
 const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => {
   const { success, error: showError } = useToast();
+  
+  // Get today's date in YYYY-MM-DD format for form defaults
+  const today = new Date().toISOString().split('T')[0];
+  
   const initialFormData = {
     name: '',
     phone: '',
     email: '',
     gender: '',
     purpose_of_visit: '',
-    from_date: '',
-    to_date: '',
-    allowed_floor: '',
-    allowed_tower: '',
+    from_date: today,     // Auto-set to today
+    to_date: today,       // Auto-set to today (same day visit)
+    allowed_location_id: '',  // Replaced tower/floor with location_id
     image_base64: '',
 
     // New fields
@@ -32,7 +36,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
   const [formData, setFormData] = useState(initialFormData);
   const [loading, setLoading] = useState(false);
   const [showWebcam, setShowWebcam] = useState(false);
-  const [activePhotoSlot, setActivePhotoSlot] = useState(null); // 'visitor' or 'vehicle_front' etc.
+  const [activePhotoSlot, setActivePhotoSlot] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [showVisitorSlip, setShowVisitorSlip] = useState(false);
   const [checkedInVisitor, setCheckedInVisitor] = useState(null);
@@ -41,6 +45,47 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
   const [lastCheckedMobile, setLastCheckedMobile] = useState('');
   const [isUsingExistingImage, setIsUsingExistingImage] = useState(false);
   const [isExistingImageConfirmed, setIsExistingImageConfirmed] = useState(false);
+  const [locations, setLocations] = useState([]);
+
+  // Fetch locations on mount
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const locationsResp = await visitorsAPI.getLocations(organizationId);
+        const locations = locationsResp.data?.data?.items || [];
+        setLocations(locations);
+      } catch (error) {
+        console.error("Failed to fetch locations:", error);
+        // Fallback to legacy endpoints if new endpoint fails
+        try {
+          const [fl, tw] = await Promise.all([
+            visitorsAPI.floors(),
+            visitorsAPI.towers(),
+          ]);
+          // Convert legacy format to flat location list
+          const legacyLocations = [];
+          (tw.data || []).forEach(tower => {
+            (fl.data || []).forEach(floor => {
+              legacyLocations.push({
+                id: `legacy-${tower}-${floor}`,
+                name: `${tower} - ${floor}`,
+                building: tower,
+                floor: floor,
+                description: `${tower} building, ${floor} floor`
+              });
+            });
+          });
+          setLocations(legacyLocations);
+        } catch {
+          console.error("Failed to fetch legacy floor/tower data");
+        }
+      }
+    };
+
+    if (organizationId) {
+      fetchLocations();
+    }
+  }, [organizationId]);
 
   // Form validation function
   const validateForm = () => {
@@ -80,19 +125,8 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
       newErrors.host_number = 'Host number is required';
     }
 
-    if (!formData.from_date) {
-      newErrors.from_date = 'From date is required';
-    }
-
-    if (!formData.to_date) {
-      newErrors.to_date = 'To date is required';
-    }
-
-    if (!formData.allowed_floor) {
-      newErrors.allowed_floor = 'Please select allowed floor';
-    }
-    if (!formData.allowed_tower) {
-      newErrors.allowed_tower = 'Please select allowed tower';
+    if (!formData.allowed_location_id) {
+      newErrors.allowed_location_id = 'Please select a location';
     }
 
     if (!formData.image_base64) {
@@ -172,8 +206,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
           host_number: visitor.host_number || prev.host_number,
           from_date: visitor.from_date || prev.from_date,
           to_date: visitor.to_date || prev.to_date,
-          allowed_floor: visitor.allowed_floor || prev.allowed_floor,
-          allowed_tower: visitor.allowed_tower || prev.allowed_tower,
+          allowed_location_id: visitor.allowed_location_id || prev.allowed_location_id,
           image_base64: visitor.image_base64 || prev.image_base64
         }));
 
@@ -393,8 +426,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
         purpose_of_visit: formData.purpose_of_visit,
         from_date: formData.from_date,
         to_date: formData.to_date || null,
-        allowed_floor: formData.allowed_floor,
-        allowed_tower: formData.allowed_tower,
+        allowed_location_id: formData.allowed_location_id,
         image_base64: formData.image_base64,
         visitor_type: formData.visitor_type,
         host_name: formData.host_name,
@@ -437,8 +469,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
         gender: formData.gender,
         visitor_type: formData.visitor_type,
         purpose_of_visit: formData.purpose_of_visit,
-        allowed_floor: formData.allowed_floor,
-        allowed_tower: formData.allowed_tower,
+        allowed_location_id: formData.allowed_location_id,
         host_name: formData.host_name,
         organization_name: organization?.name || 'Organization',
         check_in_time: check_in_time,
@@ -496,9 +527,6 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
       setIsSubmitting(false);
     }
   };
-
-  // Get unique floors from organization (assuming floors are available)
-  const floors = ['Ground Floor', 'Floor 1', 'Floor 2', 'Floor 3', 'Floor 4', 'Floor 5'];
 
   return (
     <>
@@ -710,38 +738,23 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                     />
                     {errors.purpose_of_visit && <p className="mt-1 text-xs text-red-600">{errors.purpose_of_visit}</p>}
                   </div>
-                  <div className="flex gap-2">
-                    <div className="flex-1">
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Tower *</label>
-                      <select
-                        name="allowed_tower"
-                        value={formData.allowed_tower || ''}
-                        onChange={handleInputChange}
-                        className={`w-full px-3 py-2 border rounded focus:outline-none ${errors.allowed_tower ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
-                      >
-                        <option value="">Select a tower</option>
-                        <option value="Tower A">Tower A</option>
-                        <option value="Tower B">Tower B</option>
-                        <option value="Tower C">Tower C</option>
-                        <option value="Tower D">Tower D</option>
-                      </select>
-                      {errors.allowed_tower && <p className="mt-1 text-xs text-red-600">{errors.allowed_tower}</p>}
-                    </div>
-                    <div className="flex-1">
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Allowed Floor *</label>
-                      <select
-                        name="allowed_floor"
-                        value={formData.allowed_floor}
-                        onChange={handleInputChange}
-                        className={`w-full px-3 py-2 border rounded focus:outline-none ${errors.allowed_floor ? 'border-red-500 bg-red-50 error-field' : 'border-gray-300'}`}
-                      >
-                        <option value="">Select a floor</option>
-                        {floors.map((floor) => (
-                          <option key={floor} value={floor}>{floor}</option>
-                        ))}
-                      </select>
-                      {errors.allowed_floor && <p className="mt-1 text-xs text-red-600">{errors.allowed_floor}</p>}
-                    </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Location *</label>
+                    <select
+                      name="allowed_location_id"
+                      value={formData.allowed_location_id || ''}
+                      onChange={handleInputChange}
+                      className={`w-full px-3 py-2 border rounded focus:outline-none ${errors.allowed_location_id ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
+                    >
+                      <option value="">Select a location</option>
+                      {locations.map((location) => (
+                        <option key={location.id} value={location.id}>
+                          {location.name}
+                          {location.description && ` (${location.description})`}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.allowed_location_id && <p className="mt-1 text-xs text-red-600">{errors.allowed_location_id}</p>}
                   </div>
                   <div className="flex items-center gap-2 mt-1">
                     <input

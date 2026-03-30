@@ -46,7 +46,7 @@ class VisitorService:
             visitor_data: Dict with visitor info {
                 name, phone, email, gender, 
                 visitor_type, host_name, host_phone, 
-                purpose_of_visit, allowed_floor, allowed_tower,
+                purpose_of_visit, allowed_location_id,
                 from_date, to_date
             }
         
@@ -80,7 +80,9 @@ class VisitorService:
                 host_name=visitor_data.get('host_name'),
                 host_number=visitor_data.get('host_number') or visitor_data.get('host_phone'),
                 purpose_of_visit=visitor_data['purpose_of_visit'],
-                allowed_floor=visitor_data['allowed_floor'],
+                allowed_location_id=visitor_data['allowed_location_id'],
+                # Keep legacy fields for backward compatibility during migration
+                allowed_floor=visitor_data.get('allowed_floor'),
                 allowed_tower=visitor_data.get('allowed_tower'),
                 from_date=visitor_data['from_date'],
                 to_date=visitor_data.get('to_date'),
