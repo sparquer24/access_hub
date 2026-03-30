@@ -1,4 +1,5 @@
-FROM python:3.10-slim
+# Use multi-platform base image
+FROM --platform=linux/amd64 python:3.10-slim
 
 WORKDIR /app
 
@@ -16,7 +17,7 @@ RUN apt-get update && apt-get install -y libgl1 && rm -rf /var/lib/apt/lists/*
 
 # Install python deps first (cache-friendly)
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir --force-reinstall -r requirements.txt
 
 # Copy app code
 COPY . .
