@@ -321,7 +321,7 @@ def get_organization_accessible_tabs(org_id: str):
     })
 
 
-@bp.route("/features/<string:feature>/check", methods=["POST"])
+@bp.route("/features/check", methods=["POST"])
 @require_auth
 def check_feature_access():
     """Check if current user's organization has access to a feature"""

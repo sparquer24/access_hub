@@ -1342,3 +1342,292 @@ def download_leaves_report():
             'status': 'error',
             'message': 'Failed to download leaves report'
         }), 500
+
+
+# Legacy route wrapper - provides backward compatibility for /api/manager/ endpoints
+bp_legacy = Blueprint('manager_legacy', __name__, url_prefix='/api/manager')
+
+
+# Legacy wrapper for GET /api/manager/reports/attendance
+@bp_legacy.route('/reports/attendance', methods=['GET'])
+@jwt_required()
+@tenant_required
+@manager_required
+def get_attendance_report_legacy():
+    """Legacy endpoint wrapper - calls v2 endpoint logic"""
+    from flask_jwt_extended import get_jwt
+    organization_id = g.organization_id
+    claims = get_jwt()
+    manager_department_id = claims.get('department_id')
+    
+    try:
+        start_date_str = request.args.get('start_date')
+        end_date_str = request.args.get('end_date')
+        
+        if start_date_str:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        else:
+            start_date = datetime.utcnow().date().replace(day=1)
+        
+        if end_date_str:
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        else:
+            end_date = datetime.utcnow().date()
+        
+        employees_query = Employee.query.filter_by(
+            organization_id=organization_id,
+            is_active=True
+        ).join(User).filter(User.is_active == True)
+        
+        if manager_department_id:
+            employees_query = employees_query.filter(Employee.department_id == manager_department_id)
+            
+        employees = employees_query.all()
+        
+        attendance_query = AttendanceRecord.query.join(Employee).filter(
+            Employee.organization_id == organization_id,
+            AttendanceRecord.check_in_time >= start_date,
+            AttendanceRecord.check_in_time <= end_date
+        )
+        
+        if manager_department_id:
+            attendance_query = attendance_query.filter(Employee.department_id == manager_department_id)
+            
+        attendance_records = attendance_query.all()
+        
+        employee_stats = {}
+        for employee in employees:
+            employee_stats[employee.id] = {
+                'employee_code': employee.employee_code,
+                'name': employee.full_name,
+                'present_days': 0,
+                'total_working_days': (end_date - start_date).days + 1,
+                'attendance_percentage': 0
+            }
+        
+        for record in attendance_records:
+            if record.employee_id in employee_stats:
+                employee_stats[record.employee_id]['present_days'] += 1
+        
+        for emp_id, stats in employee_stats.items():
+            if stats['total_working_days'] > 0:
+                stats['attendance_percentage'] = round(
+                    (stats['present_days'] / stats['total_working_days']) * 100, 2
+                )
+        
+        report_data = {
+            'date_range': {
+                'start_date': start_date.isoformat(),
+                'end_date': end_date.isoformat()
+            },
+            'summary': {
+                'total_employees': len(employees),
+                'total_attendance_records': len(attendance_records),
+                'average_attendance': round(
+                    sum(stats['attendance_percentage'] for stats in employee_stats.values()) / len(employee_stats)
+                    if employee_stats else 0, 2
+                )
+            },
+            'employee_stats': list(employee_stats.values())
+        }
+        
+        return jsonify({
+            'status': 'success',
+            'data': report_data
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Error generating attendance report: {str(e)}")
+        current_app.logger.error(traceback.format_exc())
+        return jsonify({
+            'status': 'error',
+            'message': 'Failed to generate attendance report'
+        }), 500
+
+
+# Legacy wrapper for GET /api/manager/reports/leaves
+@bp_legacy.route('/reports/leaves', methods=['GET'])
+@jwt_required()
+@tenant_required
+@manager_required
+def get_leaves_report_legacy():
+    """Legacy endpoint wrapper - calls v2 endpoint logic"""
+    from flask_jwt_extended import get_jwt
+    organization_id = g.organization_id
+    claims = get_jwt()
+    manager_department_id = claims.get('department_id')
+    
+    try:
+        start_date_str = request.args.get('start_date')
+        end_date_str = request.args.get('end_date')
+        
+        if start_date_str:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+        else:
+            start_date = datetime.utcnow().date().replace(day=1)
+        
+        if end_date_str:
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        else:
+            end_date = datetime.utcnow().date()
+        
+        employees_query = Employee.query.filter_by(
+            organization_id=organization_id,
+            is_active=True
+        ).join(User).filter(User.is_active == True)
+        
+        if manager_department_id:
+            employees_query = employees_query.filter(Employee.department_id == manager_department_id)
+            
+        employees = employees_query.all()
+        
+        leaves_query = LeaveRequest.query.join(Employee).filter(
+            Employee.organization_id == organization_id,
+            LeaveRequest.start_date >= start_date,
+            LeaveRequest.end_date <= end_date
+        )
+        
+        if manager_department_id:
+            leaves_query = leaves_query.filter(Employee.department_id == manager_department_id)
+            
+        leaves = leaves_query.all()
+        
+        leave_stats = {}
+        for emp in employees:
+            leave_stats[emp.id] = {
+                'employee_code': emp.employee_code,
+                'name': emp.full_name,
+                'total_leaves': 0,
+                'pending_leaves': 0,
+                'approved_leaves': 0,
+                'rejected_leaves': 0
+            }
+        
+        for leave in leaves:
+            if leave.employee_id in leave_stats:
+                leave_stats[leave.employee_id]['total_leaves'] += 1
+                if leave.status == 'pending':
+                    leave_stats[leave.employee_id]['pending_leaves'] += 1
+                elif leave.status == 'approved':
+                    leave_stats[leave.employee_id]['approved_leaves'] += 1
+                elif leave.status == 'rejected':
+                    leave_stats[leave.employee_id]['rejected_leaves'] += 1
+        
+        report_data = {
+            'date_range': {
+                'start_date': start_date.isoformat(),
+                'end_date': end_date.isoformat()
+            },
+            'summary': {
+                'total_employees': len(employees),
+                'total_leave_requests': len(leaves),
+                'pending_leaves': sum(s['pending_leaves'] for s in leave_stats.values()),
+                'approved_leaves': sum(s['approved_leaves'] for s in leave_stats.values()),
+                'rejected_leaves': sum(s['rejected_leaves'] for s in leave_stats.values())
+            },
+            'employee_stats': list(leave_stats.values())
+        }
+        
+        return jsonify({
+            'status': 'success',
+            'data': report_data
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Error generating leaves report: {str(e)}")
+        current_app.logger.error(traceback.format_exc())
+        return jsonify({
+            'status': 'error',
+            'message': 'Failed to generate leaves report'
+        }), 500
+
+# Legacy wrapper for GET /api/manager/team/members  
+@bp_legacy.route('/team/members', methods=['GET'])
+@jwt_required()
+@tenant_required
+@manager_required
+def get_team_members_legacy():
+    """Legacy endpoint wrapper - calls v2 endpoint logic"""
+    from flask_jwt_extended import get_jwt_identity, get_jwt
+    manager_id = get_jwt_identity()
+    organization_id = g.organization_id
+    claims = get_jwt()
+    manager_department_id = claims.get('department_id')
+    
+    try:
+        employees_query = Employee.query.filter_by(
+            organization_id=organization_id,
+            is_active=True
+        ).join(User).filter(User.is_active == True)
+        
+        if manager_department_id:
+            employees_query = employees_query.filter(Employee.department_id == manager_department_id)
+        
+        employees = employees_query.all()
+        current_app.logger.info(f"Found {len(employees)} employees in team.")
+        
+        today = datetime.utcnow().date()
+        today_start = datetime.combine(today, datetime.min.time())
+        today_end = datetime.combine(today + timedelta(days=1), datetime.min.time())
+        
+        attendance_records = AttendanceRecord.query.filter(
+            AttendanceRecord.check_in_time >= today_start,
+            AttendanceRecord.check_in_time < today_end,
+            AttendanceRecord.organization_id == organization_id
+        ).all()
+        
+        attendance_map = {r.employee_id: r for r in attendance_records}
+        
+        team_members = []
+        for employee in employees:
+            try:
+                user = User.query.get(employee.user_id)
+                
+                # Check leave status
+                leaves = LeaveRequest.query.filter(
+                    LeaveRequest.employee_id == employee.id,
+                    LeaveRequest.status == 'approved',
+                    LeaveRequest.start_date <= today,
+                    LeaveRequest.end_date >= today
+                ).all()
+                
+                attendance_status = 'absent'
+                if leaves:
+                    attendance_status = 'on_leave'
+                # Check attendance status
+                elif employee.id in attendance_map:
+                    record = attendance_map[employee.id]
+                    attendance_status = 'present'
+                    
+                team_members.append({
+                    'id': employee.id,
+                    'employee_code': employee.employee_code,
+                    'name': employee.full_name,
+                    'email': user.email if user else 'N/A',
+                    'designation': employee.designation or 'N/A',
+                    'status': 'active' if employee.is_active else 'inactive',
+                    'attendance_status': attendance_status,
+                    'last_seen': employee.updated_at.isoformat() if employee.updated_at else None,
+                    'profile_image': employee.profile_image,
+                    'department': employee.department.name if employee.department else 'N/A'
+                })
+            except Exception as e:
+                current_app.logger.warning(f"Error processing employee {employee.id}: {str(e)}")
+                continue
+        
+        return jsonify({
+            'status': 'success',
+            'data': {
+                'team_members': team_members,
+                'total_count': len(team_members)
+            }
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Error fetching team members: {str(e)}")
+        current_app.logger.error(traceback.format_exc())
+        return jsonify({
+            'status': 'error',
+            'message': 'Failed to fetch team members'
+        }), 500
+

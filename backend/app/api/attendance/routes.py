@@ -254,7 +254,7 @@ def list_attendance():
     # If not in query params, try to get from JWT claims
     if not organization_id:
         current_user = get_current_user()
-        organization_id = current_user.get('organization_id') if current_user else None
+        organization_id = getattr(current_user, 'organization_id', None) if current_user else None
     
     query = AttendanceService.list_attendance(filters, organization_id)
     result = paginate(query, page, per_page, AttendanceRecordSchema)

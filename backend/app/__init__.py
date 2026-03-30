@@ -92,9 +92,9 @@ def create_app():
             "Error": {
                 "type": "object",
                 "properties": {
-                    "success": {
-                        "type": "boolean",
-                        "example": False
+                    "status": {
+                        "type": "string",
+                        "example": "error"
                     },
                     "message": {
                         "type": "string",
@@ -109,9 +109,9 @@ def create_app():
             "Success": {
                 "type": "object",
                 "properties": {
-                    "success": {
-                        "type": "boolean",
-                        "example": True
+                    "status": {
+                        "type": "string",
+                        "example": "success"
                     },
                     "message": {
                         "type": "string",
@@ -378,8 +378,9 @@ def create_app():
     from .api.embedding_gen.routes import face_enroll_bp
     app.register_blueprint(face_enroll_bp)
     
-    from .api.manager.routes import bp as manager_v2_bp
+    from .api.manager.routes import bp as manager_v2_bp, bp_legacy as manager_legacy_bp
     app.register_blueprint(manager_v2_bp)
+    app.register_blueprint(manager_legacy_bp)
     
     # from .api.employee.routes import bp as employee_v2_bp
     # app.register_blueprint(employee_v2_bp)
