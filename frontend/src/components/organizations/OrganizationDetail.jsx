@@ -143,7 +143,7 @@ const OrganizationDetail = ({
     },
     lpr: {
       valid: ['overview', 'logs', 'manualEntry'],
-      default: 'overview'
+      default: 'logs'
     }
   };
 
