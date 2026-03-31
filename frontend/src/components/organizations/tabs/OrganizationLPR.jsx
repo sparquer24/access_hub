@@ -4,15 +4,17 @@ import LPRRegistrationForm from "./LPRRegistrationForm";
 import WebcamCapture from "../../common/WebcamCapture.jsx";
 import Loader from "../../common/Loader";
 import { useToast } from "../../../contexts/ToastContext";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+import { Menu, LayoutDashboard, PencilLine } from "lucide-react";
 
 const OrganizationLPR = ({
   organization,
-  activeSubTab = "overview",
+  activeSubTab = "logs",
   onSubTabChange,
 }) => {
   const { success, error: showError, info: showInfo } = useToast();
   const features = organization?.enabled_features || {};
-  const [internalActiveSubTab, setInternalActiveSubTab] = useState("overview"); // overview, logs
+  const [internalActiveSubTab, setInternalActiveSubTab] = useState("logs"); // logs as default
 
   // Data State
   const [logs, setLogs] = useState([]);
@@ -333,7 +335,7 @@ const OrganizationLPR = ({
   return (
     <div className="space-y-6 relative">
       {/* Header */}
-      <div className="rounded-xl border border-teal-100/70 bg-gradient-to-r from-white via-teal-50/60 to-cyan-50/60 shadow-sm overflow-visible relative">
+      <div className="rounded-xl border border-teal-100/70 bg-gradient-to-r from-white via-teal-50/60 to-cyan-50/60 shadow-sm overflow-visible relative z-30">
         <div className="px-4 py-3.5 sm:px-5 sm:py-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between relative z-30">
           <div className="min-w-0">
             <div className="flex items-center gap-2.5">
@@ -350,9 +352,33 @@ const OrganizationLPR = ({
           </div>
           <div className="flex gap-1 rounded-xl border border-slate-200 bg-white/90 p-1.5 shadow-sm overflow-x-auto max-w-full">
             {[
-              { id: "overview", label: "📊 Overview" },
-              { id: "logs", label: "🧾 Logs" },
-              { id: "manualEntry", label: "📝 Manual Entry" },
+              {
+                id: "logs",
+                label: (
+                  <>
+                    <span className="mr-1.5 text-base"><Menu size={18} /></span>
+                    Logs
+                  </>
+                ),
+              },
+              {
+                id: "overview",
+                label: (
+                  <>
+                    <span className="mr-1.5 text-base"><LayoutDashboard size={18} /></span>
+                    Overview
+                  </>
+                ),
+              },
+              {
+                id: "manualEntry",
+                label: (
+                  <>
+                    <span className="mr-1.5 text-base"><PencilLine size={18} /></span>
+                    Manual Entry
+                  </>
+                ),
+              },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -372,40 +398,89 @@ const OrganizationLPR = ({
       </div>
 
       {/* OVERVIEW TAB */}
+
       {selectedSubTab === "overview" && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-              <p className="text-xs font-bold text-blue-700 uppercase tracking-wider">
-                Entries Today
-              </p>
-              <p className="text-3xl font-black text-blue-900 mt-1">
-                {stats.entries_today}
-              </p>
+          <div className="w-full grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 px-2 md:px-0">
+            <div className="bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 p-4 rounded-xl border border-blue-100 shadow transition-transform duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
+              <p className="text-xs font-bold text-blue-700 uppercase tracking-wider">Entries Today</p>
+              <p className="text-3xl font-black text-blue-900 mt-1 transition-all duration-300">{stats.entries_today}</p>
             </div>
-            <div className="bg-red-50 p-4 rounded-lg border border-red-100">
-              <p className="text-xs font-bold text-red-700 uppercase tracking-wider">
-                Security Alerts
-              </p>
-              <p className="text-3xl font-black text-red-900 mt-1">
-                {stats.security_alerts}
-              </p>
+            <div className="bg-gradient-to-br from-red-50 via-red-100 to-red-200 p-4 rounded-xl border border-red-100 shadow transition-transform duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
+              <p className="text-xs font-bold text-red-700 uppercase tracking-wider">Security Alerts</p>
+              <p className="text-3xl font-black text-red-900 mt-1 transition-all duration-300">{stats.security_alerts}</p>
             </div>
-            <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-              <p className="text-xs font-bold text-green-700 uppercase tracking-wider">
-                VIP Movements
-              </p>
-              <p className="text-3xl font-black text-green-900 mt-1">
-                {stats.vip_movements}
-              </p>
+            <div className="bg-gradient-to-br from-green-50 via-green-100 to-green-200 p-4 rounded-xl border border-green-100 shadow transition-transform duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
+              <p className="text-xs font-bold text-green-700 uppercase tracking-wider">VIP Movements</p>
+              <p className="text-3xl font-black text-green-900 mt-1 transition-all duration-300">{stats.vip_movements}</p>
             </div>
-            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-              <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                Active Cameras
-              </p>
-              <p className="text-3xl font-black text-slate-900 mt-1">
-                {stats.active_cameras}
-              </p>
+            <div className="bg-gradient-to-br from-slate-50 via-slate-100 to-cyan-100 p-4 rounded-xl border border-slate-200 shadow transition-transform duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
+              <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">Active Cameras</p>
+              <p className="text-3xl font-black text-slate-900 mt-1 transition-all duration-300">{stats.active_cameras}</p>
+            </div>
+          </div>
+
+          {/* LPR Overview Charts */}
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8 px-2 md:px-0">
+            {/* Bar Chart for Entries, Alerts, VIPs */}
+            <div className="bg-white rounded-xl border border-slate-100 shadow p-4 min-h-[320px] flex flex-col justify-between w-full">
+              <h3 className="text-base font-bold mb-2 text-slate-700">LPR Activity Summary</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart
+                  data={[{
+                    name: 'Today',
+                    Entries: stats.entries_today,
+                    Alerts: stats.security_alerts,
+                    VIPs: stats.vip_movements,
+                  }]}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <XAxis dataKey="name" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="Entries" fill="#0ea5e9" />
+                  <Bar dataKey="Alerts" fill="#ef4444" />
+                  <Bar dataKey="VIPs" fill="#22c55e" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Pie Chart for Camera Status (if stats.active_cameras is like "3/5") */}
+            <div className="bg-white rounded-xl border border-slate-100 shadow p-4 min-h-[320px] flex flex-col justify-between w-full">
+              <h3 className="text-base font-bold mb-2 text-slate-700">Camera Status</h3>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  {(() => {
+                    let active = 0, total = 0;
+                    if (typeof stats.active_cameras === "string" && stats.active_cameras.includes("/")) {
+                      [active, total] = stats.active_cameras.split("/").map(Number);
+                    }
+                    const data = [
+                      { name: "Active", value: active },
+                      { name: "Inactive", value: Math.max(0, total - active) },
+                    ];
+                    const COLORS = ["#22c55e", "#e5e7eb"];
+                    return (
+                      <Pie
+                        data={data}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={70}
+                        label
+                      >
+                        {data.map((entry, idx) => (
+                          <Cell key={`cell-${idx}`} fill={COLORS[idx % COLORS.length]} />
+                        ))}
+                      </Pie>
+                    );
+                  })()}
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </>
