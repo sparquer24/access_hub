@@ -40,7 +40,7 @@ function ManagerLeaves() {
         return;
       }
 
-      const response = await fetch(`${API_BASE}/api/manager/leaves/pending?status=all`, {
+      const response = await fetch(`${API_BASE}/api/v2/manager/leaves/pending?status=all`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

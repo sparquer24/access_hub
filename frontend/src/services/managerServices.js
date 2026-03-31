@@ -4,19 +4,19 @@ import api from './api';
 export const managerAPI = {
     // Team Stats
     getTeamStats: async () => {
-        const response = await api.get('/api/manager/team/stats');
+        const response = await api.get('/api/v2/manager/team/stats');
         return response.data;
     },
 
     // Team Members
     getTeamMembers: async () => {
-        const response = await api.get('/api/manager/team/members');
+        const response = await api.get('/api/v2/manager/team/members');
         return response.data;
     },
 
     // Dashboard Activities
     getDashboardActivities: async () => {
-        const response = await api.get('/api/manager/dashboard/activities');
+        const response = await api.get('/api/v2/manager/dashboard/activities');
         return response.data;
     },
 
@@ -28,13 +28,13 @@ export const managerAPI = {
 
     // Cameras
     getCameras: async () => {
-        const response = await api.get('/api/manager/cameras');
+        const response = await api.get('/api/v2/manager/cameras');
         return response.data;
     },
 
     // Locations
     getLocations: async () => {
-        const response = await api.get('/api/manager/locations');
+        const response = await api.get('/api/v2/manager/locations');
         return response.data;
     },
 
@@ -67,13 +67,13 @@ export const managerAPI = {
 export const managerLeaveAPI = {
     // Get pending leave requests - use manager endpoint
     getPendingLeaves: async (params = {}) => {
-        const response = await api.get('/api/manager/leaves/pending', { params });
+        const response = await api.get('/api/v2/manager/leaves/pending', { params });
         return response.data;
     },
 
     // Get all leave requests with filters
     getAllLeaves: async (params = {}) => {
-        const response = await api.get('/api/manager/leaves/pending', {
+        const response = await api.get('/api/v2/manager/leaves/pending', {
             params: {
                 status: 'all',
                 ...params
@@ -84,13 +84,13 @@ export const managerLeaveAPI = {
 
     // Approve leave request - use manager endpoint
     approve: async (leaveId, comments = '') => {
-        const response = await api.post(`/api/manager/leaves/${leaveId}/approve`, { comments });
+        const response = await api.post(`/api/v2/manager/leaves/${leaveId}/approve`, { comments });
         return response.data;
     },
 
     // Reject leave request - use manager endpoint  
     reject: async (leaveId, comments) => {
-        const response = await api.post(`/api/manager/leaves/${leaveId}/reject`, { comments });
+        const response = await api.post(`/api/v2/manager/leaves/${leaveId}/reject`, { comments });
         return response.data;
     }
 };
@@ -99,7 +99,7 @@ export const managerLeaveAPI = {
 export const managerReportsAPI = {
     // Get attendance report
     getAttendanceReport: async (startDate, endDate) => {
-        const response = await api.get('/api/manager/reports/attendance', {
+        const response = await api.get('/api/v2/manager/reports/attendance', {
             params: {
                 start_date: startDate,
                 end_date: endDate
@@ -110,7 +110,7 @@ export const managerReportsAPI = {
 
     // Get leaves report
     getLeavesReport: async (startDate, endDate) => {
-        const response = await api.get('/api/manager/reports/leaves', {
+        const response = await api.get('/api/v2/manager/reports/leaves', {
             params: {
                 start_date: startDate,
                 end_date: endDate

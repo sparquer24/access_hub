@@ -50,7 +50,7 @@ function ManagerTeam() {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/manager/team/members`, {
+      const response = await fetch(`${API_BASE_URL}/api/v2/manager/team/members`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -99,7 +99,7 @@ function ManagerTeam() {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/manager/cameras`, {
+      const response = await fetch(`${API_BASE_URL}/api/v2/manager/cameras`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -128,7 +128,7 @@ function ManagerTeam() {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/manager/locations`, {
+      const response = await fetch(`${API_BASE_URL}/api/v2/manager/locations`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

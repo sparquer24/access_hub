@@ -69,7 +69,7 @@ function ManagerReports() {
       dateParams = `start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}`;
 
       if (reportType === 'attendance') {
-        apiEndpoint = `/api/manager/reports/attendance?${dateParams}`;
+        apiEndpoint = `/api/v2/manager/reports/attendance?${dateParams}`;
       } else if (reportType === 'leaves') {
         apiEndpoint = `/api/manager/reports/leaves?${dateParams}`;
       } else {
@@ -224,7 +224,7 @@ function ManagerReports() {
       let filename = '';
 
       if (reportType === 'attendance') {
-        endpoint = `/api/manager/reports/attendance/download?start_date=${startDateStr}&end_date=${endDateStr}&format=${format}`;
+        endpoint = `/api/v2/manager/reports/attendance/download?start_date=${startDateStr}&end_date=${endDateStr}&format=${format}`;
         filename = `attendance_report_${startDateStr}_to_${endDateStr}.${format === 'excel' ? 'xlsx' : format}`;
       } else if (reportType === 'leaves') {
         endpoint = `/api/manager/reports/leaves/download?start_date=${startDateStr}&end_date=${endDateStr}&format=${format}`;
