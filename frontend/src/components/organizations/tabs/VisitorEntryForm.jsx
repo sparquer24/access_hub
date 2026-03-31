@@ -4,6 +4,22 @@ import { visitorService } from '../../../services/visitorService';
 import { faceService } from '../../../services/faceService';
 import { visitorsAPI } from '../../../services/apiServices';
 import WebcamCapture from '../../common/WebcamCapture.jsx';
+import Loader from '../../common/Loader';
+import { 
+  User, 
+  Building2, 
+  Calendar, 
+  ClipboardList, 
+  HardHat, 
+  Briefcase, 
+  Package, 
+  Wrench, 
+  Crown, 
+  UserCheck, 
+  Users,
+  Building,
+  Camera
+} from 'lucide-react';
 
 const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => {
   const { success, error: showError } = useToast();
@@ -560,11 +576,19 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader size="large" text="Loading check-in form..." />
+      </div>
+    );
+  }
+
   return (
     <>
       <style>{`
         .visitor-form-container {
-          height: calc(100vh - 120px);
+          height: calc(100vh - 310px);
           min-height: 600px;
           overflow-y: scroll !important;
         }
@@ -676,28 +700,31 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
         .form-section-spacing {
           margin-bottom: 20px;
         }
+        
+        @media (max-width: 1023px) {
+          .visitor-form-container {
+            height: auto !important;
+            min-height: 100vh;
+          }
+        }
       `}</style>
       <div className="w-full h-full bg-teal-50">
         <div 
           className="visitor-form-container bg-gradient-to-b from-white to-teal-50 border border-teal-200 shadow-lg overflow-y-auto w-full"
           style={{
-            maxHeight: 'calc(100vh - 120px)',
+            maxHeight: 'calc(100vh - 310px)',
             minHeight: '600px',
             height: '100%'
           }}>
-          {/* Header */}
-          <div className="sticky top-0 z-10 bg-white border-b border-teal-200 text-center px-6 py-4 shadow-sm">
-            <h3 className="text-2xl font-extrabold text-teal-700">🎫 Visitor Check-In</h3>
-            <p className="text-gray-600 text-sm mt-2">
-              Fill in the visitor details below. All fields marked <span className="text-red-500 font-bold">*</span> are required.
-            </p>
-          </div>
 
-          <form onSubmit={handleSubmit} className="px-6 py-6 pb-32" style={{ minHeight: '700px' }}>
-            <div className="grid grid-cols-3 gap-6 form-section-spacing">
+          <form onSubmit={handleSubmit} className="px-4 sm:px-6 py-6 pb-48" style={{ minHeight: '700px' }}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 form-section-spacing">
               {/* Visitor Information */}
               <div className="col-span-1 visitor-form-card">
-                <h4 className="form-section-title">👤 Visitor Information</h4>
+                <h4 className="form-section-title flex items-center gap-2">
+                  <User className="w-4 h-4 text-teal-600" />
+                  Visitor Information
+                </h4>
                 <div className="space-y-3">
                   <div className="form-field-group">
                     <label className="form-field-label">Visitor Name *</label>
@@ -764,13 +791,13 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
                       required
                       className={`form-field-input ${errors.visitor_type ? 'error' : ''}`}
                     >
-                      <option value="guest">👤 Guest</option>
-                      <option value="contractor">👷 Contractor</option>
-                      <option value="vendor">🏢 Vendor</option>
-                      <option value="interview_candidate">💼 Interview Candidate</option>
-                      <option value="delivery">📦 Delivery Personnel</option>
-                      <option value="service_provider">🔧 Service Provider</option>
-                      <option value="vip">👑 VIP</option>
+                      <option value="guest">Guest</option>
+                      <option value="contractor">Contractor</option>
+                      <option value="vendor">Vendor</option>
+                      <option value="interview_candidate">Interview Candidate</option>
+                      <option value="delivery">Delivery Personnel</option>
+                      <option value="service_provider">Service Provider</option>
+                      <option value="vip">VIP</option>
                     </select>
                     {errors.visitor_type && <p className="form-error-message">{errors.visitor_type}</p>}
                   </div>
@@ -778,43 +805,60 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
               </div>
               {/* Capture Visitor Photo */}
               <div className="col-span-1 visitor-form-card photo-capture-bg">
-                <h4 className="form-section-title">📷 Capture Visitor Photo</h4>
-                {!showWebcam && !imagePreview && (
-                  <div className={`${errors.image_base64 ? 'error-field' : ''} w-full`}>
-                    <button
-                      type="button"
-                      onClick={() => setShowWebcam(true)}
-                      className={`w-full px-4 py-2 font-semibold rounded transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md mb-2 ${errors.image_base64 ? 'bg-red-500 text-white' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white'}`}
-                    >
-                      📷 Capture Visitor Photo
-                    </button>
-                    {errors.image_base64 && <p className="mt-1 text-xs text-red-600">{errors.image_base64}</p>}
-                  </div>
-                )}
-                {showWebcam && (
-                  <div className="mb-2 w-full">
-                    <WebcamCapture onImageCapture={handleImageCapture} onBack={handleCloseWebcam} />
-                  </div>
-                )}
-                {imagePreview && (
-                  <div className="bg-green-50 rounded p-2 border border-green-200 w-full">
-                    <img src={imagePreview} alt="Captured visitor" className="w-full h-32 object-cover rounded border border-gray-200" />
-                    <div className="mt-2 flex gap-2">
-                      {isUsingExistingImage && !isExistingImageConfirmed ? (
-                        <>
-                          <button type="button" onClick={handleConfirmExistingImage} className="flex-1 px-4 py-2 bg-green-600 text-white rounded">Confirm Image</button>
-                          <button type="button" onClick={handleRetakeImage} className="flex-1 px-4 py-2 bg-amber-500 text-white rounded">Retake</button>
-                        </>
-                      ) : (
-                        <button type="button" onClick={isUsingExistingImage ? handleRetakeImage : handleClearImage} className="flex-1 px-4 py-2 bg-orange-500 text-white rounded">Retake Photo</button>
-                      )}
+                <div className="flex flex-col items-center justify-center h-full min-h-48">
+                  {!showWebcam && !imagePreview && (
+                    <div className={`${errors.image_base64 ? 'error-field' : ''} w-full flex flex-col items-center`}>
+                      <div className="mb-4">
+                        <Camera className="w-12 h-12 text-blue-600 mx-auto" />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowWebcam(true)}
+                        className={`px-6 py-3 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl ${errors.image_base64 ? 'bg-red-500 text-white' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white'}`}
+                      >
+                        <Camera className="w-4 h-4" />
+                        Capture Visitor Photo
+                      </button>
+                      {errors.image_base64 && <p className="mt-2 text-xs text-red-600 text-center">{errors.image_base64}</p>}
                     </div>
-                  </div>
-                )}
+                  )}
+                  {showWebcam && (
+                    <div className="w-full">
+                      <WebcamCapture onImageCapture={handleImageCapture} onBack={handleCloseWebcam} />
+                    </div>
+                  )}
+                  {imagePreview && (
+                    <div className="bg-green-50 rounded-lg p-3 border border-green-200 w-full">
+                      <img src={imagePreview} alt="Captured visitor" className="w-full h-32 object-cover rounded-md border border-gray-200" />
+                      <div className="mt-3 flex gap-2">
+                        {isUsingExistingImage && !isExistingImageConfirmed ? (
+                          <>
+                            <button type="button" onClick={handleConfirmExistingImage} className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-1">
+                              <UserCheck className="w-4 h-4" />
+                              Confirm
+                            </button>
+                            <button type="button" onClick={handleRetakeImage} className="flex-1 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors flex items-center justify-center gap-1">
+                              <Camera className="w-4 h-4" />
+                              Retake
+                            </button>
+                          </>
+                        ) : (
+                          <button type="button" onClick={isUsingExistingImage ? handleRetakeImage : handleClearImage} className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-1">
+                            <Camera className="w-4 h-4" />
+                            Retake Photo
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
               {/* Host Details */}
               <div className="col-span-1 visitor-form-card">
-                <h4 className="form-section-title">🏢 Host Details</h4>
+                <h4 className="form-section-title flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-teal-600" />
+                  Host Details
+                </h4>
                 <div className="space-y-3">
                   <div className="form-field-group">
                     <label className="form-field-label">Host Name *</label>
@@ -890,8 +934,11 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
             </div>
 
             {/* Visit Dates Section */}
-            <div className="grid grid-cols-2 gap-6 visitor-form-card form-section-spacing">
-              <h4 className="col-span-2 form-section-title mb-0">📅 Visit Dates</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 visitor-form-card form-section-spacing">
+              <h4 className="col-span-2 form-section-title mb-0 flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-teal-600" />
+                Visit Dates
+              </h4>
               <div className="form-field-group">
                 <label className="form-field-label">From Date *</label>
                 <input
@@ -918,11 +965,11 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
             </div>
 
             {/* Submit Button */}
-            <div className="flex justify-center gap-4 mt-10 mb-8">
+            <div className="flex justify-center gap-4 mt-10 mb-8 px-2 sm:px-0">
               <button
                 type="submit"
                 disabled={loading || isSubmitting}
-                className={`px-8 py-3 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl text-base whitespace-nowrap min-w-64 ${loading || isSubmitting ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white'}`}
+                className={`px-6 sm:px-8 py-3 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl text-sm sm:text-base whitespace-nowrap w-full sm:w-auto sm:min-w-64 ${loading || isSubmitting ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white'}`}
               >
                 {loading || isSubmitting ? (
                   <>
@@ -944,7 +991,10 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
             <div className="text-center text-gray-400 text-xs pb-8 mt-4">
               <div className="flex items-center justify-center gap-2">
                 <div className="h-px bg-gray-200 flex-1"></div>
-                <span>📋 End of Form</span>
+                <span className="flex items-center gap-1">
+                  <ClipboardList className="w-3 h-3" />
+                  End of Form
+                </span>
                 <div className="h-px bg-gray-200 flex-1"></div>
               </div>
             </div>

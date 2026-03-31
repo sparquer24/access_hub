@@ -228,7 +228,7 @@ const EmployeeAttendanceCalendar = ({
     };
 
     return (
-        <div className="space-y-3 overflow-y-auto max-h-[calc(100vh-240px)] pb-16">
+        <div className="space-y-3 overflow-y-auto max-h-[calc(100vh-310px)] pb-16">
             {/* Controls */}
             <div className="flex gap-3 items-center justify-end bg-teal-50 p-2 rounded-lg border border-gray-200">
                 {viewMode !== 'employee' && (
@@ -288,9 +288,9 @@ const EmployeeAttendanceCalendar = ({
                     {/* Left Column: Stats (1/3 width) */}
                     <div className="w-full lg:w-1/3 space-y-4">
 
-                        {/* AI Analysis Card - Professional Redesign (Teal/Cyan Theme) */}
+                        {/* AI Analysis Card - Professional Redesign (Teal/Cyan Theme)
                         <div className="bg-gradient-to-br from-teal-900 to-slate-900 rounded-xl p-5 shadow-xl text-white relative overflow-hidden border border-teal-500/30 group">
-                            {/* Abstract Background Shapes */}
+                            {/* Abstract Background Shapes }
                             <div className="absolute -top-10 -right-10 w-32 h-32 bg-cyan-500/20 rounded-full blur-3xl group-hover:bg-cyan-500/30 transition-colors duration-700"></div>
                             <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-teal-500/20 rounded-full blur-3xl group-hover:bg-teal-500/30 transition-colors duration-700"></div>
 
@@ -337,7 +337,7 @@ const EmployeeAttendanceCalendar = ({
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
 
                         <div className="bg-teal-50/95 rounded-lg border border-gray-200 p-4 shadow-sm">
                             <h4 className="font-bold text-gray-800 text-sm mb-3 uppercase tracking-wider border-b border-gray-100 pb-2">

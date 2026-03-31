@@ -120,7 +120,11 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
   };
 
   if (loading && !overview) {
-    return <Loader fullScreen={false} text="Loading overview..." />;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader size="large" text="Loading overview..." />
+      </div>
+    );
   }
 
   if (!overview) {
@@ -290,7 +294,7 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
             </div>
           </div>
           {analyticsLoading && !hasTrendData ? (
-            <Loader fullScreen={false} text="Loading charts..." />
+            <Loader size="large" text="Loading charts..." />
           ) : hasTrendData ? (
             <div style={{ width: '100%', height: 340 }}>
               <ResponsiveContainer>
@@ -342,7 +346,7 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
             <h4 className="font-semibold text-slate-900">Visitors by Hour</h4>
           </div>
           {analyticsLoading && !hasHourlyData ? (
-            <Loader fullScreen={false} text="Loading hourly chart..." />
+            <Loader size="large" text="Loading hourly chart..." />
           ) : hasHourlyData ? (
             <div style={{ width: '100%', height: 340 }}>
               <ResponsiveContainer>
