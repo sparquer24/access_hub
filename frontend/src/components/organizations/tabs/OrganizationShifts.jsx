@@ -104,6 +104,14 @@ const OrganizationShifts = ({ organizationId, organization }) => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader size="large" text="Loading shifts..." />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -121,8 +129,8 @@ const OrganizationShifts = ({ organizationId, organization }) => {
           <p className="text-gray-600">Create a shift to get started</p>
         </div>
       ) : (
-        <div className="bg-teal-50/95 rounded-xl shadow-md max-h-[60vh] overflow-hidden">
-          <div className="overflow-x-auto overflow-y-auto max-h-[55vh]">
+        <div className="bg-teal-50/95 rounded-xl shadow-md max-h-[calc(100vh-310px)] overflow-hidden pb-16">
+          <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-370px)]">
             <table className="w-full">
             <thead className="bg-teal-50 border-b">
               <tr>

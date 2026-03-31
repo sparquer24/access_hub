@@ -273,7 +273,7 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
 
       {/* ===== ACTIVE VISITORS TAB ===== */}
       {selectedTab === 'active' && (
-        <div className="overflow-x-auto bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 max-h-[60vh] overflow-y-auto">
+        <div className="overflow-x-auto bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 max-h-[calc(100vh-310px)] overflow-y-auto pb-16">
           {loading ? (
             <div className="flex justify-center items-center py-12"><Loader size="large" /></div>
           ) : activeVisitors.length === 0 ? (
@@ -342,7 +342,7 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
 
       {/* ===== FLOOR LOGS TAB ===== */}
       {selectedTab === 'logs' && (
-        <div className="overflow-x-auto bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 max-h-[60vh] overflow-y-auto">
+        <div className="overflow-x-auto bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 max-h-[calc(100vh-310px)] overflow-y-auto pb-16">
           {loading ? (
             <div className="flex justify-center items-center py-12"><Loader size="large" /></div>
           ) : logs.length === 0 ? (

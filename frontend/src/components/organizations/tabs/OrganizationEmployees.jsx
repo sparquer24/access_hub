@@ -1067,7 +1067,7 @@ const OrganizationEmployees = ({
       {activeTab === 'records' && (
         <div className="space-y-6">
           {/* Monthly Attendance Records Table */}
-          <div className="bg-teal-50/95 rounded-xl shadow-md overflow-hidden px-2 max-h-[60vh]">
+          <div className="bg-teal-50/95 rounded-xl shadow-md overflow-hidden px-2 max-h-[calc(100vh-310px)] pb-16">
             {/* Title and Filters in one line */}
             <div className="bg-teal-50/95 p-3 border-b border-gray-200 flex flex-wrap gap-3 items-center justify-between">
               <div className="flex items-center gap-4">
@@ -1127,7 +1127,7 @@ const OrganizationEmployees = ({
                 <p className="text-gray-600 mb-6">Attendance data will appear here once employees check in</p>
               </div>
             ) : (
-            <div className="overflow-x-auto overflow-y-auto max-h-[55vh]">
+            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-370px)]">
                 <table className="w-full">
                   <thead className="bg-teal-50 border-b border-gray-200">
                     <tr>
@@ -1332,7 +1332,7 @@ const OrganizationEmployees = ({
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 max-h-[60vh] overflow-y-auto">
+            <div className="overflow-x-auto bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 max-h-[calc(100vh-310px)] overflow-y-auto pb-16">
               <table className="w-full">
                 <thead className="bg-teal-50 border-b border-gray-200">
                   <tr>
