@@ -17,7 +17,7 @@ from ...schemas.visitor import (
 )
 from ...services.visitor_service import VisitorService
 from ...middlewares.rbac_middleware import require_permission
-from ...models import OrganizationVisitor, VisitorHistoryDetails, VisitorMovementLog
+from ...models import OrganizationVisitor, VisitorHistoryDetails, VisitorMovementLog, Location
 from ...extensions import db, socketio
 
 bp = Blueprint('Visitors', __name__, url_prefix='/api/v2/organizations')
@@ -122,16 +122,32 @@ def check_in_visitor(org_id):
         # Validate required fields - Updated for new location system
         required_fields = ['name', 'phone', 'purpose_of_visit']
         
+        missing = [f for f in required_fields if not data.get(f)]
+        if missing:
+            return error_response(f"Missing required fields: {', '.join(missing)}", 400)
+        
         # Check for location field (new system) or legacy floor/tower
         has_location = data.get('allowed_location_id')
         has_legacy = data.get('allowed_floor') and data.get('allowed_tower')
         
-        if not (has_location or has_legacy):
+        # If allowed_location_id is provided, validate it exists in the database
+        if has_location:
+            location = Location.query.filter_by(
+                id=has_location,
+                organization_id=org_id,
+                is_active=True,
+                deleted_at=None
+            ).first()
+            
+            if not location:
+                # If location doesn't exist, fall back to legacy fields
+                if not has_legacy:
+                    return error_response("Location not found and no legacy floor/tower provided. Please provide valid 'allowed_location_id' or 'allowed_floor' + 'allowed_tower'", 400)
+                # Clear the invalid location_id so it uses legacy fields
+                data['allowed_location_id'] = None
+        elif not has_legacy:
+            # Neither location_id nor legacy fields provided
             return error_response("Either 'allowed_location_id' (new system) or 'allowed_floor' + 'allowed_tower' (legacy) must be provided", 400)
-        
-        missing = [f for f in required_fields if not data.get(f)]
-        if missing:
-            return error_response(f"Missing required fields: {', '.join(missing)}", 400)
         
         # Convert date strings to date objects if provided
         if data.get('from_date') and isinstance(data['from_date'], str):
@@ -147,6 +163,7 @@ def check_in_visitor(org_id):
             'history_id': history.id,
             'name': visitor.name,
             'phone': visitor.phone,
+            'floor': history.current_floor or history.allowed_floor,
             'check_in_time': history.check_in_time.isoformat(),
             'message': 'Visitor checked in successfully'
         }, 201)
@@ -590,6 +607,17 @@ def get_visitor_history(org_id, visitor_id):
         
         history_data = []
         for history in history_records:
+            # Get floor from Location relationship, fall back to legacy allowed_floor
+            allowed_floor = None
+            allowed_tower = None
+            if history.allowed_location:
+                allowed_floor = history.allowed_location.floor
+                allowed_tower = history.allowed_location.building
+            else:
+                # Fallback to legacy fields
+                allowed_floor = history.allowed_floor
+                allowed_tower = history.allowed_tower
+            
             history_data.append({
                 'id': history.id,
                 'visitor_id': history.visitor_id,
@@ -597,8 +625,8 @@ def get_visitor_history(org_id, visitor_id):
                 'purpose_of_visit': history.purpose_of_visit,
                 'host_name': history.host_name,
                 'host_number': history.host_number,
-                'allowed_floor': history.allowed_floor,
-                'allowed_tower': history.allowed_tower,
+                'allowed_floor': allowed_floor,
+                'allowed_tower': allowed_tower,
                 'from_date': history.from_date.isoformat() if history.from_date else None,
                 'to_date': history.to_date.isoformat() if history.to_date else None,
                 'check_in_time': history.check_in_time.isoformat() if history.check_in_time else None,
@@ -727,11 +755,19 @@ def list_visitors(org_id):
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
         
-        pagination = VisitorService.list_visitors(org_id, page, per_page)
+        total, visitors = VisitorService.get_visitors_by_organization(org_id, page, per_page)
         
-        # Use our pagination helper
-        from ...utils.helpers import paginate
-        result = paginate(pagination, page, per_page, VisitorResponseSchema)
+        # Format response with pagination
+        schema = VisitorResponseSchema(many=True)
+        result = {
+            'items': schema.dump(visitors),
+            'pagination': {
+                'page': page,
+                'per_page': per_page,
+                'total': total,
+                'pages': (total + per_page - 1) // per_page
+            }
+        }
         
         return success_response(result, 200)
     except Exception as e:
@@ -1137,8 +1173,6 @@ def get_visitor_locations(org_id):
         description: Organization not found
     """
     try:
-        from ...models.location import Location
-        
         # Get all active locations for the organization
         locations = Location.query.filter_by(
             organization_id=org_id,
