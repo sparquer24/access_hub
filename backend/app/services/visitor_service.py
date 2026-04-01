@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import func, and_, or_, distinct, case, desc, text
 from ..extensions import db
-from ..models import OrganizationVisitor, AttendanceRecord, Employee, Shift, VisitorHistoryDetails, Image, VisitorMovementLog
+from ..models import OrganizationVisitor, AttendanceRecord, Employee, Shift, VisitorHistoryDetails, Image, VisitorMovementLog, Location
 from ..events import emit_alert_handled
 import uuid
 from flask import current_app
@@ -73,6 +73,40 @@ class VisitorService:
                 db.session.flush()  # Get the visitor ID
             
             # Create history record for this visit
+            # Get valid location_id (either from new system or derive from legacy fields)
+            location_id = visitor_data.get('allowed_location_id')
+            
+            if not location_id and (visitor_data.get('allowed_floor') or visitor_data.get('allowed_tower')):
+                # Try to find location by floor/tower from legacy data
+                location = Location.query.filter_by(
+                    organization_id=org_id,
+                    floor=visitor_data.get('allowed_floor'),
+                    building=visitor_data.get('allowed_tower'),
+                    is_active=True,
+                    deleted_at=None
+                ).first()
+                
+                if location:
+                    location_id = location.id
+                else:
+                    # Create a placeholder location from legacy data if allowed_tower/floor are provided
+                    # This is a fallback for backward compatibility
+                    placeholder_name = f"{visitor_data.get('allowed_tower', 'Building')} - {visitor_data.get('allowed_floor', 'Floor')}"
+                    location = Location(
+                        organization_id=org_id,
+                        name=placeholder_name,
+                        building=visitor_data.get('allowed_tower'),
+                        floor=visitor_data.get('allowed_floor'),
+                        location_type='BOTH',
+                        is_active=True
+                    )
+                    db.session.add(location)
+                    db.session.flush()
+                    location_id = location.id
+            
+            if not location_id:
+                raise Exception("No valid location_id provided and cannot derive from legacy fields")
+            
             history = VisitorHistoryDetails(
                 visitor_id=visitor.id,
                 organization_id=org_id,
@@ -80,9 +114,11 @@ class VisitorService:
                 host_name=visitor_data.get('host_name'),
                 host_number=visitor_data.get('host_number') or visitor_data.get('host_phone'),
                 purpose_of_visit=visitor_data['purpose_of_visit'],
-                allowed_location_id=visitor_data['allowed_location_id'],
+                allowed_location_id=location_id,
+                # Store floor information for active logs and tracking
+                current_floor=visitor_data.get('floor'),
+                allowed_floor=visitor_data.get('floor') or visitor_data.get('allowed_floor'),
                 # Keep legacy fields for backward compatibility during migration
-                allowed_floor=visitor_data.get('allowed_floor'),
                 allowed_tower=visitor_data.get('allowed_tower'),
                 from_date=visitor_data['from_date'],
                 to_date=visitor_data.get('to_date'),
@@ -186,30 +222,7 @@ class VisitorService:
         Return (total, visitors) for an organization with optional check-in date filtering and pagination.
         `from_date` and `to_date` are expected as 'YYYY-MM-DD' strings (or None).
         """
-        # Base query - get distinct visitors that have visit history in this org
-        query = db.session.query(OrganizationVisitor.id).join(
-            VisitorHistoryDetails,
-            VisitorHistoryDetails.visitor_id == OrganizationVisitor.id
-        ).filter(
-            OrganizationVisitor.organization_id == organization_id
-        ).distinct()
-
-        # Apply optional date filters on visit history
-        if from_date:
-            try:
-                from_dt = datetime.strptime(from_date, '%Y-%m-%d').date()
-                query = query.filter(func.date(VisitorHistoryDetails.created_at) >= from_dt)
-            except Exception:
-                raise ValueError('Invalid from_date format. Use YYYY-MM-DD')
-
-        if to_date:
-            try:
-                to_dt = datetime.strptime(to_date, '%Y-%m-%d').date()
-                query = query.filter(func.date(VisitorHistoryDetails.created_at) <= to_dt)
-            except Exception:
-                raise ValueError('Invalid to_date format. Use YYYY-MM-DD')
-
-        # Pagination and ordering
+        # Pagination validation
         try:
             page = int(page) if page else 1
             limit = int(limit) if limit else 10
@@ -219,34 +232,53 @@ class VisitorService:
         if page < 1 or limit < 1:
             raise ValueError('Page and limit must be positive integers')
 
-        # Get total count
-        total = query.count()
-        
-        # Get visitor IDs with date filtering and ordering by latest visit
-        visitor_ids = db.session.query(OrganizationVisitor.id).join(
+        # Build query to get visitor IDs grouped by visitor_id with latest visit timestamp
+        visitor_ids_query = db.session.query(
+            OrganizationVisitor.id,
+            func.max(VisitorHistoryDetails.created_at).label('latest_visit')
+        ).join(
             VisitorHistoryDetails,
             VisitorHistoryDetails.visitor_id == OrganizationVisitor.id
         ).filter(
             OrganizationVisitor.organization_id == organization_id
         )
-        
-        # Apply same date filters
+
+        # Apply optional date filters on visit history
         if from_date:
-            from_dt = datetime.strptime(from_date, '%Y-%m-%d').date()
-            visitor_ids = visitor_ids.filter(func.date(VisitorHistoryDetails.created_at) >= from_dt)
+            try:
+                from_dt = datetime.strptime(from_date, '%Y-%m-%d').date()
+                visitor_ids_query = visitor_ids_query.filter(func.date(VisitorHistoryDetails.created_at) >= from_dt)
+            except Exception:
+                raise ValueError('Invalid from_date format. Use YYYY-MM-DD')
+
         if to_date:
-            to_dt = datetime.strptime(to_date, '%Y-%m-%d').date()
-            visitor_ids = visitor_ids.filter(func.date(VisitorHistoryDetails.created_at) <= to_dt)
-        
-        visitor_ids = visitor_ids.order_by(VisitorHistoryDetails.created_at.desc()).distinct().offset(
+            try:
+                to_dt = datetime.strptime(to_date, '%Y-%m-%d').date()
+                visitor_ids_query = visitor_ids_query.filter(func.date(VisitorHistoryDetails.created_at) <= to_dt)
+            except Exception:
+                raise ValueError('Invalid to_date format. Use YYYY-MM-DD')
+
+        # Group by visitor ID and get total count
+        visitor_ids_query = visitor_ids_query.group_by(OrganizationVisitor.id)
+        total = visitor_ids_query.count()
+
+        # Order by latest visit and apply pagination
+        visitor_ids_list = visitor_ids_query.order_by(
+            func.max(VisitorHistoryDetails.created_at).desc()
+        ).offset(
             (page - 1) * limit
         ).limit(limit).all()
-        
-        # Fetch actual visitor objects
-        visitor_id_list = [vid[0] for vid in visitor_ids]
-        visitors = db.session.query(OrganizationVisitor).filter(
-            OrganizationVisitor.id.in_(visitor_id_list)
-        ).all() if visitor_id_list else []
+
+        # Extract visitor IDs
+        visitor_id_list = [vid[0] for vid in visitor_ids_list]
+
+        # Fetch actual visitor objects in correct order
+        if visitor_id_list:
+            visitors = db.session.query(OrganizationVisitor).filter(
+                OrganizationVisitor.id.in_(visitor_id_list)
+            ).all()
+        else:
+            visitors = []
 
         return total, visitors
     

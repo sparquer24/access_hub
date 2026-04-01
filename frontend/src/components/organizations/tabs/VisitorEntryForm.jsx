@@ -441,6 +441,9 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
     try {
       setLoading(true);
 
+      // Find the selected location to extract floor information
+      const selectedLocation = locations.find(loc => loc.id === formData.allowed_location_id);
+      
       // Build API payload with only UI fields and user-entered values
       const sanitizedData = {
         name: formData.name,
@@ -451,6 +454,9 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
         from_date: formData.from_date,
         to_date: formData.to_date || null,
         allowed_location_id: formData.allowed_location_id,
+        // Extract floor and tower from location for backend processing
+        allowed_floor: selectedLocation?.floor || null,
+        allowed_tower: selectedLocation?.building || null,
         image_base64: formData.image_base64,
         visitor_type: formData.visitor_type,
         host_name: formData.host_name,
