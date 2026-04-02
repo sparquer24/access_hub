@@ -15,6 +15,9 @@ def jwt_required_middleware():
         '/api/auth/login',
         '/api/auth/register',
         '/api/auth/refresh',
+        '/api/v2/auth/login',
+        '/api/v2/auth/register',
+        '/api/v2/auth/refresh',
         '/api/health',
     ]
     

@@ -163,9 +163,11 @@ def list_shifts():
     
     # Get current user for tenant isolation
     current_user = get_current_user()
-    organization_id = current_user.get('organization_id') if current_user else None
+    # Use organization_id from query if provided, otherwise use current user's org
+    if not filters.get('organization_id'):
+        filters['organization_id'] = current_user.get('organization_id') if current_user else None
     
-    query = ShiftService.list_shifts(filters, organization_id)
+    query = ShiftService.list_shifts(filters)
     result = paginate(query, page, per_page, ShiftSchema)
     
     return success_response(data=result)

@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
-from sqlalchemy import func, and_, or_, distinct, case, desc
+from sqlalchemy import func, and_, or_, distinct, case, desc, text
 from ..extensions import db
-from ..models import OrganizationVisitor, AttendanceRecord, Employee, Shift, VisitorHistoryDetails, Image, VisitorMovementLog
+from ..models import OrganizationVisitor, AttendanceRecord, Employee, Shift, VisitorHistoryDetails, Image, VisitorMovementLog, Location
+from ..events import emit_alert_handled
 import uuid
 from flask import current_app
 
@@ -45,7 +46,7 @@ class VisitorService:
             visitor_data: Dict with visitor info {
                 name, phone, email, gender, 
                 visitor_type, host_name, host_phone, 
-                purpose_of_visit, allowed_floor, allowed_tower,
+                purpose_of_visit, allowed_location_id,
                 from_date, to_date
             }
         
@@ -72,14 +73,52 @@ class VisitorService:
                 db.session.flush()  # Get the visitor ID
             
             # Create history record for this visit
+            # Get valid location_id (either from new system or derive from legacy fields)
+            location_id = visitor_data.get('allowed_location_id')
+            
+            if not location_id and (visitor_data.get('allowed_floor') or visitor_data.get('allowed_tower')):
+                # Try to find location by floor/tower from legacy data
+                location = Location.query.filter_by(
+                    organization_id=org_id,
+                    floor=visitor_data.get('allowed_floor'),
+                    building=visitor_data.get('allowed_tower'),
+                    is_active=True,
+                    deleted_at=None
+                ).first()
+                
+                if location:
+                    location_id = location.id
+                else:
+                    # Create a placeholder location from legacy data if allowed_tower/floor are provided
+                    # This is a fallback for backward compatibility
+                    placeholder_name = f"{visitor_data.get('allowed_tower', 'Building')} - {visitor_data.get('allowed_floor', 'Floor')}"
+                    location = Location(
+                        organization_id=org_id,
+                        name=placeholder_name,
+                        building=visitor_data.get('allowed_tower'),
+                        floor=visitor_data.get('allowed_floor'),
+                        location_type='BOTH',
+                        is_active=True
+                    )
+                    db.session.add(location)
+                    db.session.flush()
+                    location_id = location.id
+            
+            if not location_id:
+                raise Exception("No valid location_id provided and cannot derive from legacy fields")
+            
             history = VisitorHistoryDetails(
                 visitor_id=visitor.id,
                 organization_id=org_id,
                 visitor_type=visitor_data.get('visitor_type', 'guest'),
                 host_name=visitor_data.get('host_name'),
-                host_number=visitor_data.get('host_phone'),
+                host_number=visitor_data.get('host_number') or visitor_data.get('host_phone'),
                 purpose_of_visit=visitor_data['purpose_of_visit'],
-                allowed_floor=visitor_data['allowed_floor'],
+                allowed_location_id=location_id,
+                # Store floor information for active logs and tracking
+                current_floor=visitor_data.get('floor'),
+                allowed_floor=visitor_data.get('floor') or visitor_data.get('allowed_floor'),
+                # Keep legacy fields for backward compatibility during migration
                 allowed_tower=visitor_data.get('allowed_tower'),
                 from_date=visitor_data['from_date'],
                 to_date=visitor_data.get('to_date'),
@@ -183,30 +222,7 @@ class VisitorService:
         Return (total, visitors) for an organization with optional check-in date filtering and pagination.
         `from_date` and `to_date` are expected as 'YYYY-MM-DD' strings (or None).
         """
-        # Base query - get distinct visitors that have visit history in this org
-        query = db.session.query(OrganizationVisitor.id).join(
-            VisitorHistoryDetails,
-            VisitorHistoryDetails.visitor_id == OrganizationVisitor.id
-        ).filter(
-            OrganizationVisitor.organization_id == organization_id
-        ).distinct()
-
-        # Apply optional date filters on visit history
-        if from_date:
-            try:
-                from_dt = datetime.strptime(from_date, '%Y-%m-%d').date()
-                query = query.filter(func.date(VisitorHistoryDetails.created_at) >= from_dt)
-            except Exception:
-                raise ValueError('Invalid from_date format. Use YYYY-MM-DD')
-
-        if to_date:
-            try:
-                to_dt = datetime.strptime(to_date, '%Y-%m-%d').date()
-                query = query.filter(func.date(VisitorHistoryDetails.created_at) <= to_dt)
-            except Exception:
-                raise ValueError('Invalid to_date format. Use YYYY-MM-DD')
-
-        # Pagination and ordering
+        # Pagination validation
         try:
             page = int(page) if page else 1
             limit = int(limit) if limit else 10
@@ -216,34 +232,53 @@ class VisitorService:
         if page < 1 or limit < 1:
             raise ValueError('Page and limit must be positive integers')
 
-        # Get total count
-        total = query.count()
-        
-        # Get visitor IDs with date filtering and ordering by latest visit
-        visitor_ids = db.session.query(OrganizationVisitor.id).join(
+        # Build query to get visitor IDs grouped by visitor_id with latest visit timestamp
+        visitor_ids_query = db.session.query(
+            OrganizationVisitor.id,
+            func.max(VisitorHistoryDetails.created_at).label('latest_visit')
+        ).join(
             VisitorHistoryDetails,
             VisitorHistoryDetails.visitor_id == OrganizationVisitor.id
         ).filter(
             OrganizationVisitor.organization_id == organization_id
         )
-        
-        # Apply same date filters
+
+        # Apply optional date filters on visit history
         if from_date:
-            from_dt = datetime.strptime(from_date, '%Y-%m-%d').date()
-            visitor_ids = visitor_ids.filter(func.date(VisitorHistoryDetails.created_at) >= from_dt)
+            try:
+                from_dt = datetime.strptime(from_date, '%Y-%m-%d').date()
+                visitor_ids_query = visitor_ids_query.filter(func.date(VisitorHistoryDetails.created_at) >= from_dt)
+            except Exception:
+                raise ValueError('Invalid from_date format. Use YYYY-MM-DD')
+
         if to_date:
-            to_dt = datetime.strptime(to_date, '%Y-%m-%d').date()
-            visitor_ids = visitor_ids.filter(func.date(VisitorHistoryDetails.created_at) <= to_dt)
-        
-        visitor_ids = visitor_ids.order_by(VisitorHistoryDetails.created_at.desc()).distinct().offset(
+            try:
+                to_dt = datetime.strptime(to_date, '%Y-%m-%d').date()
+                visitor_ids_query = visitor_ids_query.filter(func.date(VisitorHistoryDetails.created_at) <= to_dt)
+            except Exception:
+                raise ValueError('Invalid to_date format. Use YYYY-MM-DD')
+
+        # Group by visitor ID and get total count
+        visitor_ids_query = visitor_ids_query.group_by(OrganizationVisitor.id)
+        total = visitor_ids_query.count()
+
+        # Order by latest visit and apply pagination
+        visitor_ids_list = visitor_ids_query.order_by(
+            func.max(VisitorHistoryDetails.created_at).desc()
+        ).offset(
             (page - 1) * limit
         ).limit(limit).all()
-        
-        # Fetch actual visitor objects
-        visitor_id_list = [vid[0] for vid in visitor_ids]
-        visitors = db.session.query(OrganizationVisitor).filter(
-            OrganizationVisitor.id.in_(visitor_id_list)
-        ).all() if visitor_id_list else []
+
+        # Extract visitor IDs
+        visitor_id_list = [vid[0] for vid in visitor_ids_list]
+
+        # Fetch actual visitor objects in correct order
+        if visitor_id_list:
+            visitors = db.session.query(OrganizationVisitor).filter(
+                OrganizationVisitor.id.in_(visitor_id_list)
+            ).all()
+        else:
+            visitors = []
 
         return total, visitors
     
@@ -351,35 +386,45 @@ class VisitorService:
             List of Alert objects
         """
         try:
+            from ..models.alerts import Alert as AlertModel
+
             if filters is None:
                 filters = {}
             
             # Build query for alerts
-            query = db.session.query(Alert).filter(
-                Alert.organization_id == organization_id
+            query = db.session.query(AlertModel).filter(
+                AlertModel.organization_id == organization_id
             )
             
             # Filter by visitor if provided
             if filters.get('visitor_id'):
-                query = query.filter(Alert.visitor_id == filters['visitor_id'])
+                query = query.filter(AlertModel.visitor_id == filters['visitor_id'])
             
             # Filter by acknowledgment status
             if filters.get('unacknowledged_only'):
-                query = query.filter(Alert.alert_status == 'yet_to_handle')
+                # Some alerts may be inserted outside ORM and have NULL/empty status.
+                # Treat anything not explicitly handled as active.
+                query = query.filter(
+                    or_(
+                        AlertModel.alert_status.is_(None),
+                        AlertModel.alert_status == '',
+                        AlertModel.alert_status != 'handled'
+                    )
+                )
             
             # Filter by alert type
             if filters.get('alert_type'):
-                query = query.filter(Alert.alert_type == filters['alert_type'])
+                query = query.filter(AlertModel.alert_type == filters['alert_type'])
             
             # Filter by date range
             if filters.get('date_from'):
-                query = query.filter(Alert.alert_time >= filters['date_from'])
+                query = query.filter(AlertModel.alert_time >= filters['date_from'])
             
             if filters.get('date_to'):
-                query = query.filter(Alert.alert_time <= filters['date_to'])
+                query = query.filter(AlertModel.alert_time <= filters['date_to'])
             
             # Order by most recent first
-            query = query.order_by(Alert.alert_time.desc())
+            query = query.order_by(AlertModel.alert_time.desc())
             
             # Apply pagination
             offset = filters.get('offset', 0)
@@ -396,22 +441,44 @@ class VisitorService:
     @staticmethod
     def acknowledge_alert(organization_id, alert_id, user_id=None):
         """
-        Acknowledge a visitor alert.
-        
-        Note: Alert model has been deprecated. This method returns a deprecation message.
-        
+        Mark an alert as handled.
+
         Args:
             organization_id: Organization ID
             alert_id: Alert ID to acknowledge
             user_id: User ID who acknowledged the alert (optional)
-            
+
         Returns:
-            Deprecation notice dictionary
-            
-        Raises:
-            ValueError: Alert functionality has been deprecated
+            Updated Alert object
         """
-        raise ValueError('Alert functionality has been deprecated. Please use visitor_history for tracking visits.')
+        try:
+            from ..models.alerts import Alert as AlertModel
+
+            alert = db.session.query(AlertModel).filter(
+                AlertModel.id == alert_id,
+                AlertModel.organization_id == organization_id
+            ).first()
+
+            if not alert:
+                raise ValueError("Alert not found")
+
+            alert.alert_status = "handled"
+            alert.handled_by = str(user_id) if user_id is not None else None
+            alert.handled_at = datetime.utcnow()
+            db.session.commit()
+
+            # Best-effort realtime update to connected clients
+            try:
+                emit_alert_handled(alert)
+            except Exception:
+                current_app.logger.exception("Failed to emit alert_handled websocket event")
+
+            return alert
+        except ValueError:
+            raise
+        except Exception as e:
+            db.session.rollback()
+            raise Exception(f"Failed to acknowledge alert: {str(e)}")
 
     @staticmethod
     def create_visitor_history_record(organization_id, visitor_id, data):
@@ -529,6 +596,8 @@ class VisitorService:
         Returns:
             List of movement log records
         """
+        VisitorService._ensure_visitor_movement_status_column()
+
         # Get all visitor IDs for this organization
         visitors = db.session.query(OrganizationVisitor.id).filter_by(
             organization_id=org_id
@@ -547,10 +616,19 @@ class VisitorService:
                 query = query.filter_by(floor=filters['floor'])
             
             if filters.get('date_from'):
-                query = query.filter(VisitorMovementLog.entry_time >= filters['date_from']) # type: ignore
+                date_from = filters['date_from']
+                if isinstance(date_from, date) and not isinstance(date_from, datetime):
+                    date_from = datetime.combine(date_from, datetime.min.time())
+                query = query.filter(VisitorMovementLog.entry_time >= date_from) # type: ignore
             
             if filters.get('date_to'):
-                query = query.filter(VisitorMovementLog.entry_time <= filters['date_to'])
+                date_to = filters['date_to']
+                if isinstance(date_to, date) and not isinstance(date_to, datetime):
+                    date_to = datetime.combine(date_to, datetime.max.time())
+                elif isinstance(date_to, datetime) and date_to.time() == datetime.min.time():
+                    # Make YYYY-MM-DD filters inclusive for the full day.
+                    date_to = date_to + timedelta(days=1) - timedelta(microseconds=1)
+                query = query.filter(VisitorMovementLog.entry_time <= date_to)
         
         # Order by most recent first
         query = query.order_by(desc(VisitorMovementLog.entry_time))
@@ -1102,3 +1180,32 @@ class VisitorService:
         return {
             'hourly_gender': hourly_gender
         }
+    @staticmethod
+    def _ensure_visitor_movement_status_column():
+        """
+        Backward-compatible schema sync for status/tower in visitor_movement_logs.
+        Safe to call repeatedly.
+        """
+        try:
+            db.session.execute(
+                text(
+                    """
+                    ALTER TABLE IF EXISTS visitor_movement_logs
+                    ADD COLUMN IF NOT EXISTS status VARCHAR(20)
+                    """
+                )
+            )
+            db.session.execute(
+                text(
+                    """
+                    ALTER TABLE IF EXISTS visitor_movement_logs
+                    ADD COLUMN IF NOT EXISTS tower VARCHAR(100)
+                    """
+                )
+            )
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            current_app.logger.exception(
+                "Failed to ensure status/tower columns in visitor_movement_logs"
+            )

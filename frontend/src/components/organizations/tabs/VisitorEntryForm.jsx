@@ -2,20 +2,40 @@ import React, { useEffect, useState } from 'react';
 import { useToast } from '../../../contexts/ToastContext';
 import { visitorService } from '../../../services/visitorService';
 import { faceService } from '../../../services/faceService';
+import { visitorsAPI } from '../../../services/apiServices';
 import WebcamCapture from '../../common/WebcamCapture.jsx';
+import Loader from '../../common/Loader';
+import { 
+  User, 
+  Building2, 
+  Calendar, 
+  ClipboardList, 
+  HardHat, 
+  Briefcase, 
+  Package, 
+  Wrench, 
+  Crown, 
+  UserCheck, 
+  Users,
+  Building,
+  Camera
+} from 'lucide-react';
 
 const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => {
   const { success, error: showError } = useToast();
+  
+  // Get today's date in YYYY-MM-DD format for form defaults
+  const today = new Date().toISOString().split('T')[0];
+  
   const initialFormData = {
     name: '',
     phone: '',
     email: '',
     gender: '',
     purpose_of_visit: '',
-    from_date: '',
-    to_date: '',
-    allowed_floor: '',
-    allowed_tower: '',
+    from_date: today,     // Auto-set to today
+    to_date: today,       // Auto-set to today (same day visit)
+    allowed_location_id: '',  // Replaced tower/floor with location_id
     image_base64: '',
 
     // New fields
@@ -32,7 +52,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
   const [formData, setFormData] = useState(initialFormData);
   const [loading, setLoading] = useState(false);
   const [showWebcam, setShowWebcam] = useState(false);
-  const [activePhotoSlot, setActivePhotoSlot] = useState(null); // 'visitor' or 'vehicle_front' etc.
+  const [activePhotoSlot, setActivePhotoSlot] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [showVisitorSlip, setShowVisitorSlip] = useState(false);
   const [checkedInVisitor, setCheckedInVisitor] = useState(null);
@@ -41,6 +61,47 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
   const [lastCheckedMobile, setLastCheckedMobile] = useState('');
   const [isUsingExistingImage, setIsUsingExistingImage] = useState(false);
   const [isExistingImageConfirmed, setIsExistingImageConfirmed] = useState(false);
+  const [locations, setLocations] = useState([]);
+
+  // Fetch locations on mount
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const locationsResp = await visitorsAPI.getLocations(organizationId);
+        const locations = locationsResp.data?.data?.items || [];
+        setLocations(locations);
+      } catch (error) {
+        console.error("Failed to fetch locations:", error);
+        // Fallback to legacy endpoints if new endpoint fails
+        try {
+          const [fl, tw] = await Promise.all([
+            visitorsAPI.floors(),
+            visitorsAPI.towers(),
+          ]);
+          // Convert legacy format to flat location list
+          const legacyLocations = [];
+          (tw.data || []).forEach(tower => {
+            (fl.data || []).forEach(floor => {
+              legacyLocations.push({
+                id: `legacy-${tower}-${floor}`,
+                name: `${tower} - ${floor}`,
+                building: tower,
+                floor: floor,
+                description: `${tower} building, ${floor} floor`
+              });
+            });
+          });
+          setLocations(legacyLocations);
+        } catch {
+          console.error("Failed to fetch legacy floor/tower data");
+        }
+      }
+    };
+
+    if (organizationId) {
+      fetchLocations();
+    }
+  }, [organizationId]);
 
   // Form validation function
   const validateForm = () => {
@@ -53,11 +114,13 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
     if (!formData.phone.trim()) {
       newErrors.phone = 'Mobile number is required';
     } else if (!/^[6-9]\d{9}$/.test(formData.phone.trim())) {
-      newErrors.phone = 'Please enter a valid 10-digit mobile number';
+      newErrors.phone = 'Please enter a valid 10-digit mobile number (starts with 6-9)';
     }
 
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      newErrors.email = 'Please enter a valid email address';
     }
 
     if (!formData.gender) {
@@ -80,16 +143,8 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
       newErrors.host_number = 'Host number is required';
     }
 
-    if (!formData.from_date) {
-      newErrors.from_date = 'From date is required';
-    }
-
-    if (!formData.to_date) {
-      newErrors.to_date = 'To date is required';
-    }
-
-    if (!formData.allowed_floor) {
-      newErrors.allowed_floor = 'Please select allowed floor';
+    if (!formData.allowed_location_id) {
+      newErrors.allowed_location_id = 'Please select a location';
     }
 
     if (!formData.image_base64) {
@@ -99,6 +154,12 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
     }
 
     setErrors(newErrors);
+    
+    // Log validation errors for debugging
+    if (Object.keys(newErrors).length > 0) {
+      console.log('❌ Form validation failed with errors:', newErrors);
+    }
+    
     return Object.keys(newErrors).length === 0;
   };
 
@@ -169,7 +230,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
           host_number: visitor.host_number || prev.host_number,
           from_date: visitor.from_date || prev.from_date,
           to_date: visitor.to_date || prev.to_date,
-          allowed_floor: visitor.allowed_floor || prev.allowed_floor,
+          allowed_location_id: visitor.allowed_location_id || prev.allowed_location_id,
           image_base64: visitor.image_base64 || prev.image_base64
         }));
 
@@ -380,6 +441,9 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
     try {
       setLoading(true);
 
+      // Find the selected location to extract floor information
+      const selectedLocation = locations.find(loc => loc.id === formData.allowed_location_id);
+      
       // Build API payload with only UI fields and user-entered values
       const sanitizedData = {
         name: formData.name,
@@ -389,8 +453,10 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
         purpose_of_visit: formData.purpose_of_visit,
         from_date: formData.from_date,
         to_date: formData.to_date || null,
-        allowed_floor: formData.allowed_floor,
-        allowed_tower: formData.allowed_tower,
+        allowed_location_id: formData.allowed_location_id,
+        // Extract floor and tower from location for backend processing
+        allowed_floor: selectedLocation?.floor || null,
+        allowed_tower: selectedLocation?.building || null,
         image_base64: formData.image_base64,
         visitor_type: formData.visitor_type,
         host_name: formData.host_name,
@@ -402,7 +468,9 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
       const response = await visitorService.checkInNewVisitor(organizationId, sanitizedData);
       console.log('✅ Check-in API response:', response);
 
-      if (!response.success) {
+      // Handle response structure - response comes directly from api.post
+      // The actual data is nested in response structure
+      if (response.success === false || !response.success) {
         showError(response.message || 'Check-in failed');
         setIsSubmitting(false);
         return;
@@ -411,12 +479,22 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
       success('Visitor check-in successful!');
 
       // Extract visitor_id and history_id from response
-      const { visitor_id, history_id, check_in_time } = response.data;
+      // Response structure: { success: true, data: {...}, message: "..." } OR { visitor_id: "...", ... }
+      const responseData = response.data || response;
+      const { visitor_id, history_id, check_in_time } = responseData;
+      
+      if (!visitor_id || !history_id) {
+        console.error('❌ Missing visitor_id or history_id:', { visitor_id, history_id, responseData });
+        showError('Check-in succeeded but missing visitor information');
+        setIsSubmitting(false);
+        return;
+      }
+      
       console.log('📋 Check-in data:', { visitor_id, history_id, check_in_time });
 
-      // Enroll visitor face using unified /api/v1/face/enroll endpoint
+      // Enroll visitor face using VMS endpoint /api/v1/face/enroll_VMS
       try {
-        await faceService.enrollFace(visitor_id, formData.image_base64);
+        await faceService.enrollFaceVms(visitor_id, formData.image_base64);
         console.log('✅ Face enrollment successful');
       } catch (enrollmentError) {
         // Non-blocking error - visitor check-in still successful
@@ -433,8 +511,7 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
         gender: formData.gender,
         visitor_type: formData.visitor_type,
         purpose_of_visit: formData.purpose_of_visit,
-        allowed_floor: formData.allowed_floor,
-        allowed_tower: formData.allowed_tower,
+        allowed_location_id: formData.allowed_location_id,
         host_name: formData.host_name,
         organization_name: organization?.name || 'Organization',
         check_in_time: check_in_time,
@@ -468,6 +545,8 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
         errorMessage = 'Access denied. You do not have permission to check-in visitors.';
       } else if (error.response?.status === 404) {
         errorMessage = 'Organization not found or API endpoint missing.';
+      } else if (error.response?.status === 413) {
+        errorMessage = 'Image file too large. Please use a smaller image.';
       } else if (error.response?.status === 400 && error.response?.data?.errors) {
         const validationErrors = error.response.data.errors;
         const firstErrorEntry = Object.entries(validationErrors)[0];
@@ -486,6 +565,16 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
         errorMessage = error.message;
       }
 
+      // Log detailed error info for debugging
+      console.error('🔍 Detailed error info:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        message: errorMessage,
+        responseData: error.response?.data,
+        requestData: error.config?.data?.substring ? error.config.data.substring(0, 200) + '...' : error.config?.data,
+        isNetworkError: !error.response
+      });
+
       showError(`Check-in failed: ${errorMessage}`);
     } finally {
       setLoading(false);
@@ -493,510 +582,432 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
     }
   };
 
-  // Get unique floors from organization (assuming floors are available)
-  const floors = ['Ground Floor', 'Floor 1', 'Floor 2', 'Floor 3', 'Floor 4', 'Floor 5'];
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader size="large" text="Loading check-in form..." />
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-6xl mx-auto px-2">
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 md:p-8">
-        <div className="mb-6 pb-4 border-b border-gray-200">
-          <h3 className="text-2xl font-bold text-gray-900">Visitor Check-In</h3>
-          <p className="text-gray-500 mt-1">Fill in the visitor details below. All fields marked <span className="text-red-500">*</span> are required.</p>
-        </div>
+    <>
+      <style>{`
+        .visitor-form-container {
+          height: calc(100vh - 310px);
+          min-height: 600px;
+          overflow-y: scroll !important;
+        }
+        .visitor-form-container::-webkit-scrollbar {
+          width: 12px;
+          background: #f3f4f6;
+        }
+        .visitor-form-container::-webkit-scrollbar-track {
+          background: #e5e7eb;
+          border-radius: 6px;
+        }
+        .visitor-form-container::-webkit-scrollbar-thumb {
+          background: #6b7280;
+          border-radius: 6px;
+          border: 1px solid #e5e7eb;
+        }
+        .visitor-form-container::-webkit-scrollbar-thumb:hover {
+          background: #374151;
+        }
+        .visitor-form-container {
+          scrollbar-width: auto;
+          scrollbar-color: #6b7280 #e5e7eb;
+        }
+        
+        .visitor-form-card {
+          background: white;
+          border: 1px solid #d1d5db;
+          border-radius: 8px;
+          padding: 16px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+          transition: all 0.3s ease;
+        }
+        .visitor-form-card:hover {
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          border-color: #0d9488;
+        }
+        
+        .form-field-group {
+          margin-bottom: 12px;
+        }
+        
+        .form-field-label {
+          display: block;
+          font-size: 12px;
+          font-weight: 600;
+          color: #374151;
+          margin-bottom: 6px;
+          letter-spacing: 0.3px;
+        }
+        
+        .form-field-input {
+          width: 100%;
+          padding: 8px 12px;
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          font-size: 14px;
+          transition: all 0.2s ease;
+          background: #ffffff;
+        }
+        
+        .form-field-input:focus {
+          outline: none;
+          border-color: #0d9488;
+          box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+          background: #f0fdf4;
+        }
+        
+        .form-field-input.error {
+          border-color: #dc2626;
+          background: #fef2f2;
+        }
+        
+        .form-error-message {
+          margin-top: 4px;
+          font-size: 12px;
+          color: #dc2626;
+          font-weight: 500;
+        }
+        
+        .photo-capture-bg {
+          background: linear-gradient(135deg, rgba(15, 118, 110, 0.1) 0%, rgba(20, 184, 166, 0.05) 100%),
+                      url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="camera-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="2" fill="%23d1fae5" opacity="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23camera-pattern)"/></svg>');
+          background-size: 20px 20px, cover;
+          position: relative;
+        }
+        .photo-capture-bg::before {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 60px;
+          height: 60px;
+          background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="%23059669" viewBox="0 0 24 24"><path d="M12 9a3 3 0 110 6 3 3 0 010-6z"/><path d="M17 5h1a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h1l1-2h8l1 2z" fill="none" stroke="%23059669" stroke-width="1.5"/></svg>') no-repeat center;
+          opacity: 0.3;
+          pointer-events: none;
+        }
+        
+        .form-section-title {
+          font-size: 14px;
+          font-weight: 700;
+          color: #0d9488;
+          margin-bottom: 12px;
+          padding-bottom: 8px;
+          border-bottom: 2px solid #d1fae5;
+          letter-spacing: 0.5px;
+        }
+        
+        .form-section-spacing {
+          margin-bottom: 20px;
+        }
+        
+        @media (max-width: 1023px) {
+          .visitor-form-container {
+            height: auto !important;
+            min-height: 100vh;
+          }
+        }
+      `}</style>
+      <div className="w-full h-full bg-teal-50">
+        <div 
+          className="visitor-form-container bg-gradient-to-b from-white to-teal-50 border border-teal-200 shadow-lg overflow-y-auto w-full"
+          style={{
+            maxHeight: 'calc(100vh - 310px)',
+            minHeight: '600px',
+            height: '100%'
+          }}>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            <div className="xl:col-span-2 space-y-6">
-              <div className="rounded-xl border border-gray-200 p-5 md:p-6">
-                <h4 className="text-2xl font-bold text-gray-900 mb-5">Visitor Information</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Mobile Number *
-              </label>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleInputChange}
-                placeholder="Enter mobile number"
-                required
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.phone
-                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                  : 'border-gray-300 focus:ring-teal-500'
-                  }`}
-              />
-              {errors.phone && (
-                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.phone}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Visitor Name *
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder="Enter full name"
-                required
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.name
-                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                  : 'border-gray-300 focus:ring-teal-500'
-                  }`}
-              />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.name}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Email Address *
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="visitor@example.com"
-                required
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.email
-                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                  : 'border-gray-300 focus:ring-teal-500'
-                  }`}
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Gender *
-              </label>
-              <select
-                name="gender"
-                value={formData.gender}
-                onChange={handleInputChange}
-                required
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.gender
-                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                  : 'border-gray-300 focus:ring-teal-500'
-                  }`}
-              >
-                <option value="">Select gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-                <option value="prefer_not_to_say">Prefer not to say</option>
-              </select>
-              {errors.gender && (
-                <p className="mt-1 text-sm text-red-600">{errors.gender}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Visitor Type *
-              </label>
-              <select
-                name="visitor_type"
-                value={formData.visitor_type}
-                onChange={handleInputChange}
-                required
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.visitor_type
-                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                  : 'border-gray-300 focus:ring-teal-500'
-                  }`}
-              >
-                <option value="guest">👤 Guest</option>
-                <option value="contractor">👷 Contractor</option>
-                <option value="vendor">🏢 Vendor</option>
-                <option value="interview_candidate">💼 Interview Candidate</option>
-                <option value="delivery">📦 Delivery Personnel</option>
-                <option value="service_provider">🔧 Service Provider</option>
-                <option value="vip">👑 VIP</option>
-              </select>
-              {errors.visitor_type && (
-                <p className="mt-1 text-sm text-red-600">{errors.visitor_type}</p>
-              )}
-            </div>
-          </div>
+          <form onSubmit={handleSubmit} className="px-4 sm:px-6 py-6 pb-48" style={{ minHeight: '700px' }}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 form-section-spacing">
+              {/* Visitor Information */}
+              <div className="col-span-1 visitor-form-card">
+                <h4 className="form-section-title flex items-center gap-2">
+                  <User className="w-4 h-4 text-teal-600" />
+                  Visitor Information
+                </h4>
+                <div className="space-y-3">
+                  <div className="form-field-group">
+                    <label className="form-field-label">Visitor Name *</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="Full name of visitor"
+                      required
+                      className={`form-field-input ${errors.name ? 'error' : ''}`}
+                    />
+                    {errors.name && <p className="form-error-message">{errors.name}</p>}
+                  </div>
+                  <div className="form-field-group">
+                    <label className="form-field-label">Mobile Number *</label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="Enter mobile number"
+                      required
+                      className={`form-field-input ${errors.phone ? 'error' : ''}`}
+                    />
+                    {errors.phone && <p className="form-error-message">{errors.phone}</p>}
+                  </div>
+                  <div className="form-field-group">
+                    <label className="form-field-label">Email Address *</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="visitor@example.com"
+                      required
+                      className={`form-field-input ${errors.email ? 'error' : ''}`}
+                    />
+                    {errors.email && <p className="form-error-message">{errors.email}</p>}
+                  </div>
+                  <div className="form-field-group">
+                    <label className="form-field-label">Gender *</label>
+                    <select
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleInputChange}
+                      required
+                      className={`form-field-input ${errors.gender ? 'error' : ''}`}
+                    >
+                      <option value="">Select gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                      <option value="prefer_not_to_say">Prefer not to say</option>
+                    </select>
+                    {errors.gender && <p className="form-error-message">{errors.gender}</p>}
+                  </div>
+                  <div className="form-field-group">
+                    <label className="form-field-label">Visitor Type *</label>
+                    <select
+                      name="visitor_type"
+                      value={formData.visitor_type}
+                      onChange={handleInputChange}
+                      required
+                      className={`form-field-input ${errors.visitor_type ? 'error' : ''}`}
+                    >
+                      <option value="guest">Guest</option>
+                      <option value="contractor">Contractor</option>
+                      <option value="vendor">Vendor</option>
+                      <option value="interview_candidate">Interview Candidate</option>
+                      <option value="delivery">Delivery Personnel</option>
+                      <option value="service_provider">Service Provider</option>
+                      <option value="vip">VIP</option>
+                    </select>
+                    {errors.visitor_type && <p className="form-error-message">{errors.visitor_type}</p>}
+                  </div>
+                </div>
               </div>
-
-              <div className="rounded-xl border border-gray-200 p-5 md:p-6 space-y-6">
-                <h4 className="text-xl font-bold text-gray-900">Host & Visit Details</h4>
-
-                {/* Host Contact Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Host Name *
-              </label>
-              <input
-                type="text"
-                name="host_name"
-                value={formData.host_name}
-                onChange={handleInputChange}
-                placeholder="Person/Department to visit"
-                required
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.host_name
-                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                  : 'border-gray-300 focus:ring-teal-500'
-                  }`}
-              />
-              {errors.host_name && (
-                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.host_name}
-                </p>
-              )}
+              {/* Capture Visitor Photo */}
+              <div className="col-span-1 visitor-form-card photo-capture-bg">
+                <div className="flex flex-col items-center justify-center h-full min-h-48">
+                  {!showWebcam && !imagePreview && (
+                    <div className={`${errors.image_base64 ? 'error-field' : ''} w-full flex flex-col items-center`}>
+                      <div className="mb-4">
+                        <Camera className="w-12 h-12 text-blue-600 mx-auto" />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowWebcam(true)}
+                        className={`px-6 py-3 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl ${errors.image_base64 ? 'bg-red-500 text-white' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white'}`}
+                      >
+                        <Camera className="w-4 h-4" />
+                        Capture Visitor Photo
+                      </button>
+                      {errors.image_base64 && <p className="mt-2 text-xs text-red-600 text-center">{errors.image_base64}</p>}
+                    </div>
+                  )}
+                  {showWebcam && (
+                    <div className="w-full">
+                      <WebcamCapture onImageCapture={handleImageCapture} onBack={handleCloseWebcam} />
+                    </div>
+                  )}
+                  {imagePreview && (
+                    <div className="bg-green-50 rounded-lg p-3 border border-green-200 w-full">
+                      <img src={imagePreview} alt="Captured visitor" className="w-full h-32 object-cover rounded-md border border-gray-200" />
+                      <div className="mt-3 flex gap-2">
+                        {isUsingExistingImage && !isExistingImageConfirmed ? (
+                          <>
+                            <button type="button" onClick={handleConfirmExistingImage} className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-1">
+                              <UserCheck className="w-4 h-4" />
+                              Confirm
+                            </button>
+                            <button type="button" onClick={handleRetakeImage} className="flex-1 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors flex items-center justify-center gap-1">
+                              <Camera className="w-4 h-4" />
+                              Retake
+                            </button>
+                          </>
+                        ) : (
+                          <button type="button" onClick={isUsingExistingImage ? handleRetakeImage : handleClearImage} className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-1">
+                            <Camera className="w-4 h-4" />
+                            Retake Photo
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              {/* Host Details */}
+              <div className="col-span-1 visitor-form-card">
+                <h4 className="form-section-title flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-teal-600" />
+                  Host Details
+                </h4>
+                <div className="space-y-3">
+                  <div className="form-field-group">
+                    <label className="form-field-label">Host Name *</label>
+                    <input
+                      type="text"
+                      name="host_name"
+                      value={formData.host_name}
+                      onChange={handleInputChange}
+                      placeholder="Person/Department to visit"
+                      required
+                      className={`form-field-input ${errors.host_name ? 'error' : ''}`}
+                    />
+                    {errors.host_name && <p className="form-error-message">{errors.host_name}</p>}
+                  </div>
+                  <div className="form-field-group">
+                    <label className="form-field-label">Host Phone *</label>
+                    <input
+                      type="tel"
+                      name="host_number"
+                      value={formData.host_number}
+                      onChange={handleInputChange}
+                      placeholder="Host contact number"
+                      required
+                      className={`form-field-input ${errors.host_number ? 'error' : ''}`}
+                    />
+                    {errors.host_number && <p className="form-error-message">{errors.host_number}</p>}
+                  </div>
+                  <div className="form-field-group">
+                    <label className="form-field-label">Purpose of Visit *</label>
+                    <input
+                      type="text"
+                      name="purpose_of_visit"
+                      value={formData.purpose_of_visit}
+                      onChange={handleInputChange}
+                      placeholder="e.g., Meeting, Delivery, Service"
+                      className={`form-field-input ${errors.purpose_of_visit ? 'error' : ''}`}
+                    />
+                    {errors.purpose_of_visit && <p className="form-error-message">{errors.purpose_of_visit}</p>}
+                  </div>
+                  <div className="form-field-group">
+                    <label className="form-field-label">Location *</label>
+                    <select
+                      name="allowed_location_id"
+                      value={formData.allowed_location_id || ''}
+                      onChange={handleInputChange}
+                      className={`form-field-input ${errors.allowed_location_id ? 'error' : ''}`}
+                    >
+                      <option value="">Select a location</option>
+                      {locations.map((location) => (
+                        <option key={location.id} value={location.id}>
+                          {location.name}
+                          {location.description && ` (${location.description})`}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.allowed_location_id && <p className="form-error-message">{errors.allowed_location_id}</p>}
+                  </div>
+                  <div className="form-field-group flex items-center gap-3 mt-4 pt-2 border-t border-teal-100">
+                    <input
+                      type="checkbox"
+                      id="is_recurring"
+                      name="is_recurring"
+                      checked={formData.is_recurring}
+                      onChange={(e) => setFormData(prev => ({ ...prev, is_recurring: e.target.checked }))}
+                      className="w-4 h-4 text-teal-600 rounded cursor-pointer"
+                    />
+                    <label htmlFor="is_recurring" className="form-field-label mb-0 cursor-pointer">
+                      Mark as Recurring Visitor
+                    </label>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Host Phone *
-              </label>
-              <input
-                type="tel"
-                name="host_number"
-                value={formData.host_number}
-                onChange={handleInputChange}
-                placeholder="Host contact number"
-                required
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.host_number
-                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                  : 'border-gray-300 focus:ring-teal-500'
-                  }`}
-              />
-              {errors.host_number && (
-                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.host_number}
-                </p>
-              )}
-            </div>
-          </div>
-
-                {/* Purpose of Visit */}
-                <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Purpose of Visit *
-            </label>
-            <input
-              type="text"
-              name="purpose_of_visit"
-              value={formData.purpose_of_visit}
-              onChange={handleInputChange}
-              placeholder="e.g., Meeting, Delivery, Service"
-              className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.purpose_of_visit
-                ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                : 'border-gray-300 focus:ring-teal-500'
-                }`}
-            />
-            {errors.purpose_of_visit && (
-              <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-                {errors.purpose_of_visit}
-              </p>
-            )}
-          </div>
-
-                {/* Floor and Tower */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Tower
-              </label>
-              <select
-                name="allowed_towers"
-                value={formData.allowed_towers || ''}
-                onChange={handleInputChange}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.allowed_towers
-                  ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                  : 'border-gray-300 focus:ring-teal-500'
-                  }`}
-              >
-                <option value="">Select a tower</option>
-                <option value="Tower A">Tower A</option>
-                <option value="Tower B">Tower B</option>
-                <option value="Tower C">Tower C</option>
-                <option value="Tower D">Tower D</option>
-              </select>
-              {errors.allowed_towers && (
-                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.allowed_towers}
-                </p>
-              )}
-            </div>
-            
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Allowed Floor *
-              </label>
-              <select
-                name="allowed_floor"
-                value={formData.allowed_floor}
-                onChange={handleInputChange}
-                className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.allowed_floor
-                  ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                  : 'border-gray-300 focus:ring-teal-500'
-                  }`}
-              >
-                <option value="">Select a floor</option>
-                {floors.map((floor) => (
-                  <option key={floor} value={floor}>
-                    {floor}
-                  </option>
-                ))}
-              </select>
-              {errors.allowed_floor && (
-                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.allowed_floor}
-                </p>
-              )}
-            </div>
-
-
-          </div>
-
-                {/* Duration of Visit */}
-                <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
-            <h4 className="font-semibold text-gray-900 mb-4">Duration of Visit</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  From Date *
-                </label>
+            {/* Visit Dates Section */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 visitor-form-card form-section-spacing">
+              <h4 className="col-span-2 form-section-title mb-0 flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-teal-600" />
+                Visit Dates
+              </h4>
+              <div className="form-field-group">
+                <label className="form-field-label">From Date *</label>
                 <input
                   type="date"
                   name="from_date"
                   value={formData.from_date}
                   onChange={handleInputChange}
                   required
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.from_date
-                    ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                    : 'border-gray-300 focus:ring-teal-500'
-                    }`}
+                  className={`form-field-input ${errors.from_date ? 'error' : ''}`}
                 />
-                {errors.from_date && (
-                  <p className="mt-1 text-sm text-red-600">{errors.from_date}</p>
-                )}
+                {errors.from_date && <p className="form-error-message">{errors.from_date}</p>}
               </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  To Date *
-                </label>
+              <div className="form-field-group">
+                <label className="form-field-label">To Date</label>
                 <input
                   type="date"
                   name="to_date"
                   value={formData.to_date}
                   onChange={handleInputChange}
-                  required
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${errors.to_date
-                    ? 'border-red-500 bg-red-50 focus:ring-red-500 error-field'
-                    : 'border-gray-300 focus:ring-teal-500'
-                    }`}
+                  className={`form-field-input ${errors.to_date ? 'error' : ''}`}
                 />
-                {errors.to_date && (
-                  <p className="mt-1 text-sm text-red-600">{errors.to_date}</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-                {/* Additional Options */}
-                <div className="flex flex-col gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="is_recurring"
-                name="is_recurring"
-                checked={formData.is_recurring}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  is_recurring: e.target.checked
-                }))}
-                className="w-4 h-4 text-teal-600 rounded"
-              />
-              <label htmlFor="is_recurring" className="text-sm font-semibold text-gray-700 cursor-pointer">
-                🔄 Mark as Recurring Visitor (for frequent visitors)
-              </label>
-            </div>
-          </div>
+                {errors.to_date && <p className="form-error-message">{errors.to_date}</p>}
               </div>
             </div>
 
-            <div className="xl:col-span-1">
-              <div className="rounded-xl border border-gray-200 p-5 md:p-6 xl:sticky xl:top-6">
-                <h4 className="text-2xl font-bold text-gray-900 mb-5">Visitor Photo</h4>
-
-            {!showWebcam && !imagePreview && (
-              <div className={`${errors.image_base64 ? 'error-field' : ''}`}>
-                <button
-                  type="button"
-                  onClick={() => setShowWebcam(true)}
-                  className={`w-full px-6 py-3.5 font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md mb-4 ${errors.image_base64
-                    ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-2 border-red-500'
-                    : 'bg-gradient-to-r from-teal-600 to-teal-600 hover:from-teal-700 hover:to-teal-700 text-white'
-                    }`}
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Capture Visitor Photo
-                </button>
-                {errors.image_base64 && (
-                  <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    {errors.image_base64}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {showWebcam && (
-              <div className="mb-6">
-                <WebcamCapture
-                  onImageCapture={handleImageCapture}
-                  onBack={handleCloseWebcam}
-                />
-              </div>
-            )}
-
-            {imagePreview && (
-              <div className="bg-green-50 rounded-xl p-4 border border-green-200">
-                <div className="mb-3 flex items-center gap-2">
-                  <div className="flex items-center justify-center w-7 h-7 bg-green-500 rounded-full">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {/* Submit Button */}
+            <div className="flex justify-center gap-4 mt-10 mb-8 px-2 sm:px-0">
+              <button
+                type="submit"
+                disabled={loading || isSubmitting}
+                className={`px-6 sm:px-8 py-3 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl text-sm sm:text-base whitespace-nowrap w-full sm:w-auto sm:min-w-64 ${loading || isSubmitting ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white'}`}
+              >
+                {loading || isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    Checking In...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                  </div>
-                  <p className="text-green-700 font-semibold text-sm">
-                    {isUsingExistingImage ? 'Existing image loaded from previous visit' : 'Photo captured successfully!'}
-                  </p>
-                </div>
-                <div className="relative inline-block w-full">
-                  <img
-                    src={imagePreview}
-                    alt="Captured visitor"
-                    className="w-full h-72 object-cover rounded-xl border border-gray-200"
-                  />
-                  {isUsingExistingImage && !isExistingImageConfirmed ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-                      <button
-                        type="button"
-                        onClick={handleConfirmExistingImage}
-                        className="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all duration-300"
-                      >
-                        Confirm Image
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleRetakeImage}
-                        className="w-full px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition-all duration-300"
-                      >
-                        Retake
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={isUsingExistingImage ? handleRetakeImage : handleClearImage}
-                        className="mt-4 w-full px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                      </svg>
-                      Retake Photo
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
+                    ✓ Check In Visitor
+                  </>
+                )}
+              </button>
+            </div>
+            
+            {/* Scroll Helper - Extra spacing to ensure scrolling */}
+            <div className="text-center text-gray-400 text-xs pb-8 mt-4">
+              <div className="flex items-center justify-center gap-2">
+                <div className="h-px bg-gray-200 flex-1"></div>
+                <span className="flex items-center gap-1">
+                  <ClipboardList className="w-3 h-3" />
+                  End of Form
+                </span>
+                <div className="h-px bg-gray-200 flex-1"></div>
               </div>
             </div>
-          </div>
-
-          {/* Submit Button */}
-          <div className="flex justify-center pt-2">
-            <button
-              type="submit"
-              disabled={loading || isSubmitting}
-              className={`w-full md:w-auto px-8 py-3 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md min-w-[220px] ${loading || isSubmitting
-                ? 'bg-gray-400 cursor-not-allowed text-white'
-                : 'bg-green-600 hover:bg-green-700 text-white'
-                }`}
-            >
-              {loading || isSubmitting ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  Checking In...
-                </>
-              ) : (
-                <>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  ✅ Check In Visitor
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-
-        {/* Information Box */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-800">
-            <span className="font-semibold">ℹ️ Note:</span> The visitor photo will be stored for identification purposes only. Please ensure the visitor is clearly visible in the photo.
-          </p>
+          </form>
         </div>
-      </div >
-
-      {/* Visitor Slip Modal */}
-      {
-        showVisitorSlip && checkedInVisitor && (
-          <VisitorSlipModal
-            visitor={checkedInVisitor}
-            onClose={() => setShowVisitorSlip(false)}
-            onPrint={() => {
-              window.print();
-              setShowVisitorSlip(false);
-            }}
-          />
-        )
-      }
-    </div >
+      </div>
+    </>
   );
 };
 

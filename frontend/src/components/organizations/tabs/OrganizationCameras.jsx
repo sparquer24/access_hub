@@ -13,6 +13,24 @@ import { useToast } from '../../../contexts/ToastContext';
 const { Option } = Select;
 const { TextArea } = Input;
 
+const MANAGEMENT_FLAG_PRESETS = {
+  ATTENDANCE: {
+    attendance_enabled: true,
+    visitor_tracking_enabled: false,
+    people_logs_enabled: false,
+  },
+  VISITORS: {
+    attendance_enabled: false,
+    visitor_tracking_enabled: true,
+    people_logs_enabled: false,
+  },
+  PEOPLE_LOGS: {
+    attendance_enabled: false,
+    visitor_tracking_enabled: false,
+    people_logs_enabled: true,
+  },
+};
+
 const OrganizationCameras = ({ organizationId, organization }) => {
   const { success, error: showError } = useToast();
   const [cameras, setCameras] = useState([]);
@@ -26,8 +44,19 @@ const OrganizationCameras = ({ organizationId, organization }) => {
   const [filterType, setFilterType] = useState('all');
   const [headerFilter, setHeaderFilter] = useState('all');
   const [hasCreatePermission, setHasCreatePermission] = useState(true);
-  const [selectedManagementType, setSelectedManagementType] = useState('ATTENDANCE');
 
+  const getManagementFlags = (managementType) =>
+    MANAGEMENT_FLAG_PRESETS[managementType] || MANAGEMENT_FLAG_PRESETS.ATTENDANCE;
+
+  const deriveManagementType = (camera = {}) => {
+    const explicitType = camera.management_type;
+    if (explicitType && MANAGEMENT_FLAG_PRESETS[explicitType]) {
+      return explicitType;
+    }
+    if (camera.visitor_tracking_enabled) return 'VISITORS';
+    if (camera.people_logs_enabled) return 'PEOPLE_LOGS';
+    return 'ATTENDANCE';
+  };
 
   useEffect(() => {
     fetchCameras();
@@ -66,17 +95,15 @@ const OrganizationCameras = ({ organizationId, organization }) => {
   const handleCreateCamera = () => {
     setEditingCamera(null);
     form.resetFields();
-    setSelectedManagementType('ATTENDANCE');
+    const defaultType = 'ATTENDANCE';
     form.setFieldsValue({
       fps: 10,
       resolution: '640x480',
       confidence_threshold: 0.6,
       liveness_check_enabled: true,
       // Attendance management defaults
-      management_type: 'ATTENDANCE',
-      attendance_enabled: false,
-      visitor_tracking_enabled: false,
-      people_logs_enabled: true,
+      management_type: defaultType,
+      ...getManagementFlags(defaultType),
       auto_check_out_hours: 12,
       require_manual_approval: false,
       notification_enabled: true,
@@ -86,8 +113,12 @@ const OrganizationCameras = ({ organizationId, organization }) => {
 
   const handleEditCamera = (camera) => {
     setEditingCamera(camera);
-    form.setFieldsValue(camera);
-    setSelectedManagementType(camera.management_type || 'ATTENDANCE');
+    const normalizedType = deriveManagementType(camera);
+    form.setFieldsValue({
+      ...camera,
+      management_type: normalizedType,
+      ...getManagementFlags(normalizedType),
+    });
     setShowModal(true);
   };
 
@@ -135,6 +166,8 @@ const OrganizationCameras = ({ organizationId, organization }) => {
 
   const handleSubmit = async (values) => {
     try {
+      const managementFlags = getManagementFlags(values.management_type);
+
       if (editingCamera) {
         const payload = {
           name: values.name,
@@ -148,9 +181,7 @@ const OrganizationCameras = ({ organizationId, organization }) => {
           liveness_check_enabled: values.liveness_check_enabled,
           is_active: values.is_active,
           // Attendance Management Fields
-          attendance_enabled: values.attendance_enabled,
-          visitor_tracking_enabled: values.visitor_tracking_enabled,
-          people_logs_enabled: values.people_logs_enabled,
+          ...managementFlags,
           management_type: values.management_type,
           auto_check_out_hours: values.auto_check_out_hours,
           require_manual_approval: values.require_manual_approval,
@@ -171,9 +202,7 @@ const OrganizationCameras = ({ organizationId, organization }) => {
           confidence_threshold: values.confidence_threshold,
           liveness_check_enabled: values.liveness_check_enabled,
           // Attendance Management Fields
-          attendance_enabled: values.attendance_enabled,
-          visitor_tracking_enabled: values.visitor_tracking_enabled,
-          people_logs_enabled: values.people_logs_enabled,
+          ...managementFlags,
           management_type: values.management_type,
           auto_check_out_hours: values.auto_check_out_hours,
           require_manual_approval: values.require_manual_approval,
@@ -309,10 +338,10 @@ const OrganizationCameras = ({ organizationId, organization }) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Header */}
       <div className="rounded-xl border border-teal-100/70 bg-gradient-to-r from-white via-teal-50/60 to-cyan-50/60 shadow-sm overflow-visible relative">
-        <div className="px-4 py-3.5 sm:px-5 sm:py-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between relative z-30">
+        <div className="px-4 py-2.5 sm:px-5 sm:py-3 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between relative z-30">
           <div className="min-w-0">
             <div className="flex items-center gap-2.5">
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600/10 ring-1 ring-teal-200">
@@ -421,11 +450,12 @@ const OrganizationCameras = ({ organizationId, organization }) => {
           )}
         </div>
       ) : (
-        <div className="bg-teal-50/95 rounded-xl border border-gray-200 shadow-md overflow-hidden">
-          <div className="overflow-x-auto">
+        <div className="bg-teal-50/95 rounded-xl border border-gray-200 shadow-md overflow-hidden max-h-[60vh]">
+          <div className="overflow-x-auto overflow-y-auto max-h-[55vh]">
             <table className="min-w-full">
               <thead className="bg-gradient-to-r from-teal-500/10 to-teal-500/10 border-b border-gray-200">
                 <tr>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">S.No.</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">Name</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">Type</th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">Status</th>
@@ -438,8 +468,9 @@ const OrganizationCameras = ({ organizationId, organization }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredCameras.map((camera) => (
+                {filteredCameras.map((camera, idx) => (
                   <tr key={camera.id} className="hover:bg-teal-500/5 transition-colors">
+                    <td className="px-4 py-3 text-gray-700 font-semibold">{idx + 1}</td>
                     <td className="px-4 py-3">
                       <div className="font-semibold text-gray-900">{camera.name}</div>
                     </td>
@@ -598,14 +629,8 @@ const OrganizationCameras = ({ organizationId, organization }) => {
               >
                 <Select
                   placeholder="Select management type"
-                  defaultValue="ATTENDANCE"
                   onChange={(value) => {
-                    setSelectedManagementType(value);
-                    // Reset the related switches when management type changes
-                    form.setFieldsValue({
-                      attendance_enabled: false,
-                      visitor_tracking_enabled: false
-                    });
+                    form.setFieldsValue(getManagementFlags(value));
                   }}
                 >
                   <Option value="ATTENDANCE">⚡ Attendance Only</Option>
@@ -624,20 +649,16 @@ const OrganizationCameras = ({ organizationId, organization }) => {
                 />
               </Form.Item>
 
-              {selectedManagementType === 'ATTENDANCE' && (
-                <Form.Item name="attendance_enabled" label="Enable Attendance Tracking" valuePropName="checked">
-                  <Switch />
-                </Form.Item>
-              )}
+              <Form.Item name="attendance_enabled" label="Enable Attendance Tracking" valuePropName="checked">
+                <Switch disabled />
+              </Form.Item>
 
-              {selectedManagementType === 'VISITORS' && (
-                <Form.Item name="visitor_tracking_enabled" label="Enable Visitor Tracking" valuePropName="checked">
-                  <Switch />
-                </Form.Item>
-              )}
+              <Form.Item name="visitor_tracking_enabled" label="Enable Visitor Tracking" valuePropName="checked">
+                <Switch disabled />
+              </Form.Item>
 
               <Form.Item name="people_logs_enabled" label="Enable People Logs" valuePropName="checked">
-                <Switch defaultChecked />
+                <Switch disabled />
               </Form.Item>
 
               <Form.Item name="require_manual_approval" label="Require Manual Approval" valuePropName="checked">

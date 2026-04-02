@@ -73,7 +73,7 @@ const OrganizationList = ({ showCreateButton = true, basePath = '/super-admin/or
   }
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 via-teal-50 to-teal-50 min-h-full">
+    <div className="bg-gradient-to-br from-slate-50 via-teal-50 to-teal-50 min-h-full h-screen overflow-y-auto">
       {/* Page Header */}
       <div className="bg-teal-50/90 backdrop-blur-sm border-b border-slate-200/60 sticky top-0 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto lg:px-8 px-4 py-1.5">

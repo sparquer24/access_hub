@@ -9,7 +9,9 @@
  * - organizations:delete
  */
 
+
 import api from './api';
+import logger from '../utils/logger';
 
 /**
  * Organization Types
@@ -83,7 +85,7 @@ export const organizationsService = {
       const response = await api.get('/api/v2/organizations', { params });
       return response.data;
     } catch (error) {
-      console.error('Error listing organizations:', error);
+      logger.error('Error listing organizations:', error);
       throw error;
     }
   },
@@ -121,7 +123,7 @@ export const organizationsService = {
 
       return envelope;
     } catch (error) {
-      console.error(`Error getting organization ${orgId}:`, error);
+      logger.error(`Error getting organization ${orgId}:`, error);
       throw error;
     }
   },
@@ -169,7 +171,7 @@ export const organizationsService = {
       const response = await api.post('/api/v2/organizations', createPayload);
       return response.data;
     } catch (error) {
-      console.error('Error creating organization:', error);
+      logger.error('Error creating organization:', error);
       throw error;
     }
   },
@@ -205,7 +207,7 @@ export const organizationsService = {
       const response = await api.put(`/api/v2/organizations/${orgId}`, payload);
       return response.data;
     } catch (error) {
-      console.error(`Error updating organization ${orgId}:`, error);
+      logger.error(`Error updating organization ${orgId}:`, error);
       throw error;
     }
   },
@@ -233,7 +235,7 @@ export const organizationsService = {
       });
       return response.data;
     } catch (error) {
-      console.error(`Error deleting organization ${orgId}:`, error);
+      logger.error(`Error deleting organization ${orgId}:`, error);
       throw error;
     }
   },
@@ -253,7 +255,7 @@ export const organizationsService = {
       const response = await api.get(`/api/v2/organizations/${orgId}/stats`);
       return response.data;
     } catch (error) {
-      console.error(`Error getting organization stats ${orgId}:`, error);
+      logger.error(`Error getting organization stats ${orgId}:`, error);
       throw error;
     }
   },
@@ -280,7 +282,7 @@ export const organizationsService = {
       const response = await api.get(`/api/v2/organizations/${orgId}/employees/attendance-summary`, { params });
       return response.data;
     } catch (error) {
-      console.error(`Error getting employee attendance summary ${orgId}:`, error);
+      logger.error(`Error getting employee attendance summary ${orgId}:`, error);
       throw error;
     }
   },
@@ -320,7 +322,7 @@ export const organizationsService = {
       const response = await api.get(`/api/v2/organizations/${orgId}/employees/top-performers`, { params });
       return response.data;
     } catch (error) {
-      console.error(`Error getting top performers ${orgId}:`, error);
+      logger.error(`Error getting top performers ${orgId}:`, error);
       throw error;
     }
   },
@@ -337,7 +339,7 @@ export const organizationsService = {
       const response = await api.get(`/api/v2/organizations/${orgId}/attendance/stats`, { params });
       return response.data;
     } catch (error) {
-      console.error(`Error getting attendance stats ${orgId}:`, error);
+      logger.error(`Error getting attendance stats ${orgId}:`, error);
       throw error;
     }
   },
@@ -354,7 +356,7 @@ export const organizationsService = {
       const response = await api.get(`/api/v2/organizations/${orgId}/visitors/stats`, { params });
       return response.data;
     } catch (error) {
-      console.error(`Error getting visitor stats ${orgId}:`, error);
+      logger.error(`Error getting visitor stats ${orgId}:`, error);
       throw error;
     }
   },
@@ -370,7 +372,7 @@ export const organizationsService = {
       const response = await api.get(`/api/v2/organizations/${orgId}/departments/attendance`);
       return response.data;
     } catch (error) {
-      console.error(`Error getting department attendance ${orgId}:`, error);
+      logger.error(`Error getting department attendance ${orgId}:`, error);
       throw error;
     }
   },
@@ -457,7 +459,7 @@ export const employeesService = {
       const response = await api.get('/api/v2/employees', { params });
       return response.data;
     } catch (error) {
-      console.error('Error listing employees:', error);
+      logger.error('Error listing employees:', error);
       throw error;
     }
   },
@@ -473,7 +475,7 @@ export const employeesService = {
       const response = await api.get(`/api/v2/employees/${employeeId}`);
       return response.data;
     } catch (error) {
-      console.error(`Error getting employee ${employeeId}:`, error);
+      logger.error(`Error getting employee ${employeeId}:`, error);
       throw error;
     }
   },
@@ -504,7 +506,7 @@ export const employeesService = {
       const response = await api.post('/api/v2/employees', payload);
       return response.data;
     } catch (error) {
-      console.error('Error creating employee:', error);
+      logger.error('Error creating employee:', error);
       throw error;
     }
   },
@@ -521,7 +523,7 @@ export const employeesService = {
       const response = await api.put(`/api/v2/employees/${employeeId}`, payload);
       return response.data;
     } catch (error) {
-      console.error(`Error updating employee ${employeeId}:`, error);
+      logger.error(`Error updating employee ${employeeId}:`, error);
       throw error;
     }
   },
@@ -540,7 +542,7 @@ export const employeesService = {
       });
       return response.data;
     } catch (error) {
-      console.error(`Error deleting employee ${employeeId}:`, error);
+      logger.error(`Error deleting employee ${employeeId}:`, error);
       throw error;
     }
   },
@@ -557,7 +559,7 @@ export const employeesService = {
       const response = await api.get(`/api/v2/employees/${employeeId}/attendance`, { params });
       return response.data;
     } catch (error) {
-      console.error(`Error getting employee attendance ${employeeId}:`, error);
+      logger.error(`Error getting employee attendance ${employeeId}:`, error);
       throw error;
     }
   },
@@ -592,7 +594,7 @@ export const employeesService = {
       
       return response.data;
     } catch (error) {
-      console.error(`Error downloading employee directory:`, error);
+      logger.error(`Error downloading employee directory:`, error);
       throw error;
     }
   },
@@ -622,7 +624,7 @@ export const camerasService = {
       const response = await api.get('/api/v2/cameras', { params });
       return response.data;
     } catch (error) {
-      console.error('Error listing cameras:', error);
+      logger.error('Error listing cameras:', error);
       throw error;
     }
   },
@@ -638,7 +640,7 @@ export const camerasService = {
       const response = await api.get(`/api/v2/cameras/${cameraId}`);
       return response.data;
     } catch (error) {
-      console.error(`Error getting camera ${cameraId}:`, error);
+      logger.error(`Error getting camera ${cameraId}:`, error);
       throw error;
     }
   },
@@ -666,7 +668,7 @@ export const camerasService = {
       const response = await api.post('/api/v2/cameras', payload);
       return response.data;
     } catch (error) {
-      console.error('Error creating camera:', error);
+      logger.error('Error creating camera:', error);
       throw error;
     }
   },
@@ -683,7 +685,7 @@ export const camerasService = {
       const response = await api.put(`/api/v2/cameras/${cameraId}`, payload);
       return response.data;
     } catch (error) {
-      console.error(`Error updating camera ${cameraId}:`, error);
+      logger.error(`Error updating camera ${cameraId}:`, error);
       throw error;
     }
   },
@@ -841,13 +843,15 @@ export const locationsService = {
    * @returns {Promise} Response with { success, data: {...location object}, message }
    */
   update: async (locationId, payload) => {
-    try {
-      const response = await api.put(`/api/v2/locations/${locationId}`, payload);
-      return response.data;
-    } catch (error) {
-      console.error(`Error updating location ${locationId}:`, error);
-      throw error;
-    }
+      try {
+        // Remove organization_id if present (not allowed in update)
+        const { organization_id, ...updatePayload } = payload || {};
+        const response = await api.put(`/api/v2/locations/${locationId}`, updatePayload);
+        return response.data;
+      } catch (error) {
+        console.error(`Error updating location ${locationId}:`, error);
+        throw error;
+      }
   },
 
   /**
@@ -882,7 +886,7 @@ export const LOCATION_TYPES = {
 export default organizationsService;
 
 /**
- * Attendance API Service
+ * Attendance API Serviceyes
  */
 export const attendanceService = {
   /**

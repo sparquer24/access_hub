@@ -42,7 +42,7 @@ function ManagerDashboard() {
       const token = authService.getAccessToken();
       if (!token) return;
 
-      const response = await fetch(`${API_BASE}/api/manager/team/stats`, {
+      const response = await fetch(`${API_BASE}/api/v2/manager/team/stats`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -87,7 +87,7 @@ function ManagerDashboard() {
       const token = authService.getAccessToken();
       if (!token) return;
 
-      const response = await fetch(`${API_BASE}/api/manager/dashboard/activities`, {
+      const response = await fetch(`${API_BASE}/api/v2/manager/dashboard/activities`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

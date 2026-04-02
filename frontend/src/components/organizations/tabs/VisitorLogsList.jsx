@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
+import { LogOut, ChevronDown, Users, MapPin } from 'lucide-react';
+import { Select } from 'antd';
 import { visitorService } from '../../../services/visitorService';
+import { socketService } from '../../../services/socketService';
 import Loader from '../../common/Loader';
 import { useToast } from '../../../contexts/ToastContext';
 import moment from 'moment';
+
+import './VisitorLogsList.css';
 
 const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'logs', showTabs = true }) => {
   const { success, error: showError } = useToast();
@@ -19,9 +24,29 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
   const [totalCount, setTotalCount] = useState(0);
   const [checkingOutId, setCheckingOutId] = useState(null);
 
-  const fetchActiveVisitors = useCallback(async () => {
+  const fetchVisitors = useCallback(async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
+      const params = { page, limit: pageSize };
+      if (!showAllData) {
+        params.from_date = fromDate;
+        params.to_date = toDate;
+      }
+      const response = await visitorService.getVisitorsByOrganization(organizationId, params);
+      if (response.success) {
+        setLogs(response.data?.visitors || []);
+        setTotalCount(response.data?.pagination?.total || 0);
+      }
+    } catch (error) {
+      showError('Failed to load visitor logs');
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, [organizationId, page, pageSize, fromDate, toDate, showAllData]);
+
+  const fetchActiveVisitors = useCallback(async ({ silent = false } = {}) => {
+    try {
+      if (!silent) setLoading(true);
       const response = await visitorService.getActiveVisitors(organizationId);
       if (response.success) {
         setActiveVisitors(response.data || []);
@@ -30,13 +55,13 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
       console.error('Error loading active visitors:', error);
       showError('Failed to load active visitors');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [organizationId]);
 
-  const fetchLogs = useCallback(async () => {
+  const fetchLogs = useCallback(async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const params = {
         limit: pageSize,
         offset: (page - 1) * pageSize,
@@ -54,14 +79,35 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
       console.error('Error loading floor logs:', error);
       showError('Failed to load floor logs');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [organizationId, page, pageSize, fromDate, toDate, showAllData]);
 
   useEffect(() => {
     if (selectedTab === 'active') fetchActiveVisitors();
     else if (selectedTab === 'logs') fetchLogs();
-  }, [organizationId, refreshTrigger, selectedTab, page, fromDate, toDate, showAllData]);
+    else fetchVisitors();
+  }, [organizationId, refreshTrigger, selectedTab, fetchActiveVisitors, fetchLogs, fetchVisitors]);
+
+  useEffect(() => {
+    if (!organizationId) return;
+
+    socketService.connect(organizationId);
+    socketService.joinOrganization(organizationId);
+
+    const handleMovementLogged = (payload) => {
+      if (!payload?.organization_id || payload.organization_id !== organizationId) return;
+      if (selectedTab === 'logs') {
+        fetchLogs({ silent: true });
+      }
+    };
+
+    socketService.on('visitor_movement_logged', handleMovementLogged);
+
+    return () => {
+      socketService.off('visitor_movement_logged', handleMovementLogged);
+    };
+  }, [organizationId, selectedTab, fetchLogs]);
 
   const handleTabChange = (tab) => {
     setSelectedTab(tab);
@@ -104,6 +150,11 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
     });
   };
 
+  const formatFloorLabel = (value) => {
+    if (!value) return '—';
+    return String(value).replace(/\s+/g, ' ').trim();
+  };
+
   // --- Check-out using new API (history_id) ---
   const handleCheckout = async (visitor) => {
     const historyId = visitor.history_id || visitor.id;
@@ -127,33 +178,39 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
 
   // --- Date Filter Bar (shared) ---
   const DateFilterBar = () => (
-    <div className="flex items-center gap-3 flex-wrap bg-white rounded-lg p-3 shadow-sm border border-gray-200">
-      <label className="text-sm font-semibold text-gray-700 whitespace-nowrap">Date Range:</label>
-      <input
-        type="date"
-        value={fromDate}
-        onChange={(e) => { setFromDate(e.target.value); setShowAllData(false); setPage(1); }}
-        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"
+    <div className="flex items-center justify-between gap-4 flex-wrap">
+      <Select
+        value={showAllData ? 'all' : null}
+        onChange={(value) => handlePresetDate(value)}
+        placeholder="Filter by date"
+        className="visitor-filter-select w-52"
+        popupMatchSelectWidth={false}
+        size="middle"
+        allowClear
+        options={[
+          { label: 'All Data', value: 'all' },
+          { label: 'Today', value: 'today' },
+          { label: 'This Week', value: 'thisWeek' },
+          { label: 'This Month', value: 'thisMonth' },
+        ]}
       />
-      <span className="text-gray-400 font-semibold">→</span>
-      <input
-        type="date"
-        value={toDate}
-        onChange={(e) => { setToDate(e.target.value); setShowAllData(false); setPage(1); }}
-        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"
-      />
-      {['today', 'thisWeek', 'thisMonth', 'all'].map((preset) => (
-        <button
-          key={preset}
-          onClick={() => handlePresetDate(preset)}
-          className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all border whitespace-nowrap ${(preset === 'all' && showAllData)
-              ? 'bg-orange-600 text-white border-orange-600 shadow-lg'
-              : 'bg-white text-gray-700 border-gray-300 hover:border-indigo-300 hover:bg-indigo-50'
-            }`}
-        >
-          {{ today: 'Today', thisWeek: 'This Week', thisMonth: 'This Month', all: 'All Data' }[preset]}
-        </button>
-      ))}
+      
+      <div className="flex items-center gap-2">
+        <label className="text-sm font-semibold text-gray-700 whitespace-nowrap">Date Range:</label>
+        <input
+          type="date"
+          value={fromDate}
+          onChange={(e) => { setFromDate(e.target.value); setShowAllData(false); setPage(1); }}
+          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"
+        />
+        <span className="text-gray-400 font-semibold">→</span>
+        <input
+          type="date"
+          value={toDate}
+          onChange={(e) => { setToDate(e.target.value); setShowAllData(false); setPage(1); }}
+          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"
+        />
+      </div>
     </div>
   );
 
@@ -188,9 +245,9 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
           {showTabs && (
             <div className="flex bg-gray-100 p-1 rounded-lg w-fit">
               {[
-                { key: 'active', label: '👥 Active Visitors' },
-                { key: 'logs', label: '📍 Floor Logs' },
-              ].map(({ key, label }) => (
+                { key: 'active', label: 'Active Visitors', icon: Users },
+                { key: 'logs', label: 'Floor Logs', icon: MapPin },
+              ].map(({ key, label, icon: Icon }) => (
                 <button
                   key={key}
                   onClick={() => handleTabChange(key)}
@@ -199,7 +256,7 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
                       : 'text-gray-600 hover:text-gray-900'
                     }`}
                 >
-                  {label}
+                  <Icon className="w-4 h-4" /> {label}
                 </button>
               ))}
             </div>
@@ -207,56 +264,71 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
         </div>
 
         {/* Date filter for tabs that support it */}
-        {selectedTab === 'logs' && <DateFilterBar />}
+        {selectedTab === 'logs' && (
+          <div className="mt-4 mb-4">
+            <DateFilterBar />
+          </div>
+        )}
       </div>
 
       {/* ===== ACTIVE VISITORS TAB ===== */}
       {selectedTab === 'active' && (
-        <div className="bg-green-50 rounded-xl shadow-md overflow-hidden border border-green-200">
+        <div className="overflow-x-auto bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 max-h-[calc(100vh-310px)] overflow-y-auto pb-16">
           {loading ? (
             <div className="flex justify-center items-center py-12"><Loader size="large" /></div>
           ) : activeVisitors.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-4xl mb-2">🚪</p>
+              <Users className="w-16 h-16 text-gray-400 mx-auto mb-3" />
               <p className="text-gray-600 font-semibold text-lg">No active visitors</p>
               <p className="text-gray-500 text-sm mt-1">All visitors have checked out</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-green-100 border-b-2 border-green-300">
+                <thead className="bg-teal-50 border-b border-gray-200">
                   <tr>
-                    {['#', 'Name', 'Phone', 'Type', 'Purpose', 'Floor', 'Check-in Time', 'Host', 'Actions'].map((h) => (
-                      <th key={h} className="px-6 py-4 text-left text-xs font-bold text-green-800 uppercase tracking-wider">{h}</th>
+                    {['S.No.', 'Name', 'Phone', 'Type', 'Purpose', 'Floor', 'Check-in Time', 'Host', 'Actions'].map((h) => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-green-200">
+                <tbody className="divide-y divide-gray-200">
                   {activeVisitors.map((visitor, index) => (
-                    <tr key={visitor.history_id || visitor.id} className="hover:bg-green-100/50 transition-colors duration-150">
-                      <td className="px-6 py-4 text-sm font-semibold text-gray-700">{index + 1}</td>
-                      <td className="px-6 py-4 text-sm font-semibold text-gray-900">{visitor.name}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{visitor.phone}</td>
-                      <td className="px-6 py-4 text-sm">
-                        <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-medium">
+                    <tr key={visitor.history_id || visitor.id} className="hover:bg-teal-50 transition-colors">
+                      <td className="px-4 py-4 text-sm font-medium text-gray-700">{index + 1}</td>
+                      <td className="px-4 py-4 text-sm font-semibold text-gray-900">{visitor.name}</td>
+                      <td className="px-4 py-4 text-sm text-gray-700">{visitor.phone}</td>
+                      <td className="px-4 py-4">
+                        <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
                           {visitor.visitor_type || 'Guest'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{visitor.purpose_of_visit || '—'}</td>
-                      <td className="px-6 py-4 text-sm">
-                        <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-md text-xs font-medium">
-                          {visitor.allowed_floor || '—'}
+                      <td className="px-4 py-4 text-sm text-gray-700">{visitor.purpose_of_visit || '—'}</td>
+                      <td className="px-4 py-4">
+                        <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
+                          {formatFloorLabel(visitor.allowed_floor)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{formatDateTime(visitor.check_in_time)}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{visitor.host_name || '—'}</td>
-                      <td className="px-6 py-4 text-sm">
+                      <td className="px-4 py-4 text-sm text-gray-700">{formatDateTime(visitor.check_in_time)}</td>
+                      <td className="px-4 py-4 text-sm text-gray-700">{visitor.host_name || '—'}</td>
+                      <td className="px-4 py-4 text-right">
                         <button
                           onClick={() => handleCheckout(visitor)}
                           disabled={checkingOutId === (visitor.history_id || visitor.id)}
-                          className="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-xs font-semibold disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all text-xs font-semibold disabled:opacity-50"
+                          title="Check Out"
                         >
-                          {checkingOutId === (visitor.history_id || visitor.id) ? '...' : '🚪 Check Out'}
+                          {checkingOutId === (visitor.history_id || visitor.id) ? (
+                            <>
+                              <span className="inline-block w-3.5 h-3.5 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                              ...
+                            </>
+                          ) : (
+                            <>
+                              <LogOut className="w-4 h-4" />
+                              Check Out
+                            </>
+                          )}
                         </button>
                       </td>
                     </tr>
@@ -270,12 +342,12 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
 
       {/* ===== FLOOR LOGS TAB ===== */}
       {selectedTab === 'logs' && (
-        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+        <div className="overflow-x-auto bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 max-h-[calc(100vh-310px)] overflow-y-auto pb-16">
           {loading ? (
             <div className="flex justify-center items-center py-12"><Loader size="large" /></div>
           ) : logs.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-4xl mb-3">📍</p>
+              <MapPin className="w-16 h-16 text-gray-400 mx-auto mb-3" />
               <p className="text-gray-600 font-semibold text-lg">No floor movement logs</p>
               <p className="text-gray-500 text-sm mt-1">Try adjusting your date range</p>
             </div>
@@ -283,33 +355,50 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
             <>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gradient-to-r from-indigo-50 to-blue-50 border-b-2 border-indigo-200">
+                  <thead className="bg-teal-50 border-b border-gray-200">
                     <tr>
-                      {['#', 'Visitor Name', 'Phone', 'Floor', 'Entry Time', 'Exit Time', 'Logged At'].map((h) => (
-                        <th key={h} className="px-6 py-4 text-left text-xs font-bold text-indigo-900 uppercase tracking-wider">{h}</th>
+                      {['S.No.', 'Visitor Name', 'Phone', 'Tower', 'Floor', 'Status', 'Entry Time', 'Exit Time', 'Logged At'].map((h) => (
+                        <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {logs.map((log, index) => (
-                      <tr key={log.id} className="hover:bg-indigo-50 transition-colors duration-150">
-                        <td className="px-6 py-4 text-sm font-semibold text-gray-700">
+                      <tr key={log.id} className="hover:bg-teal-50 transition-colors">
+                        <td className="px-4 py-4 text-sm font-medium text-gray-700">
                           {(page - 1) * pageSize + index + 1}
                         </td>
-                        <td className="px-6 py-4 text-sm font-semibold text-gray-900">{log.name || '—'}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600">{log.visitor_phone || '—'}</td>
-                        <td className="px-6 py-4 text-sm">
-                          <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-md text-xs font-medium">
-                            {log.floor || '—'}
+                        <td className="px-4 py-4 text-sm font-semibold text-gray-900">{log.name || '—'}</td>
+                        <td className="px-4 py-4 text-sm text-gray-700">{log.visitor_phone || '—'}</td>
+                        <td className="px-4 py-4">
+                          <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
+                            {log.tower || '—'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">{formatDateTime(log.entry_time)}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
+                        <td className="px-4 py-4">
+                          <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
+                            {formatFloorLabel(log.floor)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4">
+                          {(() => {
+                            const statusVal = String(log.status || 'unknown').toLowerCase();
+                            if (statusVal === 'authorised') {
+                              return <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-semibold">Authorised</span>;
+                            }
+                            if (statusVal === 'unauthorised') {
+                              return <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">Unauthorised</span>;
+                            }
+                            return <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold">Unknown</span>;
+                          })()}
+                        </td>
+                        <td className="px-4 py-4 text-sm text-gray-700">{formatDateTime(log.entry_time)}</td>
+                        <td className="px-4 py-4 text-sm text-gray-700">
                           {log.exit_time ? formatDateTime(log.exit_time) : (
                             <span className="text-green-600 text-xs font-semibold">Still on floor</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">{formatDateTime(log.created_at)}</td>
+                        <td className="px-4 py-4 text-sm text-gray-500">{formatDateTime(log.created_at)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -326,9 +415,4 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
 
 export default VisitorLogsList;
 
-VisitorLogsList.propTypes = {
-  organizationId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  refreshTrigger: PropTypes.number,
-  selectedTabKey: PropTypes.oneOf(['active', 'logs']),
-  showTabs: PropTypes.bool
-};
+

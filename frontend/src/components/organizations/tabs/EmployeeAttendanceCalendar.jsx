@@ -37,6 +37,13 @@ const EmployeeAttendanceCalendar = ({
         }
     }, [selectedEmployeeId]);
 
+    // Auto-select first employee if none selected and employees are available
+    useEffect(() => {
+        if (!selectedEmployee && !selectedEmployeeId && employees.length > 0 && viewMode !== 'employee') {
+            setSelectedEmployee(employees[0].id);
+        }
+    }, [employees, selectedEmployee, selectedEmployeeId, viewMode]);
+
     // Update employee details when selected employee changes
     useEffect(() => {
         if (selectedEmployee) {
@@ -173,7 +180,7 @@ const EmployeeAttendanceCalendar = ({
                 week.push(
                     <div
                         key={currentDay.format('YYYY-MM-DD')}
-                        className={`min-h-[2.5rem] p-0.5 border ${getDayColor(status)} ${!isCurrentMonth ? 'opacity-30' : ''
+                        className={`min-h-[5rem] h-20 p-1 border ${getDayColor(status)} ${!isCurrentMonth ? 'opacity-30' : ''
                             } ${isFuture ? 'opacity-20' : ''} transition-all hover:shadow-md relative group text-xs`}
                     >
                         <div className="font-bold text-[10px] absolute top-0.5 left-0.5">{currentDay.format('D')}</div>
@@ -221,7 +228,7 @@ const EmployeeAttendanceCalendar = ({
     };
 
     return (
-        <div className="space-y-3">
+        <div className="space-y-3 overflow-y-auto max-h-[calc(100vh-310px)] pb-16">
             {/* Controls */}
             <div className="flex gap-3 items-center justify-end bg-teal-50 p-2 rounded-lg border border-gray-200">
                 {viewMode !== 'employee' && (
@@ -281,9 +288,9 @@ const EmployeeAttendanceCalendar = ({
                     {/* Left Column: Stats (1/3 width) */}
                     <div className="w-full lg:w-1/3 space-y-4">
 
-                        {/* AI Analysis Card - Professional Redesign (Teal/Cyan Theme) */}
+                        {/* AI Analysis Card - Professional Redesign (Teal/Cyan Theme)
                         <div className="bg-gradient-to-br from-teal-900 to-slate-900 rounded-xl p-5 shadow-xl text-white relative overflow-hidden border border-teal-500/30 group">
-                            {/* Abstract Background Shapes */}
+                            {/* Abstract Background Shapes }
                             <div className="absolute -top-10 -right-10 w-32 h-32 bg-cyan-500/20 rounded-full blur-3xl group-hover:bg-cyan-500/30 transition-colors duration-700"></div>
                             <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-teal-500/20 rounded-full blur-3xl group-hover:bg-teal-500/30 transition-colors duration-700"></div>
 
@@ -330,62 +337,48 @@ const EmployeeAttendanceCalendar = ({
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
 
                         <div className="bg-teal-50/95 rounded-lg border border-gray-200 p-4 shadow-sm">
                             <h4 className="font-bold text-gray-800 text-sm mb-3 uppercase tracking-wider border-b border-gray-100 pb-2">
                                 Monthly Summary
                             </h4>
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between p-2 rounded bg-green-50 border border-green-100">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-2 h-8 bg-green-500 rounded-full"></div>
-                                        <div>
-                                            <div className="text-xs text-gray-500 uppercase font-semibold">Present</div>
-                                            <div className="text-lg font-bold text-gray-900">{stats.present} <span className="text-xs font-normal text-gray-400">days</span></div>
-                                        </div>
-                                    </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="p-3 rounded bg-green-50 border border-green-100 text-center">
+                                    <div className="w-8 h-2 bg-green-500 rounded-full mx-auto mb-2"></div>
+                                    <div className="text-xs text-gray-500 uppercase font-semibold mb-1">Present</div>
+                                    <div className="text-xl font-bold text-gray-900">{stats.present}</div>
+                                    <div className="text-xs text-gray-400">days</div>
                                 </div>
 
-                                <div className="flex items-center justify-between p-2 rounded bg-orange-50 border border-orange-100">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-2 h-8 bg-orange-500 rounded-full"></div>
-                                        <div>
-                                            <div className="text-xs text-gray-500 uppercase font-semibold">Late Arrivals</div>
-                                            <div className="text-lg font-bold text-gray-900">{stats.late} <span className="text-xs font-normal text-gray-400">days</span></div>
-                                        </div>
-                                    </div>
+                                <div className="p-3 rounded bg-orange-50 border border-orange-100 text-center">
+                                    <div className="w-8 h-2 bg-orange-500 rounded-full mx-auto mb-2"></div>
+                                    <div className="text-xs text-gray-500 uppercase font-semibold mb-1">Late Arrivals</div>
+                                    <div className="text-xl font-bold text-gray-900">{stats.late}</div>
+                                    <div className="text-xs text-gray-400">days</div>
                                 </div>
 
-                                <div className="flex items-center justify-between p-2 rounded bg-red-50 border border-red-100">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-2 h-8 bg-red-500 rounded-full"></div>
-                                        <div>
-                                            <div className="text-xs text-gray-500 uppercase font-semibold">Absent</div>
-                                            <div className="text-lg font-bold text-gray-900">{stats.absent} <span className="text-xs font-normal text-gray-400">days</span></div>
-                                        </div>
-                                    </div>
+                                <div className="p-3 rounded bg-red-50 border border-red-100 text-center">
+                                    <div className="w-8 h-2 bg-red-500 rounded-full mx-auto mb-2"></div>
+                                    <div className="text-xs text-gray-500 uppercase font-semibold mb-1">Absent</div>
+                                    <div className="text-xl font-bold text-gray-900">{stats.absent}</div>
+                                    <div className="text-xs text-gray-400">days</div>
                                 </div>
 
-                                <div className="flex items-center justify-between p-2 rounded bg-yellow-50 border border-yellow-100">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-2 h-8 bg-yellow-500 rounded-full"></div>
-                                        <div>
-                                            <div className="text-xs text-gray-500 uppercase font-semibold">On Leave</div>
-                                            <div className="text-lg font-bold text-gray-900">{stats.leave} <span className="text-xs font-normal text-gray-400">days</span></div>
-                                        </div>
-                                    </div>
+                                <div className="p-3 rounded bg-yellow-50 border border-yellow-100 text-center">
+                                    <div className="w-8 h-2 bg-yellow-500 rounded-full mx-auto mb-2"></div>
+                                    <div className="text-xs text-gray-500 uppercase font-semibold mb-1">On Leave</div>
+                                    <div className="text-xl font-bold text-gray-900">{stats.leave}</div>
+                                    <div className="text-xs text-gray-400">days</div>
                                 </div>
-
-                                <div className="flex items-center justify-between p-2 rounded bg-blue-50 border border-blue-100">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-2 h-8 bg-blue-500 rounded-full"></div>
-                                        <div>
-                                            <div className="text-xs text-gray-500 uppercase font-semibold">Avg. Hours</div>
-                                            <div className="text-lg font-bold text-gray-900">{stats.avgHours}<span className="text-sm">h</span> <span className="text-xs font-normal text-gray-400">/day</span></div>
-                                        </div>
-                                    </div>
-                                </div>
+                            </div>
+                            
+                            {/* Avg Hours as separate full-width item below grid */}
+                            <div className="mt-3 p-3 rounded bg-blue-50 border border-blue-100 text-center">
+                                <div className="w-8 h-2 bg-blue-500 rounded-full mx-auto mb-2"></div>
+                                <div className="text-xs text-gray-500 uppercase font-semibold mb-1">Avg. Hours</div>
+                                <div className="text-xl font-bold text-gray-900">{stats.avgHours}<span className="text-sm">h</span></div>
+                                <div className="text-xs text-gray-400">/day</div>
                             </div>
                         </div>
 
@@ -406,7 +399,7 @@ const EmployeeAttendanceCalendar = ({
                                 )}
                             </div>
 
-                            <div className="p-2">
+                            <div className="p-2 min-h-[450px] pb-4">
                                 {/* Day Headers */}
                                 <div className="grid grid-cols-7 gap-1 mb-1">
                                     {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (

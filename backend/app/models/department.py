@@ -16,8 +16,8 @@ class Department(db.Model):
     organization_id = db.Column(db.String(36), db.ForeignKey("organizations.id"), nullable=False, index=True)
     organization = db.relationship("Organization", back_populates="departments")
     
-    name = db.Column(db.String(255), nullable=False)
-    code = db.Column(db.String(50), nullable=False)
+    name = db.Column(db.String(255), nullable=False, index=True)  # Add index for search
+    code = db.Column(db.String(50), nullable=False, index=True)   # Add index for search
     description = db.Column(db.Text)
     
     # Manager relationship (self-referential through employee)
@@ -26,12 +26,12 @@ class Department(db.Model):
     manager_id = db.Column(db.String(36), nullable=True)
     
     # Status
-    is_active = db.Column(db.Boolean, nullable=False, default=True)
+    is_active = db.Column(db.Boolean, nullable=False, default=True, index=True)  # Add index for filtering
     
     # Audit timestamps
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
-    deleted_at = db.Column(db.DateTime, nullable=True)  # Soft delete
+    deleted_at = db.Column(db.DateTime, nullable=True, index=True)  # Add index for soft delete filter
     
     # Relationships
     employees = db.relationship("Employee", back_populates="department", foreign_keys="Employee.department_id")
@@ -39,6 +39,8 @@ class Department(db.Model):
     # Unique constraint: org_id + code
     __table_args__ = (
         db.UniqueConstraint("organization_id", "code", name="uq_org_dept_code"),
+        # Composite index for common filter combinations
+        db.Index('ix_org_active_deleted', 'organization_id', 'is_active', 'deleted_at'),
     )
 
     def to_dict(self, include_employees=False):

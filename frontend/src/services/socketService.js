@@ -4,9 +4,7 @@
  */
 
 import { io } from 'socket.io-client';
-
-// WebSocket server URL - should be configured based on environment
-const SOCKET_URL = process.env.REACT_APP_WS_URL || 'http://localhost:5001';
+import { SOCKET_URL } from '../config';
 
 class SocketService {
   constructor() {
@@ -76,6 +74,11 @@ class SocketService {
       this.socket.on('visitor_checkout', (data) => {
         console.log('Visitor checked out:', data);
         this.emit('visitor_checkout', data);
+      });
+
+      this.socket.on('visitor_movement_logged', (data) => {
+        console.log('Visitor movement logged:', data);
+        this.emit('visitor_movement_logged', data);
       });
 
       this.socket.on('error', (data) => {

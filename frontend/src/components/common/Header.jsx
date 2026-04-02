@@ -3,18 +3,37 @@ import { useNavigate, useLocation } from "react-router-dom";
 import sparquerLogo from "../../images/logo.svg";
 import "../../styles/Header.css";
 import { profileAPI } from "../../services/api";
+import { useAuth } from "../../contexts/AuthContext";
+import { getThemeClasses, getRoleBasedTheme } from "../../utils/roleBasedTheme";
 
 function Header() {
-
+  const { user } = useAuth();
   const [showLogout, setShowLogout] = useState(false);
   const [userName, setUserName] = useState("");
   const [userInitials, setUserInitials] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Role-based theming
+  const themeClasses = getThemeClasses(user);
+  const theme = getRoleBasedTheme(user);
 
   useEffect(() => {
     async function fetchUser() {
       try {
+        // Try to get user data from AuthContext first
+        if (user?.username && user?.email) {
+          const name = user.full_name || user.username || "";
+          setUserName(name);
+          setUserInitials(
+            name
+              ? name.split(" ").map((n) => n[0]).join("").toUpperCase()
+              : ""
+          );
+          return;
+        }
+
+        // Fallback to API call if no user context
         const resp = await profileAPI.me();
         const name = resp.data?.full_name || "";
         setUserName(name);
@@ -29,7 +48,7 @@ function Header() {
       }
     }
     fetchUser();
-  }, []);
+  }, [user]);
 
   const handleNavigation = (section) => {
     console.log(`Navigate to ${section}`);
@@ -47,7 +66,7 @@ function Header() {
   const hideLogout = location.pathname === "/";
 
   return (
-    <header className="fixed top-0 left-0 right-0 w-full bg-gradient-to-r from-teal-600 via-purple-600 to-teal-700 shadow-2xl border-b border-purple-400/30 backdrop-blur-sm z-1000">
+    <header className={`fixed top-0 left-0 right-0 w-full ${themeClasses.header} shadow-2xl backdrop-blur-sm z-1000`}>
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-8 h-16">
         {/* Logo */}
         <div 
@@ -92,17 +111,30 @@ function Header() {
                 </div>
                 <span className="text-sm font-semibold text-white whitespace-nowrap hidden lg:inline">
                   {userName}
+                  {user?.role?.name && (
+                    <span className="block text-xs text-white/80 font-normal">
+                      {user.role.name.replace('_', ' ')}
+                    </span>
+                  )}
                 </span>
               </div>
 
               {showLogout && (
-                <div className="absolute top-16 right-0 bg-gradient-to-br from-violet-600 to-teal-700 border border-white/20 rounded-2xl shadow-2xl p-5 min-w-max z-2000 flex items-center gap-4 backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className={`absolute top-16 right-0 ${themeClasses.header} border border-white/20 rounded-2xl shadow-2xl p-5 min-w-max z-2000 flex items-center gap-4 backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200`}>
                   <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md text-white flex items-center justify-center text-lg font-bold border border-white/30 shadow-lg">
                     {userInitials}
                   </div>
                   <div className="flex flex-col gap-3">
-                    <div className="text-sm font-bold text-white">
-                      {userName}
+                    <div>
+                      <div className="text-sm font-bold text-white">
+                        {userName}
+                      </div>
+                      {user?.role?.name && (
+                        <div className="text-xs text-white/80 capitalize">
+                          {user.role.name.replace('_', ' ')} 
+                          {user?.organization?.name && ` • ${user.organization.name}`}
+                        </div>
+                      )}
                     </div>
                     <button 
                       className="text-xs text-white/90 font-semibold px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-all duration-200 border border-white/20"
@@ -130,12 +162,19 @@ function Header() {
                 </div>
               </div>
               {showLogout && (
-                <div className="absolute top-12 right-0 bg-gradient-to-br from-violet-600 to-teal-700 border border-white/20 rounded-xl shadow-xl p-3 min-w-max z-2000 flex items-center gap-3">
+                <div className={`absolute top-12 right-0 ${themeClasses.header} border border-white/20 rounded-xl shadow-xl p-3 min-w-max z-2000 flex items-center gap-3`}>
                   <div className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center text-sm font-bold">
                     {userInitials}
                   </div>
                   <div className="flex flex-col gap-2">
-                    <div className="text-xs font-bold text-white">{userName}</div>
+                    <div>
+                      <div className="text-xs font-bold text-white">{userName}</div>
+                      {user?.role?.name && (
+                        <div className="text-xs text-white/70 capitalize">
+                          {user.role.name.replace('_', ' ')}
+                        </div>
+                      )}
+                    </div>
                     <button 
                       className="text-xs text-white/90 font-semibold px-3 py-1 bg-white/20 hover:bg-white/30 rounded transition-all"
                       onClick={handleLogoutConfirm}

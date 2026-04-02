@@ -7,13 +7,31 @@
 
   html,
   body {
-    height: auto;
+    height: 100vh;
+    min-height: 100vh;
     margin: 0;
     padding: 0;
-    overflow: auto;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
     @apply font-sans;
     background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 50%, #5eead4 100%);
     background-attachment: fixed;
+  }
+
+  #root, .App {
+    height: 100vh;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  main.flex-1 {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 }
 

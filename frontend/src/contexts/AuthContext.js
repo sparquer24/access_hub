@@ -116,6 +116,12 @@ export const AuthProvider = ({ children }) => {
         saveTokens(access_token, refresh_token);
         saveUserData(userData);
         
+        console.log('--- Dev Login Success ---');
+        console.log('User:', userData.username);
+        console.log('Role:', userData.role?.name || userData.role);
+        console.log('Permissions:', userData.role?.permissions || 'None');
+        console.log('--------------------------');
+        
         setUser(userData);
         setIsAuthenticated(true);
         

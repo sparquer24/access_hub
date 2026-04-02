@@ -303,6 +303,18 @@ export const visitorsAPI = {
 
   // Get visitor applications
   getApplications: (visitorId) => api.get(`/api/visitors/${visitorId}/applications`),
+
+  // Get locations for visitor registration (organized by tower/floor)
+  getLocations: (orgId) => api.get(`/api/v2/locations`, { 
+    params: { 
+      organization_id: orgId, 
+      per_page: 100 
+    } 
+  }),
+
+  // Deprecated - use getLocations() instead
+  floors: () => api.get('/api/meta/floors'),
+  towers: () => api.get('/api/meta/towers'),
 };
 
 // =======================

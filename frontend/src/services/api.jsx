@@ -3,33 +3,19 @@
 import axios from "axios";
 import io from "socket.io-client";
 import { tokenUtils } from "../utils/tokenUtils";
+import { API_BASE as BASE_URL } from "../config";
+
+// Re-export constants
+export const API_BASE = BASE_URL;
+export const API_BASE_URL = BASE_URL;
 
 export const profileAPI = {
   me: () => api.get('/api/me'),
 };
 
-// Base URL for API calls
-let API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://access-alb16-o81zyqqut8kx-538769711.ap-south-1.elb.amazonaws.com";
-
-// Mixed Content Fix: If the page is loaded over HTTPS, force the API to use HTTPS
-if (typeof window !== 'undefined' && window.location.protocol === 'https:' && API_BASE_URL.startsWith('http:')) {
-  console.log('🔒 Mixed Content detected: Switching API_BASE_URL to HTTPS');
-  API_BASE_URL = API_BASE_URL.replace('http:', 'https:');
-}
-
-// DEBUG: Log the API URL being used
-console.log('🌐 API Configuration:');
-console.log('  REACT_APP_API_BASE_URL from env:', process.env.REACT_APP_API_BASE_URL);
-console.log('  Final API_BASE_URL:', API_BASE_URL);
-console.log('  All REACT_APP_ vars:', Object.keys(process.env).filter(k => k.startsWith('REACT_APP_')));
-
-// Export this so components can prefix image URLs coming from the backend
-export const API_BASE = API_BASE_URL;
-
-
 // Axios instance - JWT-based APIs don't need credentials (cookies/sessions)
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_BASE,
   withCredentials: false, // JWT doesn't need cookies
   headers: {
     'Content-Type': 'application/json',
@@ -100,6 +86,11 @@ api.interceptors.response.use(
     }
 
     // Handle other errors
+    if (!error.response) {
+      console.error('Network Error - Check if backend is reachable and CORS/HTTPS is configured correctly');
+      console.error('Base URL:', API_BASE_URL);
+    }
+    
     if (error.response?.status === 403) {
       console.error('Access forbidden:', error.response.data?.message);
     } else if (error.response?.status >= 500) {

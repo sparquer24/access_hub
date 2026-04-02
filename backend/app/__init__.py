@@ -6,28 +6,20 @@ from flasgger import Swagger
 import os
 from sqlalchemy import text
 
-
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    # CORS Configuration
-    cors_origins_str = app.config.get("CORS_ORIGIN", "*")
-    env = app.config.get("ENVIRONMENT", "dev").lower()
+    # CORS: Allow all origins
+    from flask_cors import CORS
+    CORS(app, resources={r"/api/.*": {"origins": "*"}}, supports_credentials=True)
+    app.logger.info("CORS enabled for all origins: *")
 
-    if cors_origins_str == "*":
-        allowed_origins = "*"
-        if env == "prod":
-            app.logger.warning("CORS is configured to allow all origins ('*') in a production environment. This is insecure and should be restricted to specific domains.")
-    else:
-        allowed_origins = [origin.strip() for origin in cors_origins_str.split(",")]
-
-    CORS(
-        app,
-        resources={r"/api/*": {"origins": allowed_origins}},
-        supports_credentials=True
-    )
-    app.logger.info(f"CORS enabled for origins: {allowed_origins}")
+    # Set security headers after each request
+    @app.after_request
+    def after_request(response):
+        response.headers["Referrer-Policy"] = "no-referrer-when-downgrade"
+        return response
 
     # Initialize extensions
     db.init_app(app)
@@ -59,11 +51,10 @@ def create_app():
         "specs_route": "/api/docs/",
     }
     
-    # Parse SWAGGER_HOST to separate scheme and host for Swagger config
-    raw_swagger_host = app.config.get("SWAGGER_HOST", "localhost:5001")
-    swagger_host_domain = raw_swagger_host
-    if "://" in raw_swagger_host:
-        _, swagger_host_domain = raw_swagger_host.split("://", 1)
+    # Use SWAGGER_HOST for Swagger config
+    swagger_host_domain = app.config.get("SWAGGER_HOST", "https://api.accesshub.sparquer.ai")
+    if "://" in swagger_host_domain:
+        _, swagger_host_domain = swagger_host_domain.split("://", 1)
     
     swagger_template = {
         "swagger": "2.0",
@@ -101,9 +92,9 @@ def create_app():
             "Error": {
                 "type": "object",
                 "properties": {
-                    "success": {
-                        "type": "boolean",
-                        "example": False
+                    "status": {
+                        "type": "string",
+                        "example": "error"
                     },
                     "message": {
                         "type": "string",
@@ -118,9 +109,9 @@ def create_app():
             "Success": {
                 "type": "object",
                 "properties": {
-                    "success": {
-                        "type": "boolean",
-                        "example": True
+                    "status": {
+                        "type": "string",
+                        "example": "success"
                     },
                     "message": {
                         "type": "string",
@@ -387,8 +378,9 @@ def create_app():
     from .api.embedding_gen.routes import face_enroll_bp
     app.register_blueprint(face_enroll_bp)
     
-    from .api.manager.routes import bp as manager_v2_bp
+    from .api.manager.routes import bp as manager_v2_bp, bp_legacy as manager_legacy_bp
     app.register_blueprint(manager_v2_bp)
+    app.register_blueprint(manager_legacy_bp)
     
     # from .api.employee.routes import bp as employee_v2_bp
     # app.register_blueprint(employee_v2_bp)
@@ -399,7 +391,7 @@ def create_app():
     from .api.stats.routes import bp as stats_bp
     app.register_blueprint(stats_bp)
     
-    from .users.routes import bp as users_v2_bp
+    from .api.users.routes import bp as users_v2_bp
     app.register_blueprint(users_v2_bp)
     
     try:
@@ -519,6 +511,10 @@ def create_app():
     # Import and register event handlers
     from . import events
     events_bp = events.bp
+
+    # Bridge Postgres row changes to websocket events (alerts + visitor movement logs)
+    from .events.db_realtime import setup_db_realtime_bridge
+    setup_db_realtime_bridge(app)
     
     return app
 

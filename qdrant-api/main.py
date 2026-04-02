@@ -11,11 +11,12 @@ logger = setup_logger("Main")
 async def lifespan(app: FastAPI):
     # Startup logic
     try:
-        created = create_collections(COLLECTION_NAME_AMS)
-        if created:
-            logger.info(f"Qdrant collection '{COLLECTION_NAME_AMS}' created or already exists.")
-        else:
-            logger.warning(f"Failed to create collection '{COLLECTION_NAME_AMS}'.")
+        for collection_name in (COLLECTION_NAME, COLLECTION_NAME_AMS):
+            created = create_collections(collection_name)
+            if created:
+                logger.info(f"Qdrant collection '{collection_name}' created or already exists.")
+            else:
+                logger.warning(f"Failed to create collection '{collection_name}'.")
     except Exception as e:
         logger.error(f"Error while creating collection: {e}")
     

@@ -221,26 +221,41 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
             const allEmployees = empResponse.data?.items || [];
             const allDepartments = deptResponse.data?.items || deptResponse.data || [];
 
-            // Calculate statistics
-            const active = allEmployees.filter(e => e.is_active).length;
-            const inactive = allEmployees.filter(e => !e.is_active).length;
-            const maleCount = allEmployees.filter(e => e.gender?.toLowerCase() === 'male' || e.gender === 'M').length;
-            const femaleCount = allEmployees.filter(e => e.gender?.toLowerCase() === 'female' || e.gender === 'F').length;
 
-            // Gender breakdown for active employees
-            const activeMaleCount = allEmployees.filter(e => e.is_active && (e.gender?.toLowerCase() === 'male' || e.gender === 'M')).length;
-            const activeFemaleCount = allEmployees.filter(e => e.is_active && (e.gender?.toLowerCase() === 'female' || e.gender === 'F')).length;
-
-            // Gender breakdown for inactive employees
-            const inactiveMaleCount = allEmployees.filter(e => !e.is_active && (e.gender?.toLowerCase() === 'male' || e.gender === 'M')).length;
-            const inactiveFemaleCount = allEmployees.filter(e => !e.is_active && (e.gender?.toLowerCase() === 'female' || e.gender === 'F')).length;
-
-            // Count employees by department and calculate metrics
+            // Efficient statistics calculation
+            let active = 0, inactive = 0;
+            let maleCount = 0, femaleCount = 0;
+            let activeMaleCount = 0, activeFemaleCount = 0;
+            let inactiveMaleCount = 0, inactiveFemaleCount = 0;
             const deptMap = {};
-            const deptAttendance = {};
+            const now = new Date();
+            const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            let newThisMonthVal = 0, newMaleCount = 0, newFemaleCount = 0;
             allEmployees.forEach(emp => {
+                const gender = emp.gender?.toLowerCase();
+                const isMale = gender === 'male' || emp.gender === 'M';
+                const isFemale = gender === 'female' || emp.gender === 'F';
+                if (emp.is_active) {
+                    active++;
+                    if (isMale) activeMaleCount++;
+                    if (isFemale) activeFemaleCount++;
+                } else {
+                    inactive++;
+                    if (isMale) inactiveMaleCount++;
+                    if (isFemale) inactiveFemaleCount++;
+                }
+                if (isMale) maleCount++;
+                if (isFemale) femaleCount++;
                 if (emp.department?.name) {
                     deptMap[emp.department.name] = (deptMap[emp.department.name] || 0) + 1;
+                }
+                if (emp.joining_date) {
+                    const joinDate = new Date(emp.joining_date);
+                    if (joinDate >= firstDayOfMonth && joinDate <= now) {
+                        newThisMonthVal++;
+                        if (isMale) newMaleCount++;
+                        if (isFemale) newFemaleCount++;
+                    }
                 }
             });
 
@@ -253,17 +268,7 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
 
             setDepartmentMetrics(departmentList);
 
-            // Calculate new employees this month
-            const now = new Date();
-            const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-            const newEmployees = allEmployees.filter(emp => {
-                if (!emp.joining_date) return false;
-                const joinDate = new Date(emp.joining_date);
-                return joinDate >= firstDayOfMonth && joinDate <= now;
-            });
-            const newThisMonthVal = newEmployees.length;
-            const newMaleCount = newEmployees.filter(e => e.gender?.toLowerCase() === 'male' || e.gender === 'M').length;
-            const newFemaleCount = newEmployees.filter(e => e.gender?.toLowerCase() === 'female' || e.gender === 'F').length;
+            // newThisMonthVal, newMaleCount, newFemaleCount already calculated in the loop above
 
             // Calculate compliance metrics (based on attendance)
             const excellentAttendance = Math.max(0, Math.floor(allEmployees.length * 0.76)); // >95%
@@ -493,7 +498,7 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
     };
 
     return (
-        <div className="space-y-8 animate-fadeIn">
+        <div className="space-y-3 p-2 animate-fadeIn overflow-y-auto max-h-[calc(100vh-310px)] pb-16">
             {/* SECTION 1: HEADLINE METRICS - 4 Key KPI Cards */}
             <div>
                 <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">

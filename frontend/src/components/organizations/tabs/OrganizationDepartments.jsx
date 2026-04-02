@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Switch } from 'antd';
+import { Edit, Trash2 } from 'lucide-react';
 import { departmentsService } from '../../../services/organizationsService';
 import Loader from '../../common/Loader';
 import { useToast } from '../../../contexts/ToastContext';
@@ -99,11 +100,10 @@ const OrganizationDepartments = ({ organizationId, organization }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-y-auto max-h-[calc(100vh-310px)] pb-16">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">Departments</h2>
-          <p className="text-gray-600 mt-1">Manage departments for {organization?.name}</p>
         </div>
         <button onClick={openCreate} className="px-4 py-2 bg-teal-600 text-white rounded-lg">➕ Create Department</button>
       </div>
@@ -119,8 +119,9 @@ const OrganizationDepartments = ({ organizationId, organization }) => {
           <p className="text-gray-600">Create a department to get started</p>
         </div>
       ) : (
-        <div className="overflow-x-auto bg-teal-50/95 rounded-xl shadow-md">
-          <table className="w-full">
+        <div className="bg-teal-50/95 rounded-xl shadow-md max-h-[60vh] overflow-hidden">
+          <div className="overflow-x-auto overflow-y-auto max-h-[55vh]">
+            <table className="w-full">
             <thead className="bg-teal-50 border-b">
               <tr>
                 <th className="px-6 py-3 text-left">S.No</th>
@@ -142,15 +143,20 @@ const OrganizationDepartments = ({ organizationId, organization }) => {
                     </button>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button onClick={() => openEdit(d)} className="px-3 py-1 bg-teal-50 text-teal-600 rounded">Edit</button>
-                      <button onClick={() => handleDelete(d)} className="px-3 py-1 bg-red-50 text-red-600 rounded">Delete</button>
+                    <div className="flex justify-end gap-3">
+                      <button onClick={() => openEdit(d)} title="Edit" className="w-8 h-8 inline-flex items-center justify-center bg-teal-50 text-teal-600 rounded hover:bg-teal-100 transition-all">
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => handleDelete(d)} title="Delete" className="w-8 h-8 inline-flex items-center justify-center bg-red-50 text-red-600 rounded hover:bg-red-100 transition-all">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

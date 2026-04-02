@@ -298,7 +298,7 @@ const OrganizationForm = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-slate-100 py-8">
+    <div className="bg-gradient-to-br from-slate-50 to-slate-100 py-8 h-screen overflow-y-auto">
       {/* Header */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
         <div className="text-center">

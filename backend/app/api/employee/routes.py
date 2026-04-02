@@ -16,7 +16,7 @@ from app.models.leave_request import LeaveRequest
 from app.utils.decorators import role_required, tenant_isolation
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 
-bp = Blueprint('EmployeeDetail', __name__, url_prefix='/api/v2/employees')
+bp = Blueprint('EmployeeDetail', __name__, url_prefix='/api/employee')
 
 
 def _get_current_user_id():
@@ -47,6 +47,111 @@ def _get_current_user_id():
 def get_employee_profile():
     """
     Get current employee's profile information
+    ---
+    tags:
+      - Employees
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: Employee profile information retrieved successfully
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            data:
+              type: object
+              properties:
+                user_info:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      description: User ID
+                    username:
+                      type: string
+                      description: Username
+                    email:
+                      type: string
+                      format: email
+                      description: User email address
+                    first_name:
+                      type: string
+                      description: First name
+                    last_name:
+                      type: string
+                      description: Last name
+                    full_name:
+                      type: string
+                      description: Full name
+                    role:
+                      type: string
+                      description: User role
+                    is_active:
+                      type: boolean
+                      description: Is user active
+                    created_at:
+                      type: string
+                      format: date-time
+                      description: Account creation date
+                employee_info:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      description: Employee ID
+                    employee_code:
+                      type: string
+                      description: Employee code
+                    position:
+                      type: string
+                      description: Job position/designation
+                    phone:
+                      type: string
+                      description: Phone number
+                    hire_date:
+                      type: string
+                      format: date
+                      description: Joining/hire date
+                    salary:
+                      type: number
+                      description: Salary amount
+                    is_active:
+                      type: boolean
+                      description: Is employee active
+                    profile_image_url:
+                      type: string
+                      description: URL to profile image
+                    department:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        description:
+                          type: string
+                    organization:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+      401:
+        description: Unauthorized - JWT token missing or invalid
+        schema:
+          $ref: '#/definitions/Error'
+      403:
+        description: Forbidden - User does not have required permission
+        schema:
+          $ref: '#/definitions/Error'
+      404:
+        description: Employee record not found
+        schema:
+          $ref: '#/definitions/Error'
     """
     try:
         # Debug: log JWT identity, claims and g context to help trace errors
@@ -76,14 +181,28 @@ def get_employee_profile():
         user_id = _get_current_user_id()
         current_app.logger.debug(f"EMP_PROFILE DEBUG: resolved user_id={user_id}")
         
+        if not user_id:
+            return jsonify({
+                'status': 'error',
+                'message': 'Unable to determine current user from JWT token'
+            }), 401
+        
         # Get employee record
         employee = Employee.query.filter_by(user_id=user_id, is_active=True).first()
         current_app.logger.debug(f"EMP_PROFILE DEBUG: employee found={bool(employee)} id={(employee.id if employee else None)}")
         
         if not employee:
+            # Check if employee exists but is inactive
+            inactive_employee = Employee.query.filter_by(user_id=user_id, is_active=False).first()
+            if inactive_employee:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Employee record is inactive'
+                }), 403
+            
             return jsonify({
                 'status': 'error',
-                'message': 'Employee record not found'
+                'message': f'Employee record not found for user {user_id}'
             }), 404
         
         # Map fields from Employee and User models safely
@@ -164,6 +283,49 @@ def get_employee_profile():
 def get_today_attendance():
     """
     Get current employee's attendance status for today
+    ---
+    tags:
+      - Employees
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: Today's attendance information
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            data:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date
+                status:
+                  type: string
+                  enum: [present, absent, late]
+                check_in_time:
+                  type: string
+                  format: date-time
+                check_out_time:
+                  type: string
+                  format: date-time
+                total_hours:
+                  type: number
+                is_late:
+                  type: boolean
+                break_duration:
+                  type: number
+      401:
+        $ref: '#/responses/UnauthorizedError'
+      403:
+        $ref: '#/responses/ForbiddenError'
+      404:
+        description: Employee record not found
+      500:
+        $ref: '#/responses/InternalServerError'
     """
     try:
         user_id = _get_current_user_id()
@@ -234,6 +396,48 @@ def get_today_attendance():
 def get_attendance_history():
     """
     Get employee's attendance history
+    ---
+    tags:
+      - Employees
+    security:
+      - Bearer: []
+    parameters:
+      - name: page
+        in: query
+        type: integer
+        default: 1
+        description: Page number for pagination
+      - name: per_page
+        in: query
+        type: integer
+        default: 10
+        description: Records per page
+      - name: days
+        in: query
+        type: integer
+        default: 30
+        description: Number of days to retrieve history for
+    responses:
+      200:
+        description: Attendance history retrieved successfully
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            data:
+              type: array
+              items:
+                type: object
+      401:
+        $ref: '#/responses/UnauthorizedError'
+      403:
+        $ref: '#/responses/ForbiddenError'
+      404:
+        description: Employee record not found
+      500:
+        $ref: '#/responses/InternalServerError'
     """
     try:
         user_id = _get_current_user_id()
@@ -322,6 +526,48 @@ def get_attendance_history():
 def get_employee_leaves():
     """
     Get employee's leave requests
+    ---
+    tags:
+      - Employees
+    security:
+      - Bearer: []
+    parameters:
+      - name: page
+        in: query
+        type: integer
+        default: 1
+        description: Page number for pagination
+      - name: per_page
+        in: query
+        type: integer
+        default: 10
+        description: Records per page
+      - name: status
+        in: query
+        type: string
+        enum: [pending, approved, rejected, cancelled]
+        description: Filter by leave status
+    responses:
+      200:
+        description: Employee leave requests retrieved successfully
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            data:
+              type: array
+              items:
+                type: object
+      401:
+        $ref: '#/responses/UnauthorizedError'
+      403:
+        $ref: '#/responses/ForbiddenError'
+      404:
+        description: Employee record not found
+      500:
+        $ref: '#/responses/InternalServerError'
     """
     try:
         user_id = _get_current_user_id()
@@ -410,6 +656,60 @@ def get_employee_leaves():
 def apply_for_leave():
     """
     Apply for a new leave request
+    ---
+    tags:
+      - Employees
+    security:
+      - Bearer: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          required:
+            - leave_type
+            - start_date
+            - end_date
+          properties:
+            leave_type:
+              type: string
+              enum: [sick, casual, earned, unpaid, maternity]
+              description: Type of leave
+            start_date:
+              type: string
+              format: date
+              description: Leave start date
+            end_date:
+              type: string
+              format: date
+              description: Leave end date
+            reason:
+              type: string
+              description: Reason for leave
+    responses:
+      201:
+        description: Leave request created successfully
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            message:
+              type: string
+            data:
+              type: object
+      400:
+        $ref: '#/responses/BadRequestError'
+      401:
+        $ref: '#/responses/UnauthorizedError'
+      403:
+        $ref: '#/responses/ForbiddenError'
+      404:
+        description: Employee record not found
+      500:
+        $ref: '#/responses/InternalServerError'
     """
     try:
         user_id = _get_current_user_id()
@@ -505,6 +805,60 @@ def apply_for_leave():
 def get_employee_stats_summary():
     """
     Get employee's statistics summary for dashboard
+    ---
+    tags:
+      - Employees
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: Employee statistics summary retrieved successfully
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            data:
+              type: object
+              properties:
+                attendance:
+                  type: object
+                  properties:
+                    total_working_days:
+                      type: integer
+                    present_days:
+                      type: integer
+                    absent_days:
+                      type: integer
+                    late_arrivals:
+                      type: integer
+                    attendance_percentage:
+                      type: number
+                leaves:
+                  type: object
+                  properties:
+                    total_leaves:
+                      type: integer
+                    remaining_leaves:
+                      type: integer
+                    used_leaves:
+                      type: integer
+                performance:
+                  type: object
+                  properties:
+                    rating:
+                      type: number
+                    reviews:
+                      type: integer
+      401:
+        $ref: '#/responses/UnauthorizedError'
+      403:
+        $ref: '#/responses/ForbiddenError'
+      404:
+        description: Employee record not found
+      500:
+        $ref: '#/responses/InternalServerError'
     """
     try:
         user_id = _get_current_user_id()

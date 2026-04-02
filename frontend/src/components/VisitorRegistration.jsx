@@ -54,21 +54,17 @@ const VisitorRegistration = () => {
     location: "",
     purpose_of_visit: "",
     host_to_visit: "",
-    floors: [],
-    towers: [],
+    allowed_location_id: "",  // New location field
     duration_from: new Date().toISOString().slice(0, 10),
     duration_to: new Date().toISOString().slice(0, 10),
   });
 
-  // Options & “candidate” selections for Floors/Towers
-  const [floorOptions, setFloorOptions] = useState([]);
-  const [towerOptions, setTowerOptions] = useState([]);
-  const [floorCandidate, setFloorCandidate] = useState("");
-  const [towerCandidate, setTowerCandidate] = useState("");
+  // Location selection state
+  const [locations, setLocations] = useState([]);
 
   // ---------------- Effects ----------------
 
-  // Get camera and meta options on mount
+  // Get camera and locations on mount
   useEffect(() => {
     (async () => {
       try {
@@ -80,15 +76,41 @@ const VisitorRegistration = () => {
       } catch {
         alert("Camera permission denied");
       }
+      
+      // Get locations for visitor registration
       try {
-        const [fl, tw] = await Promise.all([
-          visitorsAPI.floors(),
-          visitorsAPI.towers(),
-        ]);
-        setFloorOptions(fl.data || []);
-        setTowerOptions(tw.data || []);
-      } catch {
-        // ignore
+        // Get organization ID from user context/auth - using localStorage for now
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const orgId = user.organization_id || user.organizationId || 'default-org-id';
+        
+        const locationsResp = await visitorsAPI.getLocations(orgId);
+        const locations = locationsResp.data?.data?.items || [];
+        setLocations(locations);
+      } catch (error) {
+        console.error("Failed to fetch locations:", error);
+        // Fallback to legacy endpoints if new endpoint fails
+        try {
+          const [fl, tw] = await Promise.all([
+            visitorsAPI.floors(),
+            visitorsAPI.towers(),
+          ]);
+          // Convert legacy format to flat location list
+          const legacyLocations = [];
+          (tw.data || []).forEach(tower => {
+            (fl.data || []).forEach(floor => {
+              legacyLocations.push({
+                id: `legacy-${tower}-${floor}`,
+                name: `${tower} - ${floor}`,
+                building: tower,
+                floor: floor,
+                description: `${tower} building, ${floor} floor`
+              });
+            });
+          });
+          setLocations(legacyLocations);
+        } catch {
+          console.error("Failed to fetch legacy floor/tower data");
+        }
       }
     })();
 
@@ -153,11 +175,12 @@ const VisitorRegistration = () => {
       location: v.location || "",
       purpose_of_visit: v.purpose_of_visit || "",
       host_to_visit: v.host_to_visit || "",
-      floors: v.floors || [],
-      towers: v.towers || [],
+      allowed_location_id: v.allowed_location_id || "",
       duration_from: v.duration_from || new Date().toISOString().slice(0, 10),
       duration_to: v.duration_to || new Date().toISOString().slice(0, 10),
     });
+
+    // Location selection is already set via allowed_location_id in form state
 
     // Show the previously saved straight still (if any)
     setSavedUrl(imgs.straight || null);
@@ -180,24 +203,10 @@ const VisitorRegistration = () => {
   const onChange = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
-  // Floors/Towers add/remove
-  const addFloor = () => {
-    if (floorCandidate && !form.floors.includes(floorCandidate)) {
-      setForm((f) => ({ ...f, floors: [...f.floors, floorCandidate] }));
-    }
-    setFloorCandidate("");
+  // Location selection handler
+  const handleLocationChange = (locationId) => {
+    setForm(f => ({ ...f, allowed_location_id: locationId }));
   };
-  const removeFloor = (val) =>
-    setForm((f) => ({ ...f, floors: f.floors.filter((x) => x !== val) }));
-
-  const addTower = () => {
-    if (towerCandidate && !form.towers.includes(towerCandidate)) {
-      setForm((f) => ({ ...f, towers: [...f.towers, towerCandidate] }));
-    }
-    setTowerCandidate("");
-  };
-  const removeTower = (val) =>
-    setForm((f) => ({ ...f, towers: f.towers.filter((x) => x !== val) }));
 
   // ---------------- Capture flow (single image) ----------------
 
@@ -274,6 +283,7 @@ const onAccept = async () => {
     e.preventDefault();
     if (!aadhaar || aadhaar.length !== 12) return alert("Aadhaar required");
     if (!form.full_name) return alert("Full name required");
+    if (!form.allowed_location_id) return alert("Please select a location");
 
     try {
       await csrfAPI.fetchToken();
@@ -285,8 +295,7 @@ const onAccept = async () => {
         location: form.location,
         purpose_of_visit: form.purpose_of_visit,
         host_to_visit: form.host_to_visit,
-        floors: form.floors,
-        towers: form.towers,
+        allowed_location_id: form.allowed_location_id,
         duration_from: form.duration_from,
         duration_to: form.duration_to,
       };
@@ -313,11 +322,12 @@ const onAccept = async () => {
       location: "",
       purpose_of_visit: "",
       host_to_visit: "",
-      floors: [],
-      towers: [],
+      allowed_location_id: "",
       duration_from: new Date().toISOString().slice(0, 10),
       duration_to: new Date().toISOString().slice(0, 10),
     });
+    // Reset location selection - no additional state to clear
+    
     if (preview.url) URL.revokeObjectURL(preview.url);
     setPreview({ blob: null, url: null });
     setSavedUrl(null);
@@ -515,90 +525,23 @@ const onAccept = async () => {
                   />
                 </div>
 
-                {/* Floors */}
+                {/* Location Selection */}
                 <div className="vr-form-group">
-                  <label className="vr-form-label">Floor(s)</label>
-                  <div className="vr-floor-tower-container">
-                    <select
-                      className="vr-form-select"
-                      value={floorCandidate}
-                      onChange={(e) => setFloorCandidate(e.target.value)}
-                    >
-                      <option value="">Select Floor</option>
-                      {floorOptions.map((f) => (
-                        <option key={f} value={f}>
-                          {f}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      className="vr-add-floor-btn"
-                      onClick={addFloor}
-                      disabled={!floorCandidate}
-                    >
-                      Add Floor
-                    </button>
-                  </div>
-                  {form.floors.length > 0 && (
-                    <div className="vr-tags-container">
-                      {form.floors.map((fl) => (
-                        <div key={fl} className="vr-tag">
-                          <span>{fl}</span>
-                          <button
-                            type="button"
-                            className="vr-tag-remove"
-                            onClick={() => removeFloor(fl)}
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Towers */}
-                <div className="vr-form-group">
-                  <label className="vr-form-label">Tower(s)</label>
-                  <div className="vr-floor-tower-container">
-                    <select
-                      className="vr-form-select"
-                      value={towerCandidate}
-                      onChange={(e) => setTowerCandidate(e.target.value)}
-                    >
-                      <option value="">Select Tower</option>
-                      {towerOptions.map((t) => (
-                        <option key={t} value={t}>
-                          {`Tower ${t}`}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      className="vr-add-tower-btn"
-                      onClick={addTower}
-                      disabled={!towerCandidate}
-                    >
-                      Add Tower
-                    </button>
-                  </div>
-                  {form.towers.length > 0 && (
-                    <div className="vr-tags-container">
-                      {form.towers.map((tw) => (
-                        <div key={tw} className="vr-tag">
-                          <span>{tw}</span>
-                          <button
-                            type="button"
-                            className="vr-tag-remove"
-                            onClick={() => removeTower(tw)}
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <label className="vr-form-label">Location *</label>
+                  <select
+                    className="vr-form-select"
+                    value={form.allowed_location_id}
+                    onChange={(e) => handleLocationChange(e.target.value)}
+                    required
+                  >
+                    <option value="">Select a location</option>
+                    {locations.map((location) => (
+                      <option key={location.id} value={location.id}>
+                        {location.name}
+                        {location.description && ` (${location.description})`}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Duration */}

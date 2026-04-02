@@ -128,7 +128,7 @@ class EmployeeService:
         return employee
     
     @staticmethod
-    def list_employees(filters, organization_id=None):
+    def list_employees(filters):
         """List employees with filters and pagination"""
         from sqlalchemy.orm import joinedload
         
@@ -138,11 +138,11 @@ class EmployeeService:
             joinedload(Employee.shift)
         ).filter_by(deleted_at=None)
         
-        # Apply tenant isolation
-        if organization_id:
-            query = query.filter_by(organization_id=organization_id)
+        # Apply organization_id filter from filters dict
+        if filters.get('organization_id'):
+            query = query.filter_by(organization_id=filters['organization_id'])
         
-        # Apply filters
+        # Apply search filter
         if filters.get('search'):
             search = f"%{filters['search']}%"
             query = query.filter(
@@ -153,15 +153,15 @@ class EmployeeService:
                 )
             )
         
-        if filters.get('organization_id'):
-            query = query.filter_by(organization_id=filters['organization_id'])
-        
+        # Apply department filter
         if filters.get('department_id'):
             query = query.filter_by(department_id=filters['department_id'])
         
+        # Apply employment type filter
         if filters.get('employment_type'):
             query = query.filter_by(employment_type=filters['employment_type'])
         
+        # Apply is_active filter
         if filters.get('is_active') is not None:
             query = query.filter_by(is_active=filters['is_active'])
         

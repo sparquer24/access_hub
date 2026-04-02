@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import VisitorEntryForm from './VisitorEntryForm';
 import VisitorLogsList from './VisitorLogsList';
 import VisitorOverview from './VisitorOverview';
-import { Users, BarChart3, UserCheck, RefreshCw } from 'lucide-react';
+import { Users, BarChart3, UserCheck, RefreshCw, MapPin } from 'lucide-react';
 
 const OrganizationVisitors = ({
   organizationId,
@@ -32,10 +32,10 @@ const OrganizationVisitors = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 flex-1">
       {/* Header */}
       <div className="rounded-xl border border-teal-100/70 bg-gradient-to-r from-white via-teal-50/60 to-cyan-50/60 shadow-sm overflow-visible relative">
-        <div className="px-4 py-3.5 sm:px-5 sm:py-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between relative z-30">
+        <div className="px-4 py-2.5 sm:px-5 sm:py-3 flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between relative z-30">
           <div className="min-w-0">
             <div className="flex items-center gap-2.5">
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600/10 ring-1 ring-teal-200">
@@ -73,7 +73,7 @@ const OrganizationVisitors = ({
                   }`}
                 type="button"
               >
-                👥 Active Visitors
+                <Users className="w-4 h-4" /> Active Visitors
               </button>
               <button
                 onClick={() => setActiveSubTab('floorLogs')}
@@ -83,7 +83,7 @@ const OrganizationVisitors = ({
                   }`}
                 type="button"
               >
-                📍 Floor Logs
+                <MapPin className="w-4 h-4" /> Floor Logs
               </button>
               <button
                 onClick={() => setActiveSubTab('overview')}

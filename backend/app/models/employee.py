@@ -25,11 +25,11 @@ class Employee(db.Model):
     department = db.relationship("Department", back_populates="employees", foreign_keys=[department_id])
     
     # Employee basic info
-    employee_code = db.Column(db.String(64), nullable=False)
+    employee_code = db.Column(db.String(64), nullable=False, index=True)
     full_name = db.Column(db.String(255), nullable=False, index=True)
     gender = db.Column(db.String(20))  # male, female, other
     date_of_birth = db.Column(db.Date)
-    phone_number = db.Column(db.String(32))
+    phone_number = db.Column(db.String(32), index=True)
     
     # Emergency contact (JSON)
     # Example: {"name": "John Doe", "relation": "Father", "phone": "+1234567890"}
@@ -40,19 +40,19 @@ class Employee(db.Model):
     # Employment details
     joining_date = db.Column(db.Date)
     designation = db.Column(db.String(128))
-    employment_type = db.Column(db.String(20))  # full_time, part_time, contract, intern
+    employment_type = db.Column(db.String(20), index=True)  # full_time, part_time, contract, intern
     
     # Shift relationship
     shift_id = db.Column(db.String(36), db.ForeignKey("shifts.id"), nullable=True)
     shift = db.relationship("Shift", back_populates="employees")
     
     # Status
-    is_active = db.Column(db.Boolean, nullable=False, default=True)
+    is_active = db.Column(db.Boolean, nullable=False, default=True, index=True)
     
     # Audit timestamps
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
-    deleted_at = db.Column(db.DateTime, nullable=True)  # Soft delete
+    deleted_at = db.Column(db.DateTime, nullable=True, index=True)  # Soft delete
     
     # Relationships
     face_embeddings = db.relationship("FaceEmbedding", back_populates="employee", cascade="all, delete-orphan")
@@ -94,6 +94,9 @@ class Employee(db.Model):
     # Unique constraint: org_id + employee_code
     __table_args__ = (
         db.UniqueConstraint("organization_id", "employee_code", name="uq_org_emp_code"),
+        # Composite indexes for common filter combinations
+        db.Index('ix_employees_org_active_deleted', 'organization_id', 'is_active', 'deleted_at'),
+        db.Index('ix_employees_org_dept_active', 'organization_id', 'department_id', 'is_active'),
     )
 
     def to_dict(self, include_user=True, include_face=False, include_photo=False):

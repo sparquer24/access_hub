@@ -17,7 +17,7 @@ from ...schemas.visitor import (
 )
 from ...services.visitor_service import VisitorService
 from ...middlewares.rbac_middleware import require_permission
-from ...models import OrganizationVisitor, VisitorHistoryDetails, VisitorMovementLog
+from ...models import OrganizationVisitor, VisitorHistoryDetails, VisitorMovementLog, Location
 from ...extensions import db, socketio
 
 bp = Blueprint('Visitors', __name__, url_prefix='/api/v2/organizations')
@@ -45,14 +45,55 @@ def check_in_visitor(org_id):
         schema:
           type: object
           required:
-            - visitor_id
+            - name
+            - phone
+            - purpose_of_visit
           properties:
-            visitor_id:
+            name:
               type: string
-              example: "visitor-uuid-123"
-            check_in_location:
+              example: "John Doe"
+            phone:
               type: string
-              example: "Main Gate"
+              example: "6301424989"
+            email:
+              type: string
+              example: "john@example.com"
+            gender:
+              type: string
+              example: "Male"
+            visitor_type:
+              type: string
+              example: "guest"
+            host_name:
+              type: string
+              example: "Jane Smith"
+            host_number:
+              type: string
+              example: "6301424990"
+            purpose_of_visit:
+              type: string
+              example: "Meeting"
+            allowed_location_id:
+              type: string
+              example: "location-123"
+              description: "Location ID (new system, preferred)"
+            allowed_floor:
+              type: string
+              example: "1st Floor"
+              description: "Legacy field - use allowed_location_id instead"
+            allowed_tower:
+              type: string  
+              example: "Tower A"
+              description: "Legacy field - use allowed_location_id instead"
+            from_date:
+              type: string
+              example: "2024-03-30"
+            to_date:
+              type: string
+              example: "2024-03-30"
+            image_base64:
+              type: string
+              example: "data:image/jpeg;base64,..."
     responses:
       200:
         description: Visitor checked in successfully
@@ -78,11 +119,35 @@ def check_in_visitor(org_id):
         if not data:
             return error_response("Request body is required", 400)
         
-        # Validate required fields
-        required_fields = ['name', 'phone', 'purpose_of_visit', 'allowed_floor']
+        # Validate required fields - Updated for new location system
+        required_fields = ['name', 'phone', 'purpose_of_visit']
+        
         missing = [f for f in required_fields if not data.get(f)]
         if missing:
             return error_response(f"Missing required fields: {', '.join(missing)}", 400)
+        
+        # Check for location field (new system) or legacy floor/tower
+        has_location = data.get('allowed_location_id')
+        has_legacy = data.get('allowed_floor') and data.get('allowed_tower')
+        
+        # If allowed_location_id is provided, validate it exists in the database
+        if has_location:
+            location = Location.query.filter_by(
+                id=has_location,
+                organization_id=org_id,
+                is_active=True,
+                deleted_at=None
+            ).first()
+            
+            if not location:
+                # If location doesn't exist, fall back to legacy fields
+                if not has_legacy:
+                    return error_response("Location not found and no legacy floor/tower provided. Please provide valid 'allowed_location_id' or 'allowed_floor' + 'allowed_tower'", 400)
+                # Clear the invalid location_id so it uses legacy fields
+                data['allowed_location_id'] = None
+        elif not has_legacy:
+            # Neither location_id nor legacy fields provided
+            return error_response("Either 'allowed_location_id' (new system) or 'allowed_floor' + 'allowed_tower' (legacy) must be provided", 400)
         
         # Convert date strings to date objects if provided
         if data.get('from_date') and isinstance(data['from_date'], str):
@@ -98,6 +163,7 @@ def check_in_visitor(org_id):
             'history_id': history.id,
             'name': visitor.name,
             'phone': visitor.phone,
+            'floor': history.current_floor or history.allowed_floor,
             'check_in_time': history.check_in_time.isoformat(),
             'message': 'Visitor checked in successfully'
         }, 201)
@@ -327,22 +393,22 @@ def get_alerts(org_id):
         alerts = VisitorService.get_visitor_alerts(org_id, filters)
         
         alert_data = []
-        # Note: Alert model has been deprecated. This endpoint returns empty list for backward compatibility
         if isinstance(alerts, list):
             for alert in alerts:
                 visitor = alert.visitor if hasattr(alert, 'visitor') else None
                 alert_data.append({
                     'id': alert.id if hasattr(alert, 'id') else None,
+                    'organization_id': alert.organization_id if hasattr(alert, 'organization_id') else None,
                     'visitor_id': alert.visitor_id if hasattr(alert, 'visitor_id') else None,
                     'name': visitor.name if visitor else None,
                     'visitor_phone': visitor.phone if visitor else None,
+                    'camera_id': alert.camera_id if hasattr(alert, 'camera_id') else None,
                     'alert_type': alert.alert_type if hasattr(alert, 'alert_type') else None,
-                    'current_floor': alert.current_floor if hasattr(alert, 'current_floor') else None,
-                    'allowed_floor': alert.allowed_floor if hasattr(alert, 'allowed_floor') else None,
                     'alert_time': alert.alert_time.isoformat() if hasattr(alert, 'alert_time') and alert.alert_time else None,
-                    'acknowledged': alert.acknowledged if hasattr(alert, 'acknowledged') else False,
-                    'acknowledged_at': alert.acknowledged_at.isoformat() if hasattr(alert, 'acknowledged_at') and alert.acknowledged_at else None,
-                    'details': alert.details if hasattr(alert, 'details') else None
+                    'annotated_image_base64': alert.annotated_image_base64 if hasattr(alert, 'annotated_image_base64') else None,
+                    'alert_status': alert.alert_status if hasattr(alert, 'alert_status') else None,
+                    'handled_by': alert.handled_by if hasattr(alert, 'handled_by') else None,
+                    'handled_at': alert.handled_at.isoformat() if hasattr(alert, 'handled_at') and alert.handled_at else None
                 })
         
         return success_response({
@@ -460,7 +526,9 @@ def get_logs(org_id):
                 'visitor_id': log.visitor_id,
                 'name': visitor.name if visitor else None,
                 'visitor_phone': visitor.phone if visitor else None,
+                'tower': log.tower if hasattr(log, 'tower') else None,
                 'floor': log.floor,
+                'status': log.status if hasattr(log, 'status') else None,
                 'entry_time': log.entry_time.isoformat(),
                 'exit_time': log.exit_time.isoformat() if log.exit_time else None,
                 'created_at': log.created_at.isoformat()
@@ -539,6 +607,17 @@ def get_visitor_history(org_id, visitor_id):
         
         history_data = []
         for history in history_records:
+            # Get floor from Location relationship, fall back to legacy allowed_floor
+            allowed_floor = None
+            allowed_tower = None
+            if history.allowed_location:
+                allowed_floor = history.allowed_location.floor
+                allowed_tower = history.allowed_location.building
+            else:
+                # Fallback to legacy fields
+                allowed_floor = history.allowed_floor
+                allowed_tower = history.allowed_tower
+            
             history_data.append({
                 'id': history.id,
                 'visitor_id': history.visitor_id,
@@ -546,8 +625,8 @@ def get_visitor_history(org_id, visitor_id):
                 'purpose_of_visit': history.purpose_of_visit,
                 'host_name': history.host_name,
                 'host_number': history.host_number,
-                'allowed_floor': history.allowed_floor,
-                'allowed_tower': history.allowed_tower,
+                'allowed_floor': allowed_floor,
+                'allowed_tower': allowed_tower,
                 'from_date': history.from_date.isoformat() if history.from_date else None,
                 'to_date': history.to_date.isoformat() if history.to_date else None,
                 'check_in_time': history.check_in_time.isoformat() if history.check_in_time else None,
@@ -620,7 +699,7 @@ def acknowledge_alert(org_id, alert_id):
         }, 200)
         
     except ValueError as e:
-        return error_response(str(e), 410)  # 410 Gone - feature deprecated
+        return error_response(str(e), 404)
     except Exception as e:
         return error_response(str(e), 400)
 
@@ -676,11 +755,19 @@ def list_visitors(org_id):
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
         
-        pagination = VisitorService.list_visitors(org_id, page, per_page)
+        total, visitors = VisitorService.get_visitors_by_organization(org_id, page, per_page)
         
-        # Use our pagination helper
-        from ...utils.helpers import paginate
-        result = paginate(pagination, page, per_page, VisitorResponseSchema)
+        # Format response with pagination
+        schema = VisitorResponseSchema(many=True)
+        result = {
+            'items': schema.dump(visitors),
+            'pagination': {
+                'page': page,
+                'per_page': per_page,
+                'total': total,
+                'pages': (total + per_page - 1) // per_page
+            }
+        }
         
         return success_response(result, 200)
     except Exception as e:
@@ -1021,5 +1108,137 @@ def get_visitor_analytics(org_id):
         analytics = VisitorService.get_visitor_analytics(org_id, period)
         
         return success_response(analytics, 200)
+    except Exception as e:
+        return error_response(str(e), 400)
+
+
+@bp.route('/<org_id>/visitors/locations', methods=['GET'])
+@jwt_required()
+def get_visitor_locations(org_id):
+    """
+    Get locations organized by tower and floor for visitor registration
+    ---
+    tags:
+      - Visitors
+    security:
+      - Bearer: []
+    parameters:
+      - name: org_id
+        in: path
+        type: string
+        required: true
+        description: Organization ID
+    responses:
+      200:
+        description: Locations retrieved successfully
+        schema:
+          type: object
+          properties:
+            success:
+              type: boolean
+              example: true
+            data:
+              type: object
+              properties:
+                towers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: Tower/Building name
+                      floors:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Floor name
+                            locations:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                  name:
+                                    type: string
+                                  description:
+                                    type: string
+      401:
+        description: Unauthorized
+      404:
+        description: Organization not found
+    """
+    try:
+        # Get all active locations for the organization
+        locations = Location.query.filter_by(
+            organization_id=org_id,
+            is_active=True,
+            deleted_at=None
+        ).all()
+        
+        if not locations:
+            return success_response({
+                "towers": [],
+                "locations": []
+            }, 200)
+        
+        # Organize locations by tower and floor
+        towers_dict = {}
+        all_locations = []
+        
+        for location in locations:
+            location_data = {
+                "id": location.id,
+                "name": location.name,
+                "description": location.description,
+                "building": location.building,
+                "floor": location.floor,
+                "area": location.area,
+                "location_type": location.location_type
+            }
+            all_locations.append(location_data)
+            
+            # Organize by tower/building
+            building_name = location.building or "Default Building"
+            floor_name = location.floor or "Ground Floor"
+            
+            if building_name not in towers_dict:
+                towers_dict[building_name] = {}
+            
+            if floor_name not in towers_dict[building_name]:
+                towers_dict[building_name][floor_name] = []
+            
+            towers_dict[building_name][floor_name].append(location_data)
+        
+        # Convert to structured format for frontend
+        towers = []
+        for building_name, floors_dict in towers_dict.items():
+            floors = []
+            for floor_name, floor_locations in floors_dict.items():
+                floors.append({
+                    "name": floor_name,
+                    "locations": floor_locations
+                })
+            towers.append({
+                "name": building_name,
+                "floors": floors
+            })
+        
+        return success_response({
+            "items": all_locations,
+            "pagination": {
+                "page": 1,
+                "per_page": 100,
+                "total_items": len(all_locations),
+                "total_pages": 1,
+                "has_next": False,
+                "has_prev": False
+            }
+        }, 200)
+        
     except Exception as e:
         return error_response(str(e), 400)

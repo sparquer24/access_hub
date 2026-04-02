@@ -3,6 +3,7 @@ import { DatePicker, Input, Select, Table, Tag, Button, TimePicker } from 'antd'
 import { useToast } from '../../../contexts/ToastContext';
 import moment from 'moment';
 import { attendanceService } from '../../../services/organizationsService';
+import Loader from '../../common/Loader';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -347,6 +348,14 @@ const EmployeeAttendanceLogs = ({ employees = [], onEmployeeClick, organizationI
         }
     ];
 
+    if (loading && logs.length === 0) {
+        return (
+            <div className="flex items-center justify-center py-12">
+                <Loader size="large" text="Loading attendance logs..." />
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-3">
             {/* Filters */}
@@ -400,8 +409,9 @@ const EmployeeAttendanceLogs = ({ employees = [], onEmployeeClick, organizationI
             </div>
 
             {/* Table */}
-            <div className="bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <Table
+            <div className="bg-teal-50/95 rounded-lg shadow-sm border border-gray-200 overflow-hidden max-h-[calc(100vh-310px)] pb-16">
+                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-370px)]">
+                    <Table
                     className="attendance-logs-table"
                     dataSource={logs}
                     columns={columns}
@@ -416,6 +426,7 @@ const EmployeeAttendanceLogs = ({ employees = [], onEmployeeClick, organizationI
                     onChange={handleTableChange}
                     size="small"
                 />
+                </div>
             </div>
         </div>
     );

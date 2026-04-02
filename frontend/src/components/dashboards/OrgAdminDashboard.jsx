@@ -8,13 +8,20 @@ import StatCard from '../common/dashboard/StatCard';
 import QuickActionButton from '../common/dashboard/QuickActionButton';
 import Loader from '../common/Loader';
 import { useToast } from '../../contexts/ToastContext';
+import { API_BASE } from '../../config';
+import { getThemeClasses, getRoleBasedTheme } from '../../utils/roleBasedTheme';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://access-alb16-o81zyqqut8kx-538769711.ap-south-1.elb.amazonaws.com';
+const API_BASE_URL = API_BASE;
 
 const OrgAdminDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { error: showError } = useToast();
+  
+  // Role-based theming
+  const theme = getRoleBasedTheme(user);
+  const themeClasses = getThemeClasses(user);
+  
   const [stats, setStats] = useState({
     departments: 0,
     employees: 0,
@@ -85,7 +92,7 @@ const OrgAdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-50">
+    <div className={`min-h-screen ${themeClasses.page}`}>
       <DashboardHeader
         title="Dashboard"
         user={user}
