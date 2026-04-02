@@ -35,6 +35,7 @@ class Camera(db.Model):
     )  # IP_CAMERA, USB_CAMERA, RTSP_STREAM
     
     source_url = db.Column(db.String(512))  # RTSP URL or IP address
+    stream_url = db.Column(db.String(512))  # Stream URL for streaming
     source_config = db.Column(db.JSON)  # Additional camera configuration
     
     # Camera settings

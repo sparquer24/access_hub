@@ -4,7 +4,7 @@ Business logic for Camera management.
 
 from sqlalchemy import or_, and_
 from ..extensions import db
-from ..models import Camera
+from ..models import Camera, Organization, Location
 from ..utils.exceptions import NotFoundError, ConflictError
 from datetime import datetime
 
@@ -15,6 +15,22 @@ class CameraService:
     @staticmethod
     def create_camera(data):
         """Create a new camera"""
+        # Validate organization exists
+        org = Organization.query.filter_by(
+            id=data['organization_id'],
+            deleted_at=None
+        ).first()
+        if not org:
+            raise NotFoundError(f"Organization '{data['organization_id']}'")
+        
+        # Validate location exists
+        location = Location.query.filter_by(
+            id=data['location_id'],
+            deleted_at=None
+        ).first()
+        if not location:
+            raise NotFoundError(f"Location '{data['location_id']}'")
+        
         # Check if camera with same name exists in the same organization
         existing = Camera.query.filter(
             and_(

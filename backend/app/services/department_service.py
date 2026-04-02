@@ -85,9 +85,19 @@ class DepartmentService:
         """Update a department"""
         department = DepartmentService.get_department(department_id)
         
-        # Code cannot be changed (it's unique identifier within org)
-        if 'code' in data:
-            del data['code']
+        # If code is being updated, check for uniqueness within organization
+        if 'code' in data and data['code'] != department.code:
+            existing = Department.query.filter(
+                and_(
+                    Department.organization_id == department.organization_id,
+                    Department.code == data['code'],
+                    Department.id != department_id,
+                    Department.deleted_at == None
+                )
+            ).first()
+            
+            if existing:
+                raise ConflictError(f"Department with code '{data['code']}' already exists in this organization")
         
         # Update fields
         for key, value in data.items():

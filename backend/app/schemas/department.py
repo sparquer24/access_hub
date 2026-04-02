@@ -32,6 +32,7 @@ class DepartmentUpdateSchema(Schema):
     """Schema for updating a department"""
     name = fields.String(validate=validate.Length(min=1, max=255))
     description = fields.String(allow_none=True)
+    code = fields.String(validate=validate.Length(min=1, max=50))
     manager_id = fields.String(allow_none=True)
     is_active = fields.Boolean()
 

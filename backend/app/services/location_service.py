@@ -4,7 +4,7 @@ Business logic for Location management.
 
 from sqlalchemy import or_, and_
 from ..extensions import db
-from ..models import Location
+from ..models import Location, Organization
 from ..utils.exceptions import NotFoundError, ConflictError
 from datetime import datetime
 
@@ -15,6 +15,14 @@ class LocationService:
     @staticmethod
     def create_location(data):
         """Create a new location"""
+        # Validate organization exists
+        org = Organization.query.filter_by(
+            id=data['organization_id'],
+            deleted_at=None
+        ).first()
+        if not org:
+            raise NotFoundError(f"Organization '{data['organization_id']}'")
+        
         # Check if location with same name exists in the same organization
         existing = Location.query.filter(
             and_(

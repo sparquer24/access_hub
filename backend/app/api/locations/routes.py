@@ -49,10 +49,10 @@ def create_location():
           properties:
             organization_id:
               type: string
-              example: "org-uuid-123"
+              example: "d7e31372-7ad4-47d2-8ba6-a85f1c2bd217"
             name:
               type: string
-              example: "Main Gate"
+              example: "Tower A Entry"
             location_type:
               type: string
               enum: [ENTRY, EXIT, BOTH]
@@ -88,6 +88,8 @@ def create_location():
         $ref: '#/responses/UnauthorizedError'
       403:
         $ref: '#/responses/ForbiddenError'
+      404:
+        description: Organization not found
       409:
         description: Location with this name already exists
     """
@@ -201,6 +203,7 @@ def get_location(location_id):
         type: string
         required: true
         description: Location ID
+        example: "00bd1288-9c75-4104-b8c6-8d2922444c83"
     responses:
       200:
         description: Location details
@@ -237,12 +240,13 @@ def update_location(location_id):
         type: string
         required: true
         description: Location ID
+        example: "00bd1288-9c75-4104-b8c6-8d2922444c83"
       - in: body
         name: body
         schema:
           type: object
           properties:
-            name:
+           name:
               type: string
             location_type:
               type: string
@@ -251,10 +255,22 @@ def update_location(location_id):
               type: string
             building:
               type: string
+              example: "Tower A"
+              description: "Building name"
             floor:
               type: string
+              example: "Ground Floor"
+              description: "Floor number/name"
             area:
               type: string
+              description: "Area/zone name"
+            description:
+              type: string
+              description: "Location description"
+            location_type:
+              type: string
+              enum: [ENTRY, EXIT, BOTH]
+              description: "Type of location"
             latitude:
               type: number
               format: float
@@ -263,11 +279,15 @@ def update_location(location_id):
               format: float
             is_active:
               type: boolean
+              example: true
+          description: "Only include fields you want to update. If changing name, ensure new name doesn't already exist in the organization."
     responses:
       200:
         description: Location updated successfully
         schema:
           $ref: '#/definitions/Success'
+      409:
+        $ref: '#/responses/ConflictError'
       404:
         $ref: '#/responses/NotFoundError'
       401:
@@ -302,6 +322,7 @@ def delete_location(location_id):
         type: string
         required: true
         description: Location ID
+        example: "00bd1288-9c75-4104-b8c6-8d2922444c83"
       - name: hard_delete
         in: query
         type: boolean
