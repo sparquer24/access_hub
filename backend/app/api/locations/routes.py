@@ -243,44 +243,44 @@ def update_location(location_id):
         example: "00bd1288-9c75-4104-b8c6-8d2922444c83"
       - in: body
         name: body
+        required: false
         schema:
           type: object
+          description: Only include fields you want to update
           properties:
-           name:
+            name:
               type: string
+              description: Location name (must be unique in organization)
             location_type:
               type: string
               enum: [ENTRY, EXIT, BOTH]
+              description: Type of location
             description:
               type: string
+              description: Location description
             building:
               type: string
+              description: Building name
               example: "Tower A"
-              description: "Building name"
             floor:
               type: string
+              description: Floor number/name
               example: "Ground Floor"
-              description: "Floor number/name"
             area:
               type: string
-              description: "Area/zone name"
-            description:
-              type: string
-              description: "Location description"
-            location_type:
-              type: string
-              enum: [ENTRY, EXIT, BOTH]
-              description: "Type of location"
+              description: Area/zone name
             latitude:
               type: number
               format: float
+              description: GPS latitude
             longitude:
               type: number
               format: float
+              description: GPS longitude
             is_active:
               type: boolean
+              description: Is location active
               example: true
-          description: "Only include fields you want to update. If changing name, ensure new name doesn't already exist in the organization."
     responses:
       200:
         description: Location updated successfully
