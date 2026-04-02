@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers
 revision = 'add_location_refs'
-down_revision = None  # Set to previous revision ID
+down_revision = 'add_dept_indexes'
 branch_labels = None
 depends_on = None
 

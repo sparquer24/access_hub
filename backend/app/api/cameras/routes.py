@@ -53,10 +53,10 @@ def create_camera():
           properties:
             organization_id:
               type: string
-              example: "org-uuid-123"
+              example: "d7e31372-7ad4-47d2-8ba6-a85f1c2bd217"
             location_id:
               type: string
-              example: "loc-uuid-456"
+              example: "00bd1288-9c75-4104-b8c6-8d2922444c83"
             name:
               type: string
               example: "Main Gate Camera 1"
@@ -69,6 +69,9 @@ def create_camera():
               enum: [IP_CAMERA, USB_CAMERA, RTSP_STREAM]
               example: "RTSP_STREAM"
             source_url:
+              type: string
+              example: "rtsp://192.168.1.100:554/stream"
+            stream_url:
               type: string
               example: "rtsp://192.168.1.100:554/stream"
             source_config:
@@ -97,6 +100,8 @@ def create_camera():
         $ref: '#/responses/UnauthorizedError'
       403:
         $ref: '#/responses/ForbiddenError'
+      404:
+        description: Organization or location not found
       409:
         description: Camera with this name already exists
     """
@@ -266,6 +271,10 @@ def update_camera(camera_id):
               type: string
               enum: [IP_CAMERA, USB_CAMERA, RTSP_STREAM]
             source_url:
+              type: string
+            stream_url:
+              type: string
+            stream_url:
               type: string
             source_config:
               type: object

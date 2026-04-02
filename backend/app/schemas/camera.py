@@ -21,6 +21,7 @@ class CameraSchema(Schema, TimestampMixin):
         validate=validate.OneOf(['IP_CAMERA', 'USB_CAMERA', 'RTSP_STREAM'])
     )
     source_url = fields.String(allow_none=True, validate=validate.Length(max=512))
+    stream_url = fields.String(allow_none=True, validate=validate.Length(max=512))
     source_config = fields.Dict(load_default=dict)
     fps = fields.Integer(load_default=10, validate=validate.Range(min=1, max=60))
     resolution = fields.String(load_default='640x480', validate=validate.Length(max=20))
@@ -75,6 +76,7 @@ class CameraCreateSchema(Schema):
         validate=validate.OneOf(['IP_CAMERA', 'USB_CAMERA', 'RTSP_STREAM'])
     )
     source_url = fields.String(allow_none=True, validate=validate.Length(max=512))
+    stream_url = fields.String(allow_none=True, validate=validate.Length(max=512))
     source_config = fields.Dict(load_default=dict)
     fps = fields.Integer(load_default=10, validate=validate.Range(min=1, max=60))
     resolution = fields.String(load_default='640x480', validate=validate.Length(max=20))
@@ -101,6 +103,7 @@ class CameraUpdateSchema(Schema):
     camera_type = fields.String(validate=validate.OneOf(['CHECK_IN', 'CHECK_OUT', 'CCTV']))
     source_type = fields.String(validate=validate.OneOf(['IP_CAMERA', 'USB_CAMERA', 'RTSP_STREAM']))
     source_url = fields.String(allow_none=True, validate=validate.Length(max=512))
+    stream_url = fields.String(allow_none=True, validate=validate.Length(max=512))
     source_config = fields.Dict()
     fps = fields.Integer(validate=validate.Range(min=1, max=60))
     resolution = fields.String(validate=validate.Length(max=20))
@@ -117,8 +120,6 @@ class CameraUpdateSchema(Schema):
     auto_check_out_hours = fields.Integer(validate=validate.Range(min=1, max=24))
     require_manual_approval = fields.Boolean()
     notification_enabled = fields.Boolean()
-    
-    is_active = fields.Boolean()
     
     is_active = fields.Boolean()
 

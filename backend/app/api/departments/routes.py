@@ -307,6 +307,8 @@ def update_department(department_id):
               type: string
             is_active:
               type: boolean
+            code:
+              type: string
     responses:
       200:
         description: Department updated successfully
