@@ -841,13 +841,15 @@ export const locationsService = {
    * @returns {Promise} Response with { success, data: {...location object}, message }
    */
   update: async (locationId, payload) => {
-    try {
-      const response = await api.put(`/api/v2/locations/${locationId}`, payload);
-      return response.data;
-    } catch (error) {
-      console.error(`Error updating location ${locationId}:`, error);
-      throw error;
-    }
+      try {
+        // Remove organization_id if present (not allowed in update)
+        const { organization_id, ...updatePayload } = payload || {};
+        const response = await api.put(`/api/v2/locations/${locationId}`, updatePayload);
+        return response.data;
+      } catch (error) {
+        console.error(`Error updating location ${locationId}:`, error);
+        throw error;
+      }
   },
 
   /**
@@ -882,7 +884,7 @@ export const LOCATION_TYPES = {
 export default organizationsService;
 
 /**
- * Attendance API Service
+ * Attendance API Serviceyes
  */
 export const attendanceService = {
   /**
