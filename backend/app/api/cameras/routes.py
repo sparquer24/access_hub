@@ -274,8 +274,6 @@ def update_camera(camera_id):
               type: string
             stream_url:
               type: string
-            stream_url:
-              type: string
             source_config:
               type: object
             fps:

@@ -246,6 +246,13 @@ def update_location(location_id):
         schema:
           type: object
           properties:
+           name:
+              type: string
+            location_type:
+              type: string
+              enum: [ENTRY, EXIT, BOTH]
+            description:
+              type: string
             building:
               type: string
               example: "Tower A"
