@@ -219,6 +219,7 @@ def get_camera(camera_id):
         type: string
         required: true
         description: Camera ID
+        example: "1eeaf21b-0763-4ec4-beb1-5e5bc8e80db1"
     responses:
       200:
         description: Camera details
@@ -255,38 +256,53 @@ def update_camera(camera_id):
         type: string
         required: true
         description: Camera ID
+        example: "1eeaf21b-0763-4ec4-beb1-5e5bc8e80db1"
       - in: body
         name: body
+        required: false
         schema:
           type: object
+          description: Only include fields you want to update
           properties:
             location_id:
               type: string
+              description: Location ID where camera is installed
             name:
               type: string
+              description: Camera name
             camera_type:
               type: string
               enum: [CHECK_IN, CHECK_OUT, CCTV]
+              description: Type of camera
             source_type:
               type: string
               enum: [IP_CAMERA, USB_CAMERA, RTSP_STREAM]
+              description: Source type of camera
             source_url:
               type: string
+              description: RTSP or HTTP URL for the camera feed
             stream_url:
               type: string
+              description: Stream URL for viewing
             source_config:
               type: object
+              description: Additional camera configuration
             fps:
               type: integer
+              description: Frames per second
             resolution:
               type: string
+              description: Video resolution (e.g., 640x480)
             confidence_threshold:
               type: number
               format: float
+              description: Confidence threshold for face detection
             liveness_check_enabled:
               type: boolean
+              description: Enable liveness detection
             is_active:
               type: boolean
+              description: Is camera active
     responses:
       200:
         description: Camera updated successfully
@@ -324,6 +340,7 @@ def delete_camera(camera_id):
       - name: camera_id
         in: path
         type: string
+        example: "1eeaf21b-0763-4ec4-beb1-5e5bc8e80db1"
         required: true
         description: Camera ID
       - name: hard_delete
