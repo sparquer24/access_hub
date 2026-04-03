@@ -175,6 +175,7 @@ const OrganizationCameras = ({ organizationId, organization }) => {
           source_type: values.source_type,
           location_id: values.location_id,
           source_url: values.source_url,
+          stream_url: values.stream_url, // Add stream_url to payload
           resolution: values.resolution,
           fps: values.fps,
           confidence_threshold: values.confidence_threshold,
@@ -197,6 +198,7 @@ const OrganizationCameras = ({ organizationId, organization }) => {
           source_type: values.source_type,
           location_id: values.location_id,
           source_url: values.source_url,
+          stream_url: values.stream_url, // Add stream_url to payload
           resolution: values.resolution,
           fps: values.fps,
           confidence_threshold: values.confidence_threshold,
@@ -469,7 +471,17 @@ const OrganizationCameras = ({ organizationId, organization }) => {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {filteredCameras.map((camera, idx) => (
-                  <tr key={camera.id} className="hover:bg-teal-500/5 transition-colors">
+                  <tr
+                    key={camera.id}
+                    className="hover:bg-teal-500/5 transition-colors cursor-pointer"
+                    onClick={() => {
+                      if (camera.stream_url) {
+                        window.open(camera.stream_url, '_blank');
+                      }
+                    }}
+                    title={camera.stream_url ? "Open stream" : ""}
+                    style={{ userSelect: 'none' }}
+                  >
                     <td className="px-4 py-3 text-gray-700 font-semibold">{idx + 1}</td>
                     <td className="px-4 py-3">
                       <div className="font-semibold text-gray-900">{camera.name}</div>
@@ -487,7 +499,7 @@ const OrganizationCameras = ({ organizationId, organization }) => {
                     <td className="px-4 py-3 text-gray-700 font-medium">{camera.fps || 'N/A'}</td>
                     <td className="px-4 py-3">
                       <button
-                        onClick={() => handleToggleStatus(camera)}
+                        onClick={e => { e.stopPropagation(); handleToggleStatus(camera); }}
                         className={`px-3 py-1.5 rounded-lg text-sm font-semibold cursor-pointer transition-all ${camera.is_active
                           ? 'bg-green-100 text-green-700 hover:bg-green-200'
                           : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
@@ -499,7 +511,7 @@ const OrganizationCameras = ({ organizationId, organization }) => {
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
                         <button
-                          onClick={() => handleEditCamera(camera)}
+                          onClick={e => { e.stopPropagation(); handleEditCamera(camera); }}
                           aria-label="Edit camera"
                           title="Edit"
                           className="p-2 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100 transition-all"
@@ -509,7 +521,7 @@ const OrganizationCameras = ({ organizationId, organization }) => {
                           </svg>
                         </button>
                         <button
-                          onClick={() => handleDeleteCamera(camera.id, camera.name)}
+                          onClick={e => { e.stopPropagation(); handleDeleteCamera(camera.id, camera.name); }}
                           aria-label="Delete camera"
                           title="Delete"
                           className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all"
@@ -531,7 +543,10 @@ const OrganizationCameras = ({ organizationId, organization }) => {
       {/* Create/Edit Modal */}
       <Modal
         title={
-          <div className="text-xl font-bold text-gray-900">
+          <div className="flex items-center gap-2 text-xl font-bold text-teal-700">
+            <svg className="w-6 h-6 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
             {editingCamera ? 'Edit Camera' : 'Create New Camera'}
           </div>
         }
@@ -541,24 +556,28 @@ const OrganizationCameras = ({ organizationId, organization }) => {
           form.resetFields();
         }}
         footer={null}
-        width={800}
+        width={1100}
+        bodyStyle={{ border: '3px solid #14b8a6', borderRadius: 16, background: '#f0fdfa', boxShadow: '0 4px 32px 0 rgba(20,184,166,0.10)', paddingBottom: 32 }}
       >
-        <Form form={form} layout="vertical" onFinish={handleSubmit} className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Form form={form} layout="vertical" onFinish={handleSubmit} className="mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
             <Form.Item
               name="name"
-              label="Camera Name"
+              label={<span><svg className="inline w-4 h-4 mr-1 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 01-8 0" /></svg>Camera Name</span>}
               rules={[{ required: true, message: 'Please enter camera name' }]}
+              extra="Give your camera a unique, descriptive name."
+              className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl"
             >
-              <Input placeholder="Main Gate Camera 1" />
+              <Input placeholder="e.g. Main Gate Camera 1" className="rounded-lg" />
             </Form.Item>
 
             <Form.Item
               name="camera_type"
-              label="Camera Type"
+              label={<span><svg className="inline w-4 h-4 mr-1 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg>Camera Type</span>}
               rules={[{ required: true, message: 'Please select camera type' }]}
+              className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl"
             >
-              <Select placeholder="Select camera type">
+              <Select placeholder="Select camera type" className="rounded-lg">
                 <Option value={CAMERA_TYPES.CHECK_IN}>← Check-In</Option>
                 <Option value={CAMERA_TYPES.CHECK_OUT}>→ Check-Out</Option>
                 <Option value={CAMERA_TYPES.CCTV}>⦿ CCTV</Option>
@@ -567,10 +586,11 @@ const OrganizationCameras = ({ organizationId, organization }) => {
 
             <Form.Item
               name="source_type"
-              label="Source Type"
+              label={<span><svg className="inline w-4 h-4 mr-1 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" /></svg>Source Type</span>}
               rules={[{ required: true, message: 'Please select source type' }]}
+              className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl"
             >
-              <Select placeholder="Select source type">
+              <Select placeholder="Select source type" className="rounded-lg">
                 <Option value={CAMERA_SOURCE_TYPES.IP_CAMERA}>IP Camera</Option>
                 <Option value={CAMERA_SOURCE_TYPES.USB_CAMERA}>USB Camera</Option>
                 <Option value={CAMERA_SOURCE_TYPES.RTSP_STREAM}>RTSP Stream</Option>
@@ -579,10 +599,11 @@ const OrganizationCameras = ({ organizationId, organization }) => {
 
             <Form.Item
               name="location_id"
-              label="Location"
+              label={<span><svg className="inline w-4 h-4 mr-1 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c1.657 0 3-1.343 3-3S13.657 5 12 5 9 6.343 9 8s1.343 3 3 3z" /></svg>Location</span>}
               rules={[{ required: true, message: 'Please select a location' }]}
+              className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl"
             >
-              <Select placeholder="Select location">
+              <Select placeholder="Select location" className="rounded-lg">
                 {locations.map((loc) => (
                   <Option key={loc.id} value={loc.id}>
                     {loc.name} {loc.location_type ? `(${loc.location_type})` : ''}
@@ -591,47 +612,51 @@ const OrganizationCameras = ({ organizationId, organization }) => {
               </Select>
             </Form.Item>
 
-            <Form.Item name="source_url" label="Source URL" className="md:col-span-2">
-              <Input placeholder="rtsp://192.168.1.100:554/stream" />
+            <Form.Item name="source_url" label="Source URL" extra="e.g. rtsp://192.168.1.100:554/" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
+              <Input placeholder="rtsp://192.168.1.100:554/" className="rounded-lg" />
             </Form.Item>
 
-            <Form.Item name="resolution" label="Resolution">
-              <Input placeholder="640x480" />
+            <Form.Item name="stream_url" label="(Stream / Live) URL" extra="e.g. http://example.com/stream" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
+              <Input placeholder="http://example.com/stream" className="rounded-lg" />
             </Form.Item>
 
-            <Form.Item name="fps" label="FPS (Frames Per Second)">
-              <InputNumber className="w-full" min={1} max={60} placeholder="10" />
+            <Form.Item name="resolution" label="Resolution" extra="e.g. 640x480" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
+              <Input placeholder="640x480" className="rounded-lg" />
             </Form.Item>
 
-            <Form.Item name="confidence_threshold" label="Confidence Threshold">
-              <InputNumber className="w-full" min={0} max={1} step={0.1} placeholder="0.6" />
+            <Form.Item name="fps" label="FPS (Frames Per Second)" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
+              <InputNumber className="w-full rounded-lg" min={1} max={60} placeholder="10" />
             </Form.Item>
 
-            <Form.Item name="liveness_check_enabled" label="Liveness Check" valuePropName="checked">
+            <Form.Item name="confidence_threshold" label="Confidence Threshold" extra="0.0 - 1.0" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
+              <InputNumber className="w-full rounded-lg" min={0} max={1} step={0.1} placeholder="0.6" />
+            </Form.Item>
+
+            <Form.Item name="liveness_check_enabled" label="Liveness Check" valuePropName="checked" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
               <Switch />
             </Form.Item>
           </div>
 
-          {/* Attendance Management Section */}
-          <div className="mt-6 p-4 bg-gradient-to-r from-teal-50 to-teal-50 rounded-lg border border-teal-200">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <div className="mt-8 mb-4">
+            <div className="flex items-center gap-2 mb-2">
               <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              Attendance Management Settings
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <span className="text-lg font-semibold text-teal-700">Attendance Management Settings</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 bg-teal-50 rounded-lg p-4 border border-teal-100">
               <Form.Item
                 name="management_type"
                 label="Management Type"
                 rules={[{ required: true, message: 'Please select management type' }]}
+                className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl"
               >
                 <Select
                   placeholder="Select management type"
                   onChange={(value) => {
                     form.setFieldsValue(getManagementFlags(value));
                   }}
+                  className="rounded-lg"
                 >
                   <Option value="ATTENDANCE">⚡ Attendance Only</Option>
                   <Option value="VISITORS">👤 Visitors Only</Option>
@@ -639,9 +664,9 @@ const OrganizationCameras = ({ organizationId, organization }) => {
                 </Select>
               </Form.Item>
 
-              <Form.Item name="auto_check_out_hours" label="Auto Check-out Hours">
+              <Form.Item name="auto_check_out_hours" label="Auto Check-out Hours" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
                 <InputNumber
-                  className="w-full"
+                  className="w-full rounded-lg"
                   min={1}
                   max={24}
                   placeholder="12"
@@ -649,28 +674,28 @@ const OrganizationCameras = ({ organizationId, organization }) => {
                 />
               </Form.Item>
 
-              <Form.Item name="attendance_enabled" label="Enable Attendance Tracking" valuePropName="checked">
+              <Form.Item name="attendance_enabled" label="Enable Attendance Tracking" valuePropName="checked" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
                 <Switch disabled />
               </Form.Item>
 
-              <Form.Item name="visitor_tracking_enabled" label="Enable Visitor Tracking" valuePropName="checked">
+              <Form.Item name="visitor_tracking_enabled" label="Enable Visitor Tracking" valuePropName="checked" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
                 <Switch disabled />
               </Form.Item>
 
-              <Form.Item name="people_logs_enabled" label="Enable People Logs" valuePropName="checked">
+              <Form.Item name="people_logs_enabled" label="Enable People Logs" valuePropName="checked" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
                 <Switch disabled />
               </Form.Item>
 
-              <Form.Item name="require_manual_approval" label="Require Manual Approval" valuePropName="checked">
+              <Form.Item name="require_manual_approval" label="Require Manual Approval" valuePropName="checked" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
                 <Switch />
               </Form.Item>
 
-              <Form.Item name="notification_enabled" label="Enable Notifications" valuePropName="checked">
+              <Form.Item name="notification_enabled" label="Enable Notifications" valuePropName="checked" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
                 <Switch defaultChecked />
               </Form.Item>
 
               {editingCamera && (
-                <Form.Item name="is_active" label="Camera Enabled" valuePropName="checked">
+                <Form.Item name="is_active" label="Camera Enabled" valuePropName="checked" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
                   <Switch />
                 </Form.Item>
               )}
@@ -684,13 +709,13 @@ const OrganizationCameras = ({ organizationId, organization }) => {
                 setShowModal(false);
                 form.resetFields();
               }}
-              className="px-6 py-2 bg-teal-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all font-semibold"
+              className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all font-semibold"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-gradient-to-r from-teal-600 to-teal-600 text-white rounded-lg hover:shadow-lg transition-all font-semibold"
+              className="px-6 py-2 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-lg hover:shadow-lg transition-all font-semibold"
             >
               {editingCamera ? 'Update Camera' : 'Create Camera'}
             </button>
