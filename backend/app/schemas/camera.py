@@ -2,7 +2,7 @@
 Camera schemas for request/response validation.
 """
 
-from marshmallow import Schema, fields, validate, validates, ValidationError
+from marshmallow import Schema, fields, validate, validates, ValidationError, EXCLUDE
 from . import TimestampMixin
 
 
@@ -65,7 +65,7 @@ class CameraSchema(Schema, TimestampMixin):
 class CameraCreateSchema(Schema):
     """Schema for creating a camera"""
     class Meta:
-        unknown = 'EXCLUDE'  # Ignore unknown fields (backward compatibility)
+        unknown = EXCLUDE  # Ignore unknown fields (backward compatibility)
     
     organization_id = fields.String(required=True)
     location_id = fields.String(required=True)

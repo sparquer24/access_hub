@@ -1,8 +1,10 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const Breadcrumbs = () => {
   const location = useLocation();
+  const { isDarkMode } = useTheme();
   const pathnames = location.pathname.split('/').filter((x) => x);
 
   // Map of path segments to breadcrumb labels
@@ -44,15 +46,15 @@ const Breadcrumbs = () => {
 
       breadcrumbs.push(
         <div key={routeTo} className="flex items-center gap-2">
-          {index > 0 && <span className="text-gray-400">/</span>}
+          {index > 0 && <span className={isDarkMode ? 'text-slate-600' : 'text-gray-400'}>/</span>}
           {isLast ? (
-            <span className="text-gray-700 font-semibold">
+            <span className={isDarkMode ? 'text-slate-300 font-semibold' : 'text-gray-700 font-semibold'}>
               {label}
             </span>
           ) : (
             <Link
               to={routeTo}
-              className="text-teal-600 hover:text-teal-700 font-medium transition-colors duration-200"
+              className={`font-medium transition-colors duration-200 ${isDarkMode ? 'text-teal-400 hover:text-teal-300' : 'text-teal-600 hover:text-teal-700'}`}
             >
               {label}
             </Link>
@@ -65,18 +67,18 @@ const Breadcrumbs = () => {
   };
 
   return (
-    <div className="bg-teal-50/95 border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-3">
+    <div className={`border-b px-4 sm:px-6 lg:px-8 py-3 ${isDarkMode ? 'bg-slate-900/95 border-slate-700' : 'bg-teal-50/95 border-gray-200'}`}>
       <nav className="flex items-center gap-1 text-sm">
         <Link
           to="/"
-          className="text-teal-600 hover:text-teal-700 font-medium transition-colors duration-200 flex items-center gap-1"
+          className={`font-medium transition-colors duration-200 flex items-center gap-1 ${isDarkMode ? 'text-teal-400 hover:text-teal-300' : 'text-teal-600 hover:text-teal-700'}`}
         >
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
             <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
           </svg>
           Home
         </Link>
-        {buildBreadcrumbs().length > 0 && <span className="text-gray-400">/</span>}
+        {buildBreadcrumbs().length > 0 && <span className={isDarkMode ? 'text-slate-600' : 'text-gray-400'}>/</span>}
         {buildBreadcrumbs()}
       </nav>
     </div>

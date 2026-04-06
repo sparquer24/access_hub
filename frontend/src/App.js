@@ -1,6 +1,7 @@
 // App.js
 import { BrowserRouter as Router } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { SubscriptionProvider } from './contexts/SubscriptionContext';
 import { ToastProvider } from './contexts/ToastContext';
 import RoutesV2 from './routes/RoutesV2';
@@ -11,15 +12,17 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <SubscriptionProvider>
-          <ToastProvider>
-            <div className="App">
-              <Layout>
-                <RoutesV2 />
-              </Layout>
-            </div>
-          </ToastProvider>
-        </SubscriptionProvider>
+        <ThemeProvider>
+          <SubscriptionProvider>
+            <ToastProvider>
+              <div className="App">
+                <Layout>
+                  <RoutesV2 />
+                </Layout>
+              </div>
+            </ToastProvider>
+          </SubscriptionProvider>
+        </ThemeProvider>
       </AuthProvider>
     </Router>
   );

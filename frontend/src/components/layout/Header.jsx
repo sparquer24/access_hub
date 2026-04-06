@@ -1,12 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { Building2, ChevronDown, User, Settings, LogOut, Menu, X, Download } from 'lucide-react';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { user, logout } = useAuth();
+  const { isDarkMode } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const userMenuRef = useRef(null);
@@ -82,7 +84,7 @@ const Header = () => {
   }
 
   return (
-    <header className="bg-teal-50/95 backdrop-blur-lg border-b border-slate-200/60 sticky top-0 z-50 shadow-sm">
+    <header className={`${isDarkMode ? 'bg-slate-900/95 border-slate-700' : 'bg-teal-50/95 border-slate-200/60'} backdrop-blur-lg border-b sticky top-0 z-50 shadow-sm`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-4">
@@ -91,8 +93,8 @@ const Header = () => {
                 <Building2 className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gradient-teal">AccessHub</h1>
-                <p className="text-xs text-slate-500 -mt-1">hub for access control</p>
+                <h1 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gradient-teal'}`}>AccessHub</h1>
+                <p className={`text-xs -mt-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>hub for access control</p>
               </div>
             </Link>
           </div>
@@ -103,8 +105,8 @@ const Header = () => {
                 key={item.name}
                 to={item.href}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${isActive(item.href)
-                  ? 'bg-teal-100 text-teal-700 shadow-sm'
-                  : 'text-slate-600 hover:text-teal-600 hover:bg-slate-50'}`}
+                  ? `${isDarkMode ? 'bg-slate-800 text-teal-400' : 'bg-teal-100 text-teal-700'} shadow-sm`
+                  : `${isDarkMode ? 'text-slate-400 hover:text-teal-400 hover:bg-slate-800' : 'text-slate-600 hover:text-teal-600 hover:bg-slate-50'}`}`}
               >
                 {item.name}
               </Link>
@@ -115,14 +117,14 @@ const Header = () => {
             {user ? (
               <>
                 <div className="hidden sm:flex items-center gap-2">
-                  <button className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-300" aria-label="Downloads">
+                  <button className={`p-2 ${isDarkMode ? 'text-slate-500 hover:text-teal-400 hover:bg-slate-800' : 'text-slate-400 hover:text-teal-600 hover:bg-teal-50'} rounded-lg transition-all duration-300`} aria-label="Downloads">
                     <Download className="w-5 h-5" />
                   </button>
                 </div>
 
                 <div className="relative" ref={userMenuRef}>
                   <button
-                    className="flex items-center gap-2 p-2 rounded-xl hover:bg-teal-50 transition-all duration-300 min-w-0"
+                    className={`flex items-center gap-2 p-2 rounded-xl transition-all duration-300 min-w-0 ${isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-teal-50'}`}
                     onClick={() => {
                       setIsUserMenuOpen((prev) => !prev);
                       setIsMenuOpen(false);
@@ -135,37 +137,37 @@ const Header = () => {
                       {user.first_name ? user.first_name.charAt(0).toUpperCase() : user.email?.charAt(0).toUpperCase() || 'U'}
                     </div>
                     <div className="hidden lg:block text-left min-w-0 max-w-[12rem]">
-                      <p className="text-sm font-semibold text-slate-900 truncate">
+                      <p className={`text-sm font-semibold truncate ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
                         {user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.email}
                       </p>
-                      <p className="text-xs text-slate-500 capitalize truncate">
+                      <p className={`text-xs capitalize truncate ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>
                         {(typeof user.role === 'string'
                           ? user.role
                           : user.role?.name || user.role?.id || 'User').replace('_', ' ')}
                       </p>
                     </div>
-                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180 text-teal-600' : ''}`} />
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180 text-teal-400' : isDarkMode ? 'text-slate-500' : 'text-slate-400'}`} />
                   </button>
 
-                  <div className={`absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-xs sm:w-64 bg-teal-50/95 rounded-xl shadow-lg border border-slate-200 py-2 transition-all duration-200 z-50 ${isUserMenuOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-1 pointer-events-none'}`}>
-                    <div className="px-4 py-2 border-b border-slate-100">
-                      <p className="text-sm font-medium text-slate-900 truncate">
+                  <div className={`absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-xs sm:w-64 rounded-xl shadow-lg border py-2 transition-all duration-200 z-50 ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-teal-50/95 border-slate-200'} ${isUserMenuOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-1 pointer-events-none'}`}>
+                    <div className={`px-4 py-2 border-b ${isDarkMode ? 'border-slate-700' : 'border-slate-100'}`}>
+                      <p className={`text-sm font-medium truncate ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
                         {user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.email}
                       </p>
-                      <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                      <p className={`text-xs truncate ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>{user.email}</p>
                     </div>
-                    <Link to="/profile" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-teal-50 hover:text-teal-700">
+                    <Link to="/profile" onClick={() => setIsUserMenuOpen(false)} className={`flex items-center gap-3 px-4 py-2 text-sm transition-colors ${isDarkMode ? 'text-slate-300 hover:bg-slate-700 hover:text-teal-400' : 'text-slate-700 hover:bg-teal-50 hover:text-teal-700'}`}>
                       <User className="w-4 h-4" />
                       Profile
                     </Link>
-                    <Link to="/settings" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-teal-50 hover:text-teal-700">
+                    <Link to="/settings" onClick={() => setIsUserMenuOpen(false)} className={`flex items-center gap-3 px-4 py-2 text-sm transition-colors ${isDarkMode ? 'text-slate-300 hover:bg-slate-700 hover:text-teal-400' : 'text-slate-700 hover:bg-teal-50 hover:text-teal-700'}`}>
                       <Settings className="w-4 h-4" />
                       Settings
                     </Link>
-                    <hr className="my-2 border-slate-100" />
+                    <hr className={`my-2 ${isDarkMode ? 'border-slate-700' : 'border-slate-100'}`} />
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                      className={`w-full flex items-center gap-3 px-4 py-2 text-sm ${isDarkMode ? 'text-red-400 hover:bg-slate-700' : 'text-red-600 hover:bg-red-50'}`}
                     >
                       <LogOut className="w-4 h-4" />
                       Logout
@@ -175,7 +177,7 @@ const Header = () => {
               </>
             ) : (
               <div className="flex items-center gap-3">
-                <Link to="/login" className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-300">
+                <Link to="/login" className={`px-4 py-2 text-sm font-medium transition-colors duration-300 ${isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}>
                   Sign In
                 </Link>
                 <Link
@@ -192,7 +194,7 @@ const Header = () => {
                 setIsMenuOpen((prev) => !prev);
                 setIsUserMenuOpen(false);
               }}
-              className="md:hidden p-2 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-all duration-300"
+              className={`md:hidden p-2 rounded-lg transition-all duration-300 ${isDarkMode ? 'text-slate-500 hover:text-teal-400 hover:bg-slate-800' : 'text-slate-400 hover:text-teal-600 hover:bg-teal-50'}`}
               aria-label="Toggle mobile menu"
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -201,15 +203,15 @@ const Header = () => {
         </div>
 
         {isMenuOpen && (
-          <div className="md:hidden border-t border-slate-200 py-4">
+          <div className={`md:hidden border-t py-4 ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`}>
             <div className="space-y-2">
               {user && navigation.map((item) => (
                 <Link
                   key={item.name}
                   to={item.href}
                   className={`block px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${isActive(item.href)
-                    ? 'bg-teal-100 text-teal-700'
-                    : 'text-slate-600 hover:text-teal-600 hover:bg-teal-50'}`}
+                    ? `${isDarkMode ? 'bg-slate-800 text-teal-400' : 'bg-teal-100 text-teal-700'}`
+                    : `${isDarkMode ? 'text-slate-400 hover:text-teal-400 hover:bg-slate-800' : 'text-slate-600 hover:text-teal-600 hover:bg-teal-50'}`}`}
                 >
                   {item.name}
                 </Link>
@@ -217,16 +219,16 @@ const Header = () => {
 
               {user && (
                 <>
-                  <hr className="my-2 border-slate-200" />
-                  <Link to="/profile" className="block px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-teal-600 hover:bg-teal-50">
+                  <hr className={`my-2 ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`} />
+                  <Link to="/profile" className={`block px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${isDarkMode ? 'text-slate-400 hover:text-teal-400 hover:bg-slate-800' : 'text-slate-600 hover:text-teal-600 hover:bg-teal-50'}`}>
                     Profile
                   </Link>
-                  <Link to="/settings" className="block px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-teal-600 hover:bg-teal-50">
+                  <Link to="/settings" className={`block px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${isDarkMode ? 'text-slate-400 hover:text-teal-400 hover:bg-slate-800' : 'text-slate-600 hover:text-teal-600 hover:bg-teal-50'}`}>
                     Settings
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-all duration-300"
+                    className={`w-full text-left px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${isDarkMode ? 'text-red-400 hover:bg-slate-800' : 'text-red-600 hover:bg-red-50'}`}
                   >
                     Logout
                   </button>

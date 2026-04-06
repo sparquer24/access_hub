@@ -12,9 +12,11 @@ import {
 import { organizationsService } from '../../../services/organizationsService';
 import Loader from '../../common/Loader';
 import { useToast } from '../../../contexts/ToastContext';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 const OrganizationInfo = ({ organization, onUpdate }) => {
   const { error: showError } = useToast();
+  const { isDarkMode } = useTheme();
   const [copiedField, setCopiedField] = useState(null);
   
   // Single loading state for all data

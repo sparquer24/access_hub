@@ -8,28 +8,28 @@
  * @param {Object} user - User object containing role and organization info
  * @returns {Object} Theme configuration with background, header, and accent colors
  */
-export const getRoleBasedTheme = (user) => {
+export const getRoleBasedTheme = (user, isDarkMode = false) => {
   if (!user || !user.role) {
-    return getDefaultTheme();
+    return isDarkMode ? getDefaultDarkTheme() : getDefaultTheme();
   }
 
   const roleName = user.role?.name || user.role;
   
   switch (roleName.toLowerCase()) {
     case 'super_admin':
-      return getSuperAdminTheme();
+      return isDarkMode ? getSuperAdminDarkTheme() : getSuperAdminTheme();
     
     case 'org_admin':
-      return getOrgAdminTheme(user.organization);
+      return isDarkMode ? getOrgAdminDarkTheme(user.organization) : getOrgAdminTheme(user.organization);
     
     case 'manager':
-      return getManagerTheme(user.organization);
+      return isDarkMode ? getManagerDarkTheme(user.organization) : getManagerTheme(user.organization);
     
     case 'employee':
-      return getEmployeeTheme();
+      return isDarkMode ? getEmployeeDarkTheme() : getEmployeeTheme();
     
     default:
-      return getDefaultTheme();
+      return isDarkMode ? getDefaultDarkTheme() : getDefaultTheme();
   }
 };
 
@@ -53,6 +53,28 @@ const getSuperAdminTheme = () => ({
   },
   cards: 'bg-white/80 backdrop-blur-sm border-indigo-100',
   description: 'System Administrator Theme'
+});
+
+/**
+ * Super Admin Dark Theme
+ */
+const getSuperAdminDarkTheme = () => ({
+  background: 'bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900',
+  header: 'bg-gradient-to-r from-indigo-700 via-purple-700 to-indigo-800',
+  headerBorder: 'border-indigo-600/30',
+  accent: {
+    primary: 'indigo',
+    secondary: 'purple',
+    colors: {
+      50: '#1e1b4b',
+      100: '#312e81',
+      500: '#6366f1',
+      600: '#4f46e5',
+      700: '#4338ca'
+    }
+  },
+  cards: 'bg-slate-800/80 backdrop-blur-sm border-slate-700',
+  description: 'System Administrator Dark Theme'
 });
 
 /**
@@ -86,6 +108,34 @@ const getOrgAdminTheme = (organization) => {
 };
 
 /**
+ * Organization Admin Dark Theme
+ */
+const getOrgAdminDarkTheme = (organization) => {
+  if (organization?.theme_colors) {
+    return getCustomOrganizationDarkTheme(organization.theme_colors);
+  }
+  
+  return {
+    background: 'bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900',
+    header: 'bg-gradient-to-r from-teal-700 via-green-700 to-teal-800',
+    headerBorder: 'border-teal-600/30',
+    accent: {
+      primary: 'teal',
+      secondary: 'emerald',
+      colors: {
+        50: '#042f2e',
+        100: '#134e4a',
+        500: '#14b8a6',
+        600: '#0d9488',
+        700: '#0f766e'
+      }
+    },
+    cards: 'bg-slate-800/80 backdrop-blur-sm border-slate-700',
+    description: 'Organization Administrator Dark Theme'
+  };
+};
+
+/**
  * Manager Theme - Blue/Cyan scheme for team management
  */
 const getManagerTheme = (organization) => ({
@@ -105,6 +155,28 @@ const getManagerTheme = (organization) => ({
   },
   cards: 'bg-white/80 backdrop-blur-sm border-blue-100',
   description: 'Team Manager Theme'
+});
+
+/**
+ * Manager Dark Theme
+ */
+const getManagerDarkTheme = (organization) => ({
+  background: 'bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900',
+  header: 'bg-gradient-to-r from-blue-700 via-cyan-700 to-blue-800',
+  headerBorder: 'border-blue-600/30',
+  accent: {
+    primary: 'blue',
+    secondary: 'cyan',
+    colors: {
+      50: '#172554',
+      100: '#1e3a8a',
+      500: '#3b82f6',
+      600: '#2563eb',
+      700: '#1d4ed8'
+    }
+  },
+  cards: 'bg-slate-800/80 backdrop-blur-sm border-slate-700',
+  description: 'Team Manager Dark Theme'
 });
 
 /**
@@ -130,6 +202,28 @@ const getEmployeeTheme = () => ({
 });
 
 /**
+ * Employee Dark Theme
+ */
+const getEmployeeDarkTheme = () => ({
+  background: 'bg-gradient-to-br from-slate-900 via-green-950 to-slate-900',
+  header: 'bg-gradient-to-r from-green-700 via-lime-700 to-green-800',
+  headerBorder: 'border-green-600/30',
+  accent: {
+    primary: 'green',
+    secondary: 'lime',
+    colors: {
+      50: '#052e16',
+      100: '#14532d',
+      500: '#22c55e',
+      600: '#16a34a',
+      700: '#15803d'
+    }
+  },
+  cards: 'bg-slate-800/80 backdrop-blur-sm border-slate-700',
+  description: 'Employee Dark Theme'
+});
+
+/**
  * Default Theme - Original teal scheme as fallback
  */
 const getDefaultTheme = () => ({
@@ -152,6 +246,28 @@ const getDefaultTheme = () => ({
 });
 
 /**
+ * Default Dark Theme
+ */
+const getDefaultDarkTheme = () => ({
+  background: 'bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900',
+  header: 'bg-gradient-to-r from-teal-700 via-purple-700 to-teal-800',
+  headerBorder: 'border-purple-600/30',
+  accent: {
+    primary: 'teal',
+    secondary: 'purple',
+    colors: {
+      50: '#1e1b4b',
+      100: '#312e81',
+      500: '#14b8a6',
+      600: '#0d9488',
+      700: '#0f766e'
+    }
+  },
+  cards: 'bg-slate-800 border-slate-700',
+  description: 'Default Dark Theme'
+});
+
+/**
  * Custom Organization Theme - For organizations with custom branding
  */
 const getCustomOrganizationTheme = (themeColors) => ({
@@ -168,10 +284,26 @@ const getCustomOrganizationTheme = (themeColors) => ({
 });
 
 /**
+ * Custom Organization Dark Theme
+ */
+const getCustomOrganizationDarkTheme = (themeColors) => ({
+  background: `bg-gradient-to-br from-slate-900 via-${themeColors.primary}-950 to-slate-900`,
+  header: `bg-gradient-to-r from-${themeColors.primary}-700 via-${themeColors.secondary}-700 to-${themeColors.primary}-800`,
+  headerBorder: `border-${themeColors.primary}-600/30`,
+  accent: {
+    primary: themeColors.primary,
+    secondary: themeColors.secondary,
+    colors: themeColors.colors || {}
+  },
+  cards: `bg-slate-800/80 backdrop-blur-sm border-${themeColors.primary}-700`,
+  description: 'Custom Organization Dark Theme'
+});
+
+/**
  * Get theme classes as CSS string for dynamic styling
  */
-export const getThemeClasses = (user) => {
-  const theme = getRoleBasedTheme(user);
+export const getThemeClasses = (user, isDarkMode = false) => {
+  const theme = getRoleBasedTheme(user, isDarkMode);
   return {
     page: theme.background,
     header: `${theme.header} shadow-xl ${theme.headerBorder}`,
@@ -223,8 +355,13 @@ export const hasGoodContrast = (bgColor, textColor) => {
  */
 export {
   getSuperAdminTheme,
+  getSuperAdminDarkTheme,
   getOrgAdminTheme,
+  getOrgAdminDarkTheme,
   getManagerTheme,
+  getManagerDarkTheme,
   getEmployeeTheme,
-  getDefaultTheme
+  getEmployeeDarkTheme,
+  getDefaultTheme,
+  getDefaultDarkTheme
 };

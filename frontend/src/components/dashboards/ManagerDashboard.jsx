@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { managerAPI, managerLeaveAPI, managerAttendanceChangeAPI } from '../../services/managerServices';
+import { useTheme } from '../../contexts/ThemeContext';
 import { managerAPI, managerLeaveAPI, managerAttendanceChangeAPI } from '../../services/managerServices';
 import Loader from '../common/Loader';
 import { useToast } from '../../contexts/ToastContext';
@@ -10,12 +10,13 @@ import { getThemeClasses, getRoleBasedTheme } from '../../utils/roleBasedTheme';
 
 const ManagerDashboard = () => {
   const { user, logout } = useAuth();
+  const { isDarkMode } = useTheme();
   const navigate = useNavigate();
   const { success, error: showError } = useToast();
   
   // Role-based theming
-  const theme = getRoleBasedTheme(user);
-  const themeClasses = getThemeClasses(user);
+  const theme = getRoleBasedTheme(user, isDarkMode);
+  const themeClasses = getThemeClasses(user, isDarkMode);
 
   // State for stats and data
   const [stats, setStats] = useState({

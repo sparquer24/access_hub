@@ -1,10 +1,13 @@
 import React from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const Footer = () => {
+  const { isDarkMode } = useTheme();
+  
   return (
-    <footer className="bg-gradient-to-r from-teal-700 via-teal-600 to-cyan-700 text-white mt-auto">
-        <div className="border-t border-teal-500/30 pt-1 pb-1 flex justify-center items-center min-h-6">
-          <p className="text-teal-100 text-xs font-bold text-center w-full">
+    <footer className={`${isDarkMode ? 'bg-slate-900' : 'bg-gradient-to-r from-teal-700 via-teal-600 to-cyan-700'} text-white mt-auto`}>
+        <div className={`border-t pt-1 pb-1 flex justify-center items-center min-h-6 ${isDarkMode ? 'border-slate-700' : 'border-teal-500/30'}`}>
+          <p className={`text-xs font-bold text-center w-full ${isDarkMode ? 'text-slate-400' : 'text-teal-100'}`}>
             © {new Date().getFullYear()} AccessHub. All rights reserved.
           </p>
         </div>
