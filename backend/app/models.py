@@ -31,9 +31,12 @@ class UserDetails(db.Model):
     updated_at   = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
-
+# NOTE: VisitorDetails table doesn't exist in current database
+# This model is kept for reference but not used in the new system
+# If needed in the future, run migrations to create the table
 class VisitorDetails(db.Model):
     __tablename__ = "visitor_details"
+    __table_args__ = {'extend_existing': True}  # Allow SQLAlchemy to coexist if table missing
 
     aadhaar_id       = db.Column(db.String(12), primary_key=True)  # 12-digit unique
     full_name        = db.Column(db.String(120), nullable=False)
@@ -73,6 +76,7 @@ class VisitorDetails(db.Model):
 
 class VisitorImage(db.Model):
     __tablename__ = "visitor_images"
+    __table_args__ = {'extend_existing': True}  # Allow SQLAlchemy to coexist if referenced table missing
 
     id         = db.Column(db.BigInteger, primary_key=True)
     aadhaar_id = db.Column(db.String(12), db.ForeignKey("visitor_details.aadhaar_id"), nullable=False)
@@ -82,4 +86,5 @@ class VisitorImage(db.Model):
 
     __table_args__ = (
         db.UniqueConstraint("aadhaar_id", "angle", name="uq_visitor_angle"),
+        {'extend_existing': True}
     )

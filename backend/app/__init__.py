@@ -273,6 +273,16 @@ def create_app():
                     }
                 }
             },
+            "ConflictError": {
+                "description": "Resource conflict (e.g., duplicate entry)",
+                "schema": {"$ref": "#/definitions/Error"},
+                "examples": {
+                    "application/json": {
+                        "success": False,
+                        "message": "Resource already exists"
+                    }
+                }
+            },
             "BadRequestError": {
                 "description": "Invalid request data",
                 "schema": {"$ref": "#/definitions/Error"},

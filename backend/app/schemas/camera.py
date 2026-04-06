@@ -76,7 +76,7 @@ class CameraCreateSchema(Schema):
         validate=validate.OneOf(['IP_CAMERA', 'USB_CAMERA', 'RTSP_STREAM'])
     )
     source_url = fields.String(allow_none=True, validate=validate.Length(max=512))
-    stream_url = fields.String(allow_none=True, validate=validate.Length(max=512))
+    stream_url = fields.String(allow_none=True)
     source_config = fields.Dict(load_default=dict)
     fps = fields.Integer(load_default=10, validate=validate.Range(min=1, max=60))
     resolution = fields.String(load_default='640x480', validate=validate.Length(max=20))

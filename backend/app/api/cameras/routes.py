@@ -266,27 +266,26 @@ def update_camera(camera_id):
           properties:
             location_id:
               type: string
-              description: Location ID where camera is installed
+              example: "00bd1288-9c75-4104-b8c6-8d2922444c83"
             name:
               type: string
-              description: Camera name
+              example: "Main Gate Camera 1"
             camera_type:
               type: string
               enum: [CHECK_IN, CHECK_OUT, CCTV]
-              description: Type of camera
+              example: "CHECK_IN"
             source_type:
               type: string
               enum: [IP_CAMERA, USB_CAMERA, RTSP_STREAM]
-              description: Source type of camera
+              example: "RTSP_STREAM"
             source_url:
               type: string
-              description: RTSP or HTTP URL for the camera feed
+              example: "rtsp://192.168.1.100:554/stream"
             stream_url:
               type: string
-              description: Stream URL for viewing
+              example: "rtsp://192.168.1.100:554/stream"
             source_config:
               type: object
-              description: Additional camera configuration
             fps:
               type: integer
               description: Frames per second
