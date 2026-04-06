@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { authService } from '../../services/authService';
 import '../../styles/Dashboard.css';
 import DashboardHeader from '../common/dashboard/DashboardHeader';
@@ -15,12 +16,13 @@ const API_BASE_URL = API_BASE;
 
 const OrgAdminDashboard = () => {
   const { user, logout } = useAuth();
+  const { isDarkMode } = useTheme();
   const navigate = useNavigate();
   const { error: showError } = useToast();
   
   // Role-based theming
-  const theme = getRoleBasedTheme(user);
-  const themeClasses = getThemeClasses(user);
+  const theme = getRoleBasedTheme(user, isDarkMode);
+  const themeClasses = getThemeClasses(user, isDarkMode);
   
   const [stats, setStats] = useState({
     departments: 0,

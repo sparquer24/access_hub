@@ -16,6 +16,7 @@ import OrganizationVisitors from './tabs/OrganizationVisitors';
 import OrganizationLPR from './tabs/OrganizationLPR';
 import { useSubscription } from '../../contexts/SubscriptionContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { visitorService } from '../../services/visitorService';
 import { ArrowLeft, Edit2, Ban, CheckCircle, Building2, Bell, LayoutGrid, Users, UserRoundCheck, CarFront, Camera, MapPin } from 'lucide-react';
 
@@ -26,6 +27,7 @@ const OrganizationDetail = ({
   const { id, '*': tabPath = '' } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { isDarkMode } = useTheme();
   const [organization, setOrganization] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAlertSidebarOpen, setIsAlertSidebarOpen] = useState(false);
@@ -309,7 +311,7 @@ const OrganizationDetail = ({
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-100 via-cyan-50 to-teal-100">
+      <div className={`flex flex-col items-center justify-center min-h-screen ${isDarkMode ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-slate-100 via-cyan-50 to-teal-100'}`}>
         <Loader size="large" text="Loading organization details..." />
       </div>
     );
@@ -320,33 +322,33 @@ const OrganizationDetail = ({
   }
 
   return (
-    <div className="bg-gradient-to-br from-slate-100 via-cyan-50 to-teal-100 min-h-[90vh] h-auto">
+    <div className={`min-h-[90vh] h-auto ${isDarkMode ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-slate-100 via-cyan-50 to-teal-100'}`}>
       {/* Enhanced Page Header */}
-      <div className="sticky top-0 z-30 bg-gradient-to-r from-cyan-100/95 via-teal-100/95 to-slate-100/95 backdrop-blur-sm shadow-lg border-b border-teal-200/50">
+      <div className={`sticky top-0 z-30 backdrop-blur-sm shadow-lg border-b ${isDarkMode ? 'bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 border-slate-600' : 'bg-gradient-to-r from-cyan-100/95 via-teal-100/95 to-slate-100/95 border-teal-200/50'}`}>
         <div className="max-w-screen-2xl mx-auto px-2 sm:px-3 lg:px-4 py-1">
           {/* Top Row - Back Button and Organization Name */}
           <div className="flex items-center justify-between gap-2 flex-nowrap overflow-x-auto">
             <div className="flex items-center gap-2.5 min-w-0 flex-nowrap">
               <button
                 onClick={() => navigate(backPath)}
-                className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-white/80 text-slate-700 hover:bg-white transition-all duration-200 shadow-sm hover:shadow shrink-0"
+                className={`inline-flex items-center justify-center h-9 w-9 rounded-lg transition-all duration-200 shadow-sm hover:shadow shrink-0 ${isDarkMode ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-white/80 text-slate-700 hover:bg-white'}`}
                 aria-label="Go back"
                 title="Back"
               >
                 <ArrowLeft className="w-4 h-4" />
               </button>
               <div className="min-w-0 flex items-center gap-2.5 whitespace-nowrap">
-                <h1 className="text-xl sm:text-2xl leading-tight font-extrabold text-teal-800 truncate max-w-[32vw] border-b-2 border-teal-200 pb-0.5">
+                <h1 className={`text-xl sm:text-2xl leading-tight font-extrabold truncate max-w-[32vw] border-b-2 pb-0.5 ${isDarkMode ? 'text-teal-400 border-teal-600' : 'text-teal-800 border-teal-200'}`}>
                   {organization.name}
                 </h1>
                 <div className="flex items-center gap-2 whitespace-nowrap">
-                  <div className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-2.5 py-1 shrink-0">
-                    <Building2 className="w-3.5 h-3.5 text-teal-600" />
-                    <span className="text-sm text-slate-700 font-medium">Code: <span className="font-bold text-slate-900">{organization.code}</span></span>
+                  <div className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 shrink-0 ${isDarkMode ? 'bg-slate-700' : 'bg-white/80'}`}>
+                    <Building2 className={`w-3.5 h-3.5 ${isDarkMode ? 'text-teal-400' : 'text-teal-600'}`} />
+                    <span className={`text-sm font-medium ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>Code: <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{organization.code}</span></span>
                   </div>
                   <span className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${organization.is_active
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : 'bg-red-100 text-red-700'
+                    ? `${isDarkMode ? 'bg-emerald-900/50 text-emerald-400' : 'bg-emerald-100 text-emerald-700'}`
+                    : `${isDarkMode ? 'bg-red-900/50 text-red-400' : 'bg-red-100 text-red-700'}`
                     }`}>
                     {organization.is_active ? '✅ Active' : '❌ Inactive'}
                   </span>
@@ -357,7 +359,7 @@ const OrganizationDetail = ({
             {/* Action Buttons */}
             <div className="flex items-center gap-2 shrink-0 whitespace-nowrap">
               <button
-                className="px-3.5 py-1.5 bg-gradient-to-r from-white to-cyan-50 text-teal-800 hover:from-cyan-50 hover:to-teal-50 rounded-lg font-semibold transition-all duration-200 shadow-md hover:shadow-lg border border-teal-200/50 flex items-center gap-1.5 text-sm"
+                className={`px-3.5 py-1.5 rounded-lg font-semibold transition-all duration-200 shadow-md hover:shadow-lg border flex items-center gap-1.5 text-sm ${isDarkMode ? 'bg-slate-700 text-teal-400 border-slate-600 hover:bg-slate-600' : 'bg-gradient-to-r from-white to-cyan-50 text-teal-800 hover:from-cyan-50 hover:to-teal-50 border-teal-200/50'}`}
                 onClick={handleEdit}
               >
                 <Edit2 className="w-4 h-4" />
@@ -382,15 +384,15 @@ const OrganizationDetail = ({
 
           {/* Unified Second Row - Tabs + Alerts */}
           <div className="mt-1 pt-1">
-            <div className="flex items-center gap-3 bg-gradient-to-r from-white/80 via-cyan-50/80 to-teal-50/80 rounded-xl px-3 py-1.5 backdrop-blur-sm border border-white/40 shadow-md">
+            <div className={`flex items-center gap-3 rounded-xl px-3 py-1.5 backdrop-blur-sm border shadow-md ${isDarkMode ? 'bg-slate-800/80 border-slate-600' : 'bg-gradient-to-r from-white/80 via-cyan-50/80 to-teal-50/80 border-white/40'}`}>
               <div className="flex-1 overflow-x-auto">
-                <div className="flex items-center gap-1.5 bg-gradient-to-r from-slate-100/90 via-cyan-100/70 to-teal-100/70 p-1 rounded-xl w-max min-w-full shadow-inner border border-slate-200/50">
+                <div className={`flex items-center gap-1.5 p-1 rounded-xl w-max min-w-full shadow-inner border ${isDarkMode ? 'bg-slate-700/80 border-slate-600' : 'bg-gradient-to-r from-slate-100/90 via-cyan-100/70 to-teal-100/70 border-slate-200/50'}`}>
                   {availableTabs.map((tab) => (
                     <button
                       key={tab.id}
                       className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap flex items-center gap-1 transition-all duration-200 ${activeTab === tab.id
-                        ? 'text-teal-800 bg-gradient-to-r from-white to-cyan-50 shadow-md font-semibold border border-teal-200/50'
-                        : 'text-slate-700 bg-transparent hover:text-slate-900 hover:bg-gradient-to-r hover:from-white hover:to-slate-50'
+                        ? `${isDarkMode ? 'text-teal-400 bg-slate-600 shadow-md border-slate-500' : 'text-teal-800 bg-gradient-to-r from-white to-cyan-50 shadow-md border-teal-200/50'} font-semibold`
+                        : `${isDarkMode ? 'text-slate-400 bg-transparent hover:text-white hover:bg-slate-600' : 'text-slate-700 bg-transparent hover:text-slate-900 hover:bg-gradient-to-r hover:from-white hover:to-slate-50'}`
                         }`}
                       onClick={() => setActiveTab(tab.id)}
                     >
@@ -406,8 +408,8 @@ const OrganizationDetail = ({
                   setIsAlertSidebarOpen(true);
                 }}
                 className={`relative inline-flex items-center justify-center p-2.5 rounded-xl text-xs font-medium transition-all duration-200 ${isAlertSidebarOpen && alertCount > 0
-                  ? 'bg-gradient-to-r from-teal-100 to-cyan-100 text-teal-800 shadow-md border border-teal-200/50'
-                  : 'bg-gradient-to-r from-white to-slate-50 text-slate-600 hover:bg-gradient-to-r hover:from-slate-50 hover:to-teal-50 hover:text-teal-700 shadow-sm border border-slate-200/50'
+                  ? `${isDarkMode ? 'bg-teal-900/50 text-teal-400 shadow-md border border-teal-600' : 'bg-gradient-to-r from-teal-100 to-cyan-100 text-teal-800 shadow-md border-teal-200/50'}`
+                  : `${isDarkMode ? 'bg-slate-700 text-slate-400 hover:bg-slate-600 hover:text-teal-400 shadow-sm border border-slate-600' : 'bg-gradient-to-r from-white to-slate-50 text-slate-600 hover:bg-gradient-to-r hover:from-slate-50 hover:to-teal-50 hover:text-teal-700 shadow-sm border border-slate-200/50'}`
                   }`}
                 aria-label="Toggle alerts sidebar"
               >
@@ -417,7 +419,7 @@ const OrganizationDetail = ({
                     <span className="absolute inline-flex h-10 w-10 rounded-full border border-red-300/60 animate-pulse" />
                   </>
                 )}
-                <Bell className={`w-4 h-4 relative z-10 ${alertCount > 0 ? 'text-red-600 bell-alert-shake' : ''}`} />
+                <Bell className={`w-4 h-4 relative z-10 ${alertCount > 0 ? `${isDarkMode ? 'text-red-400' : 'text-red-600'} bell-alert-shake` : ''}`} />
                 {alertCount > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-semibold flex items-center justify-center leading-none shadow-sm">
                     {alertCount}
@@ -434,7 +436,7 @@ const OrganizationDetail = ({
       <div className="max-w-screen-2xl mx-auto px-2 sm:px-3 lg:px-4 py-1">
         <div className={`grid grid-cols-1 lg:grid-cols-12 gap-3 ${isAlertSidebarOpen ? 'h-[calc(100vh-90px)]' : ''}`}>
           <div className={`${isAlertSidebarOpen ? 'lg:col-span-10 h-full overflow-hidden' : 'lg:col-span-12'} min-w-0 transition-all duration-300`}>
-            <div className={`bg-gradient-to-br from-white/95 via-cyan-50/90 to-teal-50/95 rounded-lg shadow-md border border-white/50 backdrop-blur-sm overflow-hidden ${isAlertSidebarOpen ? 'h-full flex flex-col' : ''}`}>
+            <div className={`rounded-lg shadow-md backdrop-blur-sm overflow-hidden ${isAlertSidebarOpen ? 'h-full flex flex-col' : ''} ${isDarkMode ? 'bg-slate-800/95 border border-slate-700' : 'bg-gradient-to-br from-white/95 via-cyan-50/90 to-teal-50/95 border border-white/50'}`}>
               {/* Tab Content */}
               <div className="p-2">
                 {activeTab === 'info' && (

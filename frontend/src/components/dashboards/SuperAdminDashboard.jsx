@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
 import { statsAPI } from '../../services/api';
 import Loader from '../common/Loader';
 import { useToast } from '../../contexts/ToastContext';
@@ -28,12 +29,13 @@ import StatCard from '../common/dashboard/StatCard';
 
 const SuperAdminDashboard = () => {
   const { user, logout } = useAuth();
+  const { isDarkMode } = useTheme();
   const navigate = useNavigate();
   const { success, error: showError } = useToast();
   
   // Role-based theming
-  const theme = getRoleBasedTheme(user);
-  const themeClasses = getThemeClasses(user);
+  const theme = getRoleBasedTheme(user, isDarkMode);
+  const themeClasses = getThemeClasses(user, isDarkMode);
 
   // State for dashboard data
   const [loading, setLoading] = useState(true);
