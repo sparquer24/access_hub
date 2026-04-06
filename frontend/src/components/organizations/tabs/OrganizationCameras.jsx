@@ -543,11 +543,15 @@ const OrganizationCameras = ({ organizationId, organization }) => {
       {/* Create/Edit Modal */}
       <Modal
         title={
-          <div className="flex items-center gap-2 text-xl font-bold text-teal-700">
-            <svg className="w-6 h-6 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            {editingCamera ? 'Edit Camera' : 'Create New Camera'}
+          <div className="py-1">
+            <div className="text-2xl md:text-3xl font-bold text-gray-800 leading-tight">
+              {editingCamera ? 'Edit Camera' : 'Create New Camera'}
+            </div>
+            {!editingCamera && (
+              <p className="text-sm text-gray-500 mt-2">
+                Fill in the camera details below. All fields marked <span className="text-red-500 font-semibold">*</span> are required.
+              </p>
+            )}
           </div>
         }
         open={showModal}
@@ -556,152 +560,148 @@ const OrganizationCameras = ({ organizationId, organization }) => {
           form.resetFields();
         }}
         footer={null}
-        width={1100}
-        bodyStyle={{ border: '3px solid #14b8a6', borderRadius: 16, background: '#f0fdfa', boxShadow: '0 4px 32px 0 rgba(20,184,166,0.10)', paddingBottom: 32 }}
+        width={980}
       >
-        <Form form={form} layout="vertical" onFinish={handleSubmit} className="mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-            <Form.Item
-              name="name"
-              label={<span><svg className="inline w-4 h-4 mr-1 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 01-8 0" /></svg>Camera Name</span>}
-              rules={[{ required: true, message: 'Please enter camera name' }]}
-              extra="Give your camera a unique, descriptive name."
-              className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl"
-            >
-              <Input placeholder="e.g. Main Gate Camera 1" className="rounded-lg" />
-            </Form.Item>
-
-            <Form.Item
-              name="camera_type"
-              label={<span><svg className="inline w-4 h-4 mr-1 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg>Camera Type</span>}
-              rules={[{ required: true, message: 'Please select camera type' }]}
-              className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl"
-            >
-              <Select placeholder="Select camera type" className="rounded-lg">
-                <Option value={CAMERA_TYPES.CHECK_IN}>← Check-In</Option>
-                <Option value={CAMERA_TYPES.CHECK_OUT}>→ Check-Out</Option>
-                <Option value={CAMERA_TYPES.CCTV}>⦿ CCTV</Option>
-              </Select>
-            </Form.Item>
-
-            <Form.Item
-              name="source_type"
-              label={<span><svg className="inline w-4 h-4 mr-1 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" /></svg>Source Type</span>}
-              rules={[{ required: true, message: 'Please select source type' }]}
-              className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl"
-            >
-              <Select placeholder="Select source type" className="rounded-lg">
-                <Option value={CAMERA_SOURCE_TYPES.IP_CAMERA}>IP Camera</Option>
-                <Option value={CAMERA_SOURCE_TYPES.USB_CAMERA}>USB Camera</Option>
-                <Option value={CAMERA_SOURCE_TYPES.RTSP_STREAM}>RTSP Stream</Option>
-              </Select>
-            </Form.Item>
-
-            <Form.Item
-              name="location_id"
-              label={<span><svg className="inline w-4 h-4 mr-1 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c1.657 0 3-1.343 3-3S13.657 5 12 5 9 6.343 9 8s1.343 3 3 3z" /></svg>Location</span>}
-              rules={[{ required: true, message: 'Please select a location' }]}
-              className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl"
-            >
-              <Select placeholder="Select location" className="rounded-lg">
-                {locations.map((loc) => (
-                  <Option key={loc.id} value={loc.id}>
-                    {loc.name} {loc.location_type ? `(${loc.location_type})` : ''}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-
-            <Form.Item name="source_url" label="Source URL" extra="e.g. rtsp://192.168.1.100:554/" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
-              <Input placeholder="rtsp://192.168.1.100:554/" className="rounded-lg" />
-            </Form.Item>
-
-            <Form.Item name="stream_url" label="(Stream / Live) URL" extra="e.g. http://example.com/stream" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
-              <Input placeholder="http://example.com/stream" className="rounded-lg" />
-            </Form.Item>
-
-            <Form.Item name="resolution" label="Resolution" extra="e.g. 640x480" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
-              <Input placeholder="640x480" className="rounded-lg" />
-            </Form.Item>
-
-            <Form.Item name="fps" label="FPS (Frames Per Second)" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
-              <InputNumber className="w-full rounded-lg" min={1} max={60} placeholder="10" />
-            </Form.Item>
-
-            <Form.Item name="confidence_threshold" label="Confidence Threshold" extra="0.0 - 1.0" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
-              <InputNumber className="w-full rounded-lg" min={0} max={1} step={0.1} placeholder="0.6" />
-            </Form.Item>
-
-            <Form.Item name="liveness_check_enabled" label="Liveness Check" valuePropName="checked" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
-              <Switch />
-            </Form.Item>
-          </div>
-
-          <div className="mt-8 mb-4">
-            <div className="flex items-center gap-2 mb-2">
-              <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              <span className="text-lg font-semibold text-teal-700">Attendance Management Settings</span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 bg-teal-50 rounded-lg p-4 border border-teal-100">
-              <Form.Item
-                name="management_type"
-                label="Management Type"
-                rules={[{ required: true, message: 'Please select management type' }]}
-                className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl"
-              >
-                <Select
-                  placeholder="Select management type"
-                  onChange={(value) => {
-                    form.setFieldsValue(getManagementFlags(value));
-                  }}
-                  className="rounded-lg"
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          className="mt-4"
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="rounded-xl border border-gray-200 p-5">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">Camera Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Form.Item
+                  name="name"
+                  label="Camera Name"
+                  rules={[{ required: true, message: 'Please enter camera name' }]}
                 >
-                  <Option value="ATTENDANCE">⚡ Attendance Only</Option>
-                  <Option value="VISITORS">👤 Visitors Only</Option>
-                  <Option value="PEOPLE_LOGS">📈 People Logs Only</Option>
-                </Select>
-              </Form.Item>
-
-              <Form.Item name="auto_check_out_hours" label="Auto Check-out Hours" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
-                <InputNumber
-                  className="w-full rounded-lg"
-                  min={1}
-                  max={24}
-                  placeholder="12"
-                  addonAfter="hours"
-                />
-              </Form.Item>
-
-              <Form.Item name="attendance_enabled" label="Enable Attendance Tracking" valuePropName="checked" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
-                <Switch disabled />
-              </Form.Item>
-
-              <Form.Item name="visitor_tracking_enabled" label="Enable Visitor Tracking" valuePropName="checked" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
-                <Switch disabled />
-              </Form.Item>
-
-              <Form.Item name="people_logs_enabled" label="Enable People Logs" valuePropName="checked" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
-                <Switch disabled />
-              </Form.Item>
-
-              <Form.Item name="require_manual_approval" label="Require Manual Approval" valuePropName="checked" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
-                <Switch />
-              </Form.Item>
-
-              <Form.Item name="notification_enabled" label="Enable Notifications" valuePropName="checked" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
-                <Switch defaultChecked />
-              </Form.Item>
-
-              {editingCamera && (
-                <Form.Item name="is_active" label="Camera Enabled" valuePropName="checked" className="transition-all duration-200 hover:shadow-lg hover:border-teal-400 rounded-xl">
+                  <Input placeholder="e.g. Main Gate Camera 1" />
+                </Form.Item>
+                <Form.Item
+                  name="camera_type"
+                  label="Camera Type"
+                  rules={[{ required: true, message: 'Please select camera type' }]}
+                >
+                  <Select placeholder="Select camera type">
+                    <Option value={CAMERA_TYPES.CHECK_IN}>Check-In</Option>
+                    <Option value={CAMERA_TYPES.CHECK_OUT}>Check-Out</Option>
+                    <Option value={CAMERA_TYPES.CCTV}>CCTV</Option>
+                  </Select>
+                </Form.Item>
+                <Form.Item
+                  name="source_type"
+                  label="Source Type"
+                  rules={[{ required: true, message: 'Please select source type' }]}
+                >
+                  <Select placeholder="Select source type">
+                    <Option value={CAMERA_SOURCE_TYPES.IP_CAMERA}>IP Camera</Option>
+                    <Option value={CAMERA_SOURCE_TYPES.USB_CAMERA}>USB Camera</Option>
+                    <Option value={CAMERA_SOURCE_TYPES.RTSP_STREAM}>RTSP Stream</Option>
+                  </Select>
+                </Form.Item>
+                <Form.Item
+                  name="location_id"
+                  label="Location"
+                  rules={[{ required: true, message: 'Please select a location' }]}
+                >
+                  <Select placeholder="Select location">
+                    {locations.map((loc) => (
+                      <Option key={loc.id} value={loc.id}>
+                        {loc.name} {loc.location_type ? `(${loc.location_type})` : ''}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+                <Form.Item
+                  name="source_url"
+                  label="Source URL"
+                  extra="e.g. rtsp://192.168.1.100:554/"
+                >
+                  <Input placeholder="rtsp://192.168.1.100:554/" />
+                </Form.Item>
+                <Form.Item
+                  name="stream_url"
+                  label="(Stream / Live) URL"
+                  extra="e.g. http://example.com/stream"
+                >
+                  <Input placeholder="http://example.com/stream" />
+                </Form.Item>
+                <Form.Item
+                  name="resolution"
+                  label="Resolution"
+                  extra="e.g. 640x480"
+                >
+                  <Input placeholder="640x480" />
+                </Form.Item>
+                <Form.Item
+                  name="fps"
+                  label="FPS (Frames Per Second)"
+                >
+                  <InputNumber className="w-full" min={1} max={60} placeholder="10" />
+                </Form.Item>
+                <Form.Item
+                  name="confidence_threshold"
+                  label="Confidence Threshold"
+                  extra="0.0 - 1.0"
+                >
+                  <InputNumber className="w-full" min={0} max={1} step={0.1} placeholder="0.6" />
+                </Form.Item>
+                <Form.Item
+                  name="liveness_check_enabled"
+                  label="Liveness Check"
+                  valuePropName="checked"
+                >
                   <Switch />
                 </Form.Item>
-              )}
+              </div>
+            </div>
+            <div className="rounded-xl border border-gray-200 p-5 h-fit">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">Attendance Management Settings</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Form.Item
+                  name="management_type"
+                  label="Management Type"
+                  rules={[{ required: true, message: 'Please select management type' }]}
+                >
+                  <Select
+                    placeholder="Select management type"
+                    onChange={(value) => {
+                      form.setFieldsValue(getManagementFlags(value));
+                    }}
+                  >
+                    <Option value="ATTENDANCE">Attendance Only</Option>
+                    <Option value="VISITORS">Visitors Only</Option>
+                    <Option value="PEOPLE_LOGS">People Logs Only</Option>
+                  </Select>
+                </Form.Item>
+                <Form.Item name="auto_check_out_hours" label="Auto Check-out Hours">
+                  <InputNumber className="w-full" min={1} max={24} placeholder="12" addonAfter="hours" />
+                </Form.Item>
+                <Form.Item name="attendance_enabled" label="Enable Attendance Tracking" valuePropName="checked">
+                  <Switch disabled />
+                </Form.Item>
+                <Form.Item name="visitor_tracking_enabled" label="Enable Visitor Tracking" valuePropName="checked">
+                  <Switch disabled />
+                </Form.Item>
+                <Form.Item name="people_logs_enabled" label="Enable People Logs" valuePropName="checked">
+                  <Switch disabled />
+                </Form.Item>
+                <Form.Item name="require_manual_approval" label="Require Manual Approval" valuePropName="checked">
+                  <Switch />
+                </Form.Item>
+                <Form.Item name="notification_enabled" label="Enable Notifications" valuePropName="checked">
+                  <Switch defaultChecked />
+                </Form.Item>
+                {editingCamera && (
+                  <Form.Item name="is_active" label="Camera Enabled" valuePropName="checked">
+                    <Switch />
+                  </Form.Item>
+                )}
+              </div>
             </div>
           </div>
-
           <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
             <button
               type="button"
