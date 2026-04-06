@@ -64,6 +64,9 @@ class CameraSchema(Schema, TimestampMixin):
 
 class CameraCreateSchema(Schema):
     """Schema for creating a camera"""
+    class Meta:
+        unknown = 'EXCLUDE'  # Ignore unknown fields (backward compatibility)
+    
     organization_id = fields.String(required=True)
     location_id = fields.String(required=True)
     name = fields.String(required=True, validate=validate.Length(min=1, max=255))
