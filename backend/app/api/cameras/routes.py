@@ -31,6 +31,9 @@ bp = Blueprint('cameras_api', __name__, url_prefix='/api/v2/cameras')
 @require_permission('cameras:create')
 @validate_request(CameraCreateSchema)
 def create_camera():
+    print("=== CREATE CAMERA REQUEST ===")
+    print("request.validated_data:", request.validated_data)
+    print("=============================")
     """
     Create a new camera
     ---
@@ -120,6 +123,9 @@ def create_camera():
 @jwt_required()
 @validate_query(CameraListSchema)
 def list_cameras():
+    print("=== LIST CAMERAS REQUEST ===")
+    print("request.validated_query:", request.validated_query)
+    print("===========================")
     """
     List all cameras with pagination and filters
     ---
@@ -196,10 +202,12 @@ def list_cameras():
     # Get current user for tenant isolation
     current_user = get_current_user()
     organization_id = current_user.get('organization_id') if current_user else None
+    print(f"org id${organization_id}")
     
     query = CameraService.list_cameras(filters, organization_id)
     result = paginate(query, page, per_page, CameraSchema)
-    
+    print(f"result data:${result} >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+
     return success_response(data=result)
 
 
