@@ -31,49 +31,6 @@ class UserDetails(db.Model):
     updated_at   = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
-# NOTE: VisitorDetails table doesn't exist in current database
-# This model is kept for reference but not used in the new system
-# If needed in the future, run migrations to create the table
-class VisitorDetails(db.Model):
-    __tablename__ = "visitor_details"
-    __table_args__ = {'extend_existing': True}  # Allow SQLAlchemy to coexist if table missing
-
-    aadhaar_id       = db.Column(db.String(12), primary_key=True)  # 12-digit unique
-    full_name        = db.Column(db.String(120), nullable=False)
-    gender           = db.Column(db.String(16))
-    phone_number     = db.Column(db.String(20))
-    location         = db.Column(db.String(120))
-    purpose_of_visit = db.Column(db.String(255))
-    host_to_visit    = db.Column(db.String(120))
-
-    floors           = db.Column(ARRAY(db.String), default=[])
-    towers           = db.Column(ARRAY(db.String), default=[])
-
-    duration_from    = db.Column(db.Date)
-    duration_to      = db.Column(db.Date)
-
-    created_at       = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at       = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    images = db.relationship("VisitorImage", backref="visitor", cascade="all, delete-orphan")
-
-    def to_dict(self):
-        return {
-            "aadhaar_id": self.aadhaar_id,
-            "full_name": self.full_name,
-            "gender": self.gender,
-            "phone_number": self.phone_number,
-            "location": self.location,
-            "purpose_of_visit": self.purpose_of_visit,
-            "host_to_visit": self.host_to_visit,
-            "floors": self.floors or [],
-            "towers": self.towers or [],
-            "duration_from": self.duration_from.isoformat() if self.duration_from else None,
-            "duration_to": self.duration_to.isoformat() if self.duration_to else None,
-            "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat(),
-        }
-
 class VisitorImage(db.Model):
     __tablename__ = "visitor_images"
     __table_args__ = {'extend_existing': True}  # Allow SQLAlchemy to coexist if referenced table missing
