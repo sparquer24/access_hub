@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import api from '../services/api';
 import { 
   User,
   Mail,
@@ -39,21 +40,18 @@ function EmployeeProfile() {
         return;
       }
 
-      const response = await fetch('/api/employee/profile', {
+      const response = await api.get('/api/employee/profile', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.status === 'success') {
-          setProfile(result.data);
-          setEditForm({
-            first_name: result.data.user_info.first_name,
-            last_name: result.data.user_info.last_name,
-            phone: result.data.employee_info.phone || '',
-            position: result.data.employee_info.position || ''
-          });
-        }
+      const result = response.data;
+      if (result.status === 'success') {
+        setProfile(result.data);
+        setEditForm({
+          first_name: result.data.user_info.first_name,
+          last_name: result.data.user_info.last_name,
+          phone: result.data.employee_info.phone || '',
+          position: result.data.employee_info.position || ''
+        });
       }
     } catch (error) {
       console.error('Error fetching profile:', error);

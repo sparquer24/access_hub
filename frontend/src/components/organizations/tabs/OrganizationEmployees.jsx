@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Modal, Form, Input, Select, DatePicker, Switch, Pagination } from 'antd';
 import { employeesService, EMPLOYMENT_TYPES, GENDER_OPTIONS, departmentsService, shiftsService, organizationsService } from '../../../services/organizationsService';
 import { faceService } from '../../../services/faceService';
@@ -38,6 +39,7 @@ const OrganizationEmployees = ({
   const [departments, setDepartments] = useState([]);
   const [shifts, setShifts] = useState([]);
   const [employeePhoto, setEmployeePhoto] = useState(null);
+  const navigate = useNavigate();
   const [showWebcam, setShowWebcam] = useState(false);
   const [isCreateFormComplete, setIsCreateFormComplete] = useState(false);
   const [internalActiveTab, setInternalActiveTab] = useState('list');
@@ -1568,10 +1570,19 @@ const OrganizationEmployees = ({
                       label="Department"
                       rules={[{ required: !editingEmployee, message: 'Please select department' }]}
                     >
-                      <Select placeholder="Select department" allowClear>
+                      <Select
+                        placeholder="Select department"
+                        allowClear
+                        onChange={value => {
+                          if (value === '__other__') {
+                            navigate(`/super-admin/organizations/${organizationId}/employees/departments`);
+                          }
+                        }}
+                      >
                         {departments.map((d) => (
                           <Option key={d.id} value={d.id}>{d.name || d.department_name}{d.code ? ` — ${d.code}` : ''}</Option>
                         ))}
+                        <Option value="__other__">Other</Option>
                       </Select>
                     </Form.Item>
 
@@ -1589,10 +1600,19 @@ const OrganizationEmployees = ({
                       className="md:col-span-2"
                       rules={[{ required: !editingEmployee, message: 'Please select shift' }]}
                     >
-                      <Select placeholder="Select shift" allowClear>
+                      <Select
+                        placeholder="Select shift"
+                        allowClear
+                        onChange={value => {
+                          if (value === '__other__') {
+                            navigate(`/super-admin/organizations/${organizationId}/employees/shifts`);
+                          }
+                        }}
+                      >
                         {shifts.map((s) => (
                           <Option key={s.id} value={s.id}>{s.shift_name || s.name} {s.start_time ? `(${s.start_time} - ${s.end_time})` : ''}</Option>
                         ))}
+                        <Option value="__other__">Other</Option>
                       </Select>
                     </Form.Item>
 

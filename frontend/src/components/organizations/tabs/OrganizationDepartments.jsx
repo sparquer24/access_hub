@@ -64,6 +64,7 @@ const OrganizationDepartments = ({ organizationId, organization }) => {
       if (editing) {
         const payload = {
           name: values.name,
+          code: values.code, // Ensure code is sent for update
           description: values.description,
           is_active: values.is_active,
         };
