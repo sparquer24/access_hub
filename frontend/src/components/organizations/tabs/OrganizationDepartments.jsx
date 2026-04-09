@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Input, Switch } from 'antd';
+import { Form, Switch } from 'antd';
+import CreateDepartmentModal from '../modals/CreateDepartmentModal';
 import { Edit, Trash2 } from 'lucide-react';
 import { departmentsService } from '../../../services/organizationsService';
 import Loader from '../../common/Loader';
@@ -161,34 +162,13 @@ const OrganizationDepartments = ({ organizationId, organization }) => {
         </div>
       )}
 
-      <Modal
-        title={<div className="text-lg font-bold">{editing ? 'Edit Department' : 'Create Department'}</div>}
+      <CreateDepartmentModal
         open={showModal}
         onCancel={() => { setShowModal(false); form.resetFields(); }}
-        footer={null}
-      >
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
-          <Form.Item name="name" label="Department Name" rules={[{ required: true, message: 'Please enter name' }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="code" label="Department Code (optional)">
-            <Input placeholder="Auto-generated if not provided" />
-          </Form.Item>
-          <Form.Item name="description" label="Description (optional)">
-            <Input.TextArea placeholder="Enter department description" />
-          </Form.Item>
-          {editing && (
-            <Form.Item name="is_active" label="Active" valuePropName="checked">
-              <Switch defaultChecked />
-            </Form.Item>
-          )}
-
-          <div className="flex justify-end gap-2 mt-4">
-            <button type="button" onClick={() => { setShowModal(false); form.resetFields(); }} className="px-4 py-2 bg-teal-100 rounded">Cancel</button>
-            <button type="submit" className="px-4 py-2 bg-teal-600 text-white rounded">Save</button>
-          </div>
-        </Form>
-      </Modal>
+        onFinish={handleSubmit}
+        form={form}
+        editing={editing}
+      />
     </div>
   );
 };

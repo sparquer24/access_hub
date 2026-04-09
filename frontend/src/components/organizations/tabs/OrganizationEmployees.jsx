@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Modal, Form, Input, Select, DatePicker, Switch, Pagination } from 'antd';
@@ -16,6 +17,8 @@ import OrganizationShifts from './OrganizationShifts';
 import { authService } from '../../../services/authService';
 import { Users, UserPlus, BarChart3, ClipboardList, Calendar as CalendarIcon, Building2, Clock, FileText, Download, MoreHorizontal, ChevronDown, CheckCircle2, XCircle, Search, ListFilter, Trash2 } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
+import CreateDepartmentModal from '../modals/CreateDepartmentModal';
+import CreateShiftModal from '../modals/CreateShiftModal';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -30,6 +33,12 @@ const OrganizationEmployees = ({
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showDeptModal, setShowDeptModal] = useState(false);
+  const [showShiftModal, setShowShiftModal] = useState(false);
+  const [deptForm] = Form.useForm();
+  const [shiftForm] = Form.useForm();
+  const [creatingDept, setCreatingDept] = useState(false);
+  const [creatingShift, setCreatingShift] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [form] = Form.useForm();
   const [searchTerm, setSearchTerm] = useState('');
@@ -1575,9 +1584,14 @@ const OrganizationEmployees = ({
                         allowClear
                         onChange={value => {
                           if (value === '__other__') {
-                            navigate(`/super-admin/organizations/${organizationId}/employees/departments`);
+                            setShowDeptModal(true);
+                            // Clear the select so 'Other' can be selected again
+                            setTimeout(() => form.setFieldsValue({ department_id: undefined }), 0);
+                          } else {
+                            form.setFieldsValue({ department_id: value });
                           }
                         }}
+                        value={form.getFieldValue('department_id')}
                       >
                         {departments.map((d) => (
                           <Option key={d.id} value={d.id}>{d.name || d.department_name}{d.code ? ` — ${d.code}` : ''}</Option>
@@ -1605,9 +1619,14 @@ const OrganizationEmployees = ({
                         allowClear
                         onChange={value => {
                           if (value === '__other__') {
-                            navigate(`/super-admin/organizations/${organizationId}/employees/shifts`);
+                            setShowShiftModal(true);
+                            // Clear the select so 'Other' can be selected again
+                            setTimeout(() => form.setFieldsValue({ shift_id: undefined }), 0);
+                          } else {
+                            form.setFieldsValue({ shift_id: value });
                           }
                         }}
+                        value={form.getFieldValue('shift_id')}
                       >
                         {shifts.map((s) => (
                           <Option key={s.id} value={s.id}>{s.shift_name || s.name} {s.start_time ? `(${s.start_time} - ${s.end_time})` : ''}</Option>
@@ -1615,6 +1634,66 @@ const OrganizationEmployees = ({
                         <Option value="__other__">Other</Option>
                       </Select>
                     </Form.Item>
+      {/* Create Department Modal */}
+      <CreateDepartmentModal
+        open={showDeptModal}
+        onCancel={() => { setShowDeptModal(false); deptForm.resetFields(); }}
+        onFinish={async (values) => {
+          setCreatingDept(true);
+          try {
+            const payload = {
+              organization_id: organizationId,
+              name: values.name,
+              code: values.code || values.name.toUpperCase().replace(/\s+/g, '_').substring(0, 50),
+              description: values.description,
+            };
+            const resp = await departmentsService.create(payload);
+            await fetchDepartmentsAndShifts();
+            setShowDeptModal(false);
+            deptForm.resetFields();
+            if (resp?.data?.id) {
+              form.setFieldsValue({ department_id: resp.data.id });
+            }
+          } catch (err) {
+            // handle error if needed
+          } finally {
+            setCreatingDept(false);
+          }
+        }}
+        form={deptForm}
+        editing={null}
+      />
+
+      {/* Create Shift Modal */}
+      <CreateShiftModal
+        open={showShiftModal}
+        onCancel={() => { setShowShiftModal(false); shiftForm.resetFields(); }}
+        onFinish={async (values) => {
+          setCreatingShift(true);
+          try {
+            const payload = {
+              organization_id: organizationId,
+              name: values.name,
+              start_time: values.start_time ? values.start_time.format('HH:mm') : null,
+              end_time: values.end_time ? values.end_time.format('HH:mm') : null,
+              is_active: values.is_active,
+            };
+            const resp = await shiftsService.create(payload);
+            await fetchDepartmentsAndShifts();
+            setShowShiftModal(false);
+            shiftForm.resetFields();
+            if (resp?.data?.id) {
+              form.setFieldsValue({ shift_id: resp.data.id });
+            }
+          } catch (err) {
+            // handle error if needed
+          } finally {
+            setCreatingShift(false);
+          }
+        }}
+        form={shiftForm}
+        editing={null}
+      />
 
                     <Form.Item
                       name="address"
