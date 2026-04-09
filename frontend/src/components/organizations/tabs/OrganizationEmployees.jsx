@@ -12,6 +12,7 @@ import EmployeeAttendanceLogs from './EmployeeAttendanceLogs';
 import EmployeeAttendanceCalendar from './EmployeeAttendanceCalendar';
 import OrganizationDepartments from './OrganizationDepartments';
 import OrganizationShifts from './OrganizationShifts';
+import OrganizationSettings from './OrganizationSettings';
 import { authService } from '../../../services/authService';
 import { Users, UserPlus, BarChart3, ClipboardList, Calendar as CalendarIcon, Building2, Clock, FileText, Download, MoreHorizontal, ChevronDown, CheckCircle2, XCircle, Search, ListFilter, Trash2 } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
@@ -58,14 +59,15 @@ const OrganizationEmployees = ({
   const { success, error: showError } = useToast();
 
   const employeeTabs = [
-    { id: 'list', label: 'List', icon: Users },
-    { id: 'analytics', label: 'Overview', icon: BarChart3 },
-    { id: 'logs', label: 'Logs', icon: ClipboardList },
-    { id: 'records', label: 'Records', icon: FileText },
-    { id: 'calendar', label: 'Calendar', icon: CalendarIcon },
-    { id: 'departments', label: 'Dept', icon: Building2 },
-    { id: 'shifts', label: 'Shifts', icon: Clock }
-  ];
+      { id: 'list', label: 'List', icon: Users },
+      { id: 'analytics', label: 'Overview', icon: BarChart3 },
+      { id: 'logs', label: 'Logs', icon: ClipboardList },
+      { id: 'records', label: 'Records', icon: FileText },
+      { id: 'calendar', label: 'Calendar', icon: CalendarIcon },
+      { id: 'departments', label: 'Dept', icon: Building2 },
+      { id: 'shifts', label: 'Shifts', icon: Clock },
+      { id: 'settings', label: 'Settings', icon: MoreHorizontal }
+    ];
 
   const validEmployeeTabIds = employeeTabs.map((tab) => tab.id);
   const activeTab = validEmployeeTabIds.includes(activeSubTab) ? activeSubTab : internalActiveTab;
@@ -1745,6 +1747,13 @@ const OrganizationEmployees = ({
 
       {activeTab === 'shifts' && (
         <OrganizationShifts
+          organizationId={organizationId}
+          organization={organization}
+        />
+      )}
+
+      {activeTab === 'settings' && (
+        <OrganizationSettings
           organizationId={organizationId}
           organization={organization}
         />
