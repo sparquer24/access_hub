@@ -161,7 +161,27 @@ class AttendanceRecordSchema(Schema):
     approved_by = fields.String(allow_none=True)
     
     # Nested objects (dump_only)
-    employee = fields.Nested('EmployeeSchema', only=('id', 'employee_code', 'full_name', 'designation'), dump_only=True)
+    employee = fields.Method('get_employee', dump_only=True)
+    
+    def get_employee(self, obj):
+        """Get employee details with image_base64 for attendance response"""
+        if not hasattr(obj, 'employee') or not obj.employee:
+            return None
+        
+        emp = obj.employee
+        employee_data = {
+            'id': emp.id,
+            'employee_code': getattr(emp, 'employee_code', None),
+            'full_name': getattr(emp, 'full_name', None),
+            'designation': getattr(emp, 'designation', None),
+        }
+        
+        # Get primary image and add as image_base64
+        if hasattr(emp, 'get_primary_image'):
+            primary_image = emp.get_primary_image()
+            employee_data['image_base64'] = primary_image.image_base64 if primary_image else None
+        
+        return employee_data
 
 
 class AttendanceCheckInSchema(Schema):
