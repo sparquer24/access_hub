@@ -1,3 +1,4 @@
+import OrganizationSettings from './tabs/OrganizationSettings';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { message } from 'antd';
@@ -226,9 +227,13 @@ const OrganizationDetail = ({
       tabs.push({ id: 'locations', name: '◈ Locations', component: 'locations' });
     }
 
+
     // if (enabledFeatures.advanced_analytics) {
     //   tabs.push({ id: 'statistics', name: '◐ Analytics', component: 'statistics' });
     // }
+
+    // Always show Settings tab
+    tabs.push({ id: 'settings', name: '⚙ Settings', component: 'settings', alwaysShow: true });
 
 
 
@@ -492,6 +497,12 @@ const OrganizationDetail = ({
                     organization={organization}
                     activeSubTab={activeSubTab}
                     onSubTabChange={(subTabId) => setActiveTab('lpr', subTabId)}
+                  />
+                )}
+                {activeTab === 'settings' && (
+                  <OrganizationSettings
+                    organizationId={id}
+                    organization={organization}
                   />
                 )}
               </div>
