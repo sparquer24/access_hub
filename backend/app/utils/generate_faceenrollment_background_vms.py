@@ -20,7 +20,7 @@ os.makedirs(BEST_FACE_DIR, exist_ok=True)
 
 
 FASTAPI_EMBEDDING_URL_VMS = os.environ.get(
-    "FASTAPI_EMBEDDING_URL",
+    "FASTAPI_EMBEDDING_URL_VMS",
     "http://localhost:8000/embedding",
 )
 
