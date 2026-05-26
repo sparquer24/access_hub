@@ -51,3 +51,11 @@ Thumbs.db
 # Database
 *.sqlite3
 *.db
+
+#Virtualenv
+venv
+
+# Logs
+*.log
+logs/
+**/logs/

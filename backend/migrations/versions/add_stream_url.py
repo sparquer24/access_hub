@@ -1,7 +1,7 @@
 """Add stream_url to cameras
 
 Revision ID: add_stream_url
-Revises: add_stream_url
+Revises: add_location_refs
 Create Date: 2026-04-01 17:45:00
 
 """
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 revision = 'add_stream_url'
-down_revision = 'add_stream_url'
+down_revision = 'add_location_refs'
 branch_labels = None
 depends_on = None
 

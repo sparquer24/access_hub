@@ -112,12 +112,12 @@ def install_db_notify_triggers():
     ]
 
     try:
+        db.session.execute(text("SET search_path TO public"))
         for stmt in statements:
             db.session.execute(text(stmt))
         db.session.commit()
     except Exception:
         db.session.rollback()
-        raise
 
 
 def _emit_from_notification(channel, payload):

@@ -112,7 +112,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
         "connect_args": {
-            "options": "-csearch_path=main"
+            "options": "-csearch_path=public"
         }
     }
     
