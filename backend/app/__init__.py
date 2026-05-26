@@ -428,6 +428,9 @@ def create_app():
     from .api.reports.routes import bp as reports_bp
     app.register_blueprint(reports_bp)
 
+    from .api.internal.routes import bp as internal_bp
+    app.register_blueprint(internal_bp)
+
     from .api.lpr import bp as lpr_bp
     app.register_blueprint(lpr_bp, url_prefix='/api/v2/organizations')
 

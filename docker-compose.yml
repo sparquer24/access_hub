@@ -9,8 +9,10 @@ services:
     ports:
       - "5001:5001"
     depends_on:
-      - redis
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - core_net
     restart: unless-stopped
@@ -41,21 +43,16 @@ services:
     networks:
       - core_net
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d access_hub"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   redis:
     image: redis:7
     container_name: redis
     command: ["redis-server", "--appendonly", "yes"]
-    networks:
-      - core_net
-    restart: unless-stopped
-
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
     networks:
       - core_net
     restart: unless-stopped
