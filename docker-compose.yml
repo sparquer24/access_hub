@@ -6,6 +6,9 @@ services:
     container_name: fullstack-backend
     env_file:
       - ./backend/.env
+    environment:
+      FASTAPI_EMBEDDING_URL: http://access_hub-qdrant_api-1:8000/embedding_AMS
+      FASTAPI_EMBEDDING_URL_VMS: http://access_hub-qdrant_api-1:8000/embedding
     ports:
       - "5001:5001"
     depends_on:
