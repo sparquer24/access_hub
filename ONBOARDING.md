@@ -129,7 +129,7 @@ Defined in `docker-compose.analytics.yml`. All containers share `core_net`.
 |-----------|------|-----------|
 | `frame_extractor_entry` | Reads entry camera RTSP via GStreamer; publishes JPEG frames to `frames_queue` at ~4 FPS | `ubuntu:24.04` ⚠️ see note |
 | `frame_extractor_exit` | Same, reads exit camera | `ubuntu:24.04` |
-| `object_detector` | Consumes `frames_queue`; runs YOLOv8 face detection; publishes face crops to `object_detection` queue | Custom Python (CPU) |
+| `object_detector` | Consumes `frames_queue`; runs YOLOv8 face detection; publishes face crops to `object_detection` queue | `nvidia/cuda:12.6.3-cudnn-runtime-ubuntu22.04` (GPU) |
 | `face_recognizer` | Consumes `object_detection`; runs ArcFace (ONNX) embedding; queries Qdrant; POSTs results to backend | `nvidia/cuda:12.6.3-cudnn-runtime-ubuntu22.04` (GPU) |
 
 > ⚠️ **ubuntu:24.04 is required** for frame extractors. GStreamer 1.20.3 (ubuntu:22.04) has a bug where RTSP Digest authentication with Dahua cameras silently times out. ubuntu:24.04 ships GStreamer 1.24.x which resolves this.
