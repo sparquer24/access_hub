@@ -8,18 +8,18 @@
 
 1. [System Architecture](#1-system-architecture)
 2. [Server & Access](#2-server--access)
-3. [Repositories](#3-repositories)
-4. [Main Platform Stack](#4-main-platform-stack)
-5. [Analytics Pipeline](#5-analytics-pipeline)
-6. [Cameras](#6-cameras)
-7. [Starting Everything](#7-starting-everything)
-8. [Stopping Everything](#8-stopping-everything)
-9. [Registering Faces](#9-registering-faces)
-10. [Environment Variables](#10-environment-variables)
-11. [Key Endpoints](#11-key-endpoints)
-12. [ArcFace Model](#12-arcface-model)
-13. [Technical Decisions](#13-technical-decisions)
-14. [Troubleshooting](#14-troubleshooting)
+3. [Portal](#3-portal)
+4. [Repositories](#4-repositories)
+5. [Main Platform Stack](#5-main-platform-stack)
+6. [Analytics Pipeline](#6-analytics-pipeline)
+7. [Cameras](#7-cameras)
+8. [Starting Everything](#8-starting-everything)
+9. [Stopping Everything](#9-stopping-everything)
+10. [Registering Faces](#10-registering-faces)
+11. [Environment Variables](#11-environment-variables)
+12. [Key Endpoints](#12-key-endpoints)
+13. [ArcFace Model](#13-arcface-model)
+14. [Technical Decisions](#14-technical-decisions)
 
 ---
 
@@ -34,7 +34,7 @@ Two independent Docker Compose stacks communicate through a shared Docker networ
 │                                                ├→ frames_queue           │
 │  RTSP Camera (exit)  → frame_extractor_exit  ─┘     │                  │
 │                                                       ↓                  │
-│                                               object_detector            │
+│                                               object_detector (GPU)      │
 │                                                       │                  │
 │                                               object_detection queue     │
 │                                                       │                  │
@@ -63,42 +63,59 @@ Two independent Docker Compose stacks communicate through a shared Docker networ
 
 ## 2. Server & Access
 
-| Field    | Value                         |
-|----------|-------------------------------|
-| IP       | `202.53.72.149`               |
-| User     | `nettlinxcp`                  |
-| Password | `Nettlinx@CP2026`             |
-| OS       | Ubuntu 22.04                  |
+| Field    | Value                            |
+|----------|----------------------------------|
+| IP       | `202.53.72.149`                  |
+| User     | `nettlinxcp`                     |
+| Password | `Nettlinx@CP2026`                |
+| OS       | Ubuntu 22.04                     |
 | GPU      | NVIDIA RTX 2000 Ada · 16 GB VRAM |
-| CUDA     | 12.8 · Driver 570.211.01      |
+| CUDA     | 12.8 · Driver 570.211.01         |
 
 ```bash
 ssh nettlinxcp@202.53.72.149
 # password: Nettlinx@CP2026
 ```
 
-> ⚠️ **Do not commit credentials to any repository.** The `.env` file is gitignored. Rotate the server password after project ownership transfers.
+> ⚠️ Do not commit credentials to any repository. The `.env` file is gitignored. Rotate the server password after project ownership transfers.
 
 ---
 
-## 3. Repositories
+## 3. Portal
+
+The web portal is accessible at:
+
+```
+http://202.53.72.149
+```
+
+This is where you:
+- Register employees and visitors
+- Enroll faces for recognition
+- View attendance records (AMS)
+- View real-time visitor alerts (VMS)
+
+The RabbitMQ management UI (for monitoring queues) is at:
+
+```
+http://202.53.72.149:15672
+# credentials: guest / guest
+```
+
+---
+
+## 4. Repositories
 
 | Repo | Path on server | Purpose |
 |------|---------------|---------|
 | `sparquer24/face_recognition_mastercode` | `~/sparquer/face_recognition_mastercode/` | Analytics pipeline — frame extractors, object detector, face recognizer |
 | `sparquer24/access_hub` | `~/sparquer/access_hub/` | Main platform — Flask backend, React frontend, Qdrant API, CDK infra |
 
-```bash
-# Pull latest
-cd ~/sparquer/face_recognition_mastercode && git pull origin main
-cd ~/sparquer/access_hub && git pull origin main
-```
-
 > ℹ️ The `arc.onnx` file in both repos is a Git LFS pointer that was **never uploaded** to LFS storage. The real model (167 MB) is downloaded automatically at Docker build time from InsightFace GitHub releases. Do not try `git lfs pull` it.
 
 ---
 
-## 4. Main Platform Stack
+## 5. Main Platform Stack
 
 Defined in `~/sparquer/access_hub/docker-compose.yml`.
 
@@ -121,13 +138,13 @@ Defined in `~/sparquer/access_hub/docker-compose.yml`.
 
 ---
 
-## 5. Analytics Pipeline
+## 6. Analytics Pipeline
 
 Defined in `docker-compose.analytics.yml`. All containers share `core_net`.
 
 | Container | Role | Base image |
 |-----------|------|-----------|
-| `frame_extractor_entry` | Reads entry camera RTSP via GStreamer; publishes JPEG frames to `frames_queue` at ~4 FPS | `ubuntu:24.04` ⚠️ see note |
+| `frame_extractor_entry` | Reads entry camera RTSP via GStreamer; publishes JPEG frames to `frames_queue` at ~4 FPS | `ubuntu:24.04` ⚠️ see note below |
 | `frame_extractor_exit` | Same, reads exit camera | `ubuntu:24.04` |
 | `object_detector` | Consumes `frames_queue`; runs YOLOv8 face detection; publishes face crops to `object_detection` queue | `nvidia/cuda:12.6.3-cudnn-runtime-ubuntu22.04` (GPU) |
 | `face_recognizer` | Consumes `object_detection`; runs ArcFace (ONNX) embedding; queries Qdrant; POSTs results to backend | `nvidia/cuda:12.6.3-cudnn-runtime-ubuntu22.04` (GPU) |
@@ -156,7 +173,7 @@ PROJECT_TOWER_FLOOR_POSITION_TIMESTAMP
 
 ---
 
-## 6. Cameras
+## 7. Cameras
 
 | Field | Value |
 |-------|-------|
@@ -166,67 +183,55 @@ PROJECT_TOWER_FLOOR_POSITION_TIMESTAMP
 | Entry RTSP | `rtsp://admin:Admin_123@202.53.77.10:8080/cam/realmonitor?channel=1&subtype=0` |
 | Exit RTSP | `rtsp://admin:Admin_123@202.53.77.10:8081/cam/realmonitor?channel=1&subtype=0` |
 
-Test a stream with VLC → Media → Open Network Stream.
+Test a stream in VLC → Media → Open Network Stream.
 
 ---
 
-## 7. Starting Everything
+## 8. Starting Everything
 
 > ⚠️ **Always start the main platform stack first.** The analytics pipeline depends on RabbitMQ and the backend API being available on `core_net`.
 
-### Step 1 — Start the main platform
+### First time (or after pulling new code)
 
 ```bash
-cd ~/sparquer/access_hub
-docker compose up -d
+# 1. Pull latest code
+cd ~/sparquer/access_hub && git pull origin main
+cd ~/sparquer/face_recognition_mastercode && git pull origin main
 
-# Verify backend and rabbitmq are healthy
-docker ps --format "table {{.Names}}\t{{.Status}}"
-```
-
-### Step 2 — Start the analytics pipeline
-
-```bash
-cd ~/sparquer/face_recognition_mastercode
-docker compose -f docker-compose.analytics.yml up -d
-```
-
-### Step 3 — Verify the pipeline is flowing
-
-```bash
-# Should show messages in queue and consumers attached
-docker exec rabbitmq rabbitmqctl list_queues name messages consumers
-
-# Should show ~4 FPS log lines
-docker logs frame_extractor_entry --tail 10 -f
-
-# Should show detected bounding boxes
-docker logs face_recognizer --tail 10 -f
-```
-
-### After pulling new code
-
-```bash
-# Analytics pipeline
-cd ~/sparquer/face_recognition_mastercode
-docker compose -f docker-compose.analytics.yml build
-docker compose -f docker-compose.analytics.yml up -d
-
-# Main platform
+# 2. Build images
 cd ~/sparquer/access_hub
 docker compose build
-docker compose up -d
+
+cd ~/sparquer/face_recognition_mastercode
+docker compose -f docker-compose.analytics.yml build
 ```
 
-> ℹ️ First build takes several minutes — downloads CUDA base image (~3 GB) and buffalo_l model (~276 MB). Use `nohup` when building over SSH:
+> ℹ️ First build takes 15–20 minutes — downloads CUDA base images (~3 GB each) and the buffalo_l ArcFace model (~276 MB). Run over SSH with `nohup` so the build survives a disconnect:
 > ```bash
 > nohup docker compose -f docker-compose.analytics.yml build > /tmp/build.log 2>&1 &
 > tail -f /tmp/build.log
 > ```
 
+### Every time (daily startup)
+
+```bash
+# 1. Start main platform
+cd ~/sparquer/access_hub
+docker compose up -d
+
+# 2. Wait until backend and rabbitmq are healthy, then start analytics
+cd ~/sparquer/face_recognition_mastercode
+docker compose -f docker-compose.analytics.yml up -d
+
+# 3. Verify pipeline is flowing
+docker exec rabbitmq rabbitmqctl list_queues name messages consumers
+docker logs frame_extractor_entry --tail 10
+docker logs face_recognizer --tail 10
+```
+
 ---
 
-## 8. Stopping Everything
+## 9. Stopping Everything
 
 ```bash
 # Stop analytics first (consumers), then the platform (brokers/DB)
@@ -237,17 +242,17 @@ cd ~/sparquer/access_hub
 docker compose stop
 ```
 
-> ⚠️ Use `down -v` only if you want to wipe all data. `docker compose down -v` deletes volumes — this erases all registered faces, attendance records, and visitor alerts.
+> ⚠️ `docker compose down -v` deletes volumes and wipes all registered faces, attendance records, and visitor alerts. Use `stop` for a normal shutdown.
 
 ---
 
-## 9. Registering Faces
+## 10. Registering Faces
 
 Qdrant collections start empty. Until faces are enrolled, the recognizer will always return "unknown" / "unauthorized."
 
 ### Employee (AMS)
 
-1. Create the employee record via the portal or `POST /api/v1/employees`
+1. Create the employee via the portal or `POST /api/v1/employees`
 2. Enroll their face:
 
 ```
@@ -262,13 +267,13 @@ The backend runs `face_enrollment_background.py`, extracts a 512-dim ArcFace emb
 
 ### Visitor (VMS)
 
-Same flow through `/api/v1/visitors` and the VMS face enroll route. Embeddings go into `vector-embeddings`.
+Same flow through `/api/v1/visitors` and the VMS enroll route. Embeddings go into `vector-embeddings`.
 
-> ⚠️ **Model consistency is critical.** Both the backend enrollment and the `face_recognizer` container use `arc.onnx` (InsightFace buffalo_l `w600k_r50.onnx`). Both apply identical preprocessing: resize to 112×112, normalize to [0,1], transpose to NCHW. If either model or preprocessing diverges, registered embeddings will never match live embeddings.
+> ⚠️ **Model consistency is critical.** Both the backend (enrollment) and `face_recognizer` (live inference) use the same `arc.onnx` with identical preprocessing: resize to 112×112, normalize to [0,1], transpose to NCHW. Any divergence means registered embeddings will never match live embeddings — silently.
 
 ---
 
-## 10. Environment Variables
+## 11. Environment Variables
 
 ### access_hub backend — `backend/.env` (gitignored)
 
@@ -278,24 +283,25 @@ Same flow through `/api/v1/visitors` and the VMS face enroll route. Embeddings g
 | `QDRANT_API_URL` | `http://access_hub-qdrant_api-1:8000` |
 | `FASTAPI_EMBEDDING_URL` | `http://access_hub-qdrant_api-1:8000/embedding_AMS` |
 | `FASTAPI_EMBEDDING_URL_VMS` | `http://access_hub-qdrant_api-1:8000/embedding` |
-| `INTERNAL_SERVICE_KEY` | `secretkey` |
+| `INTERNAL_SERVICE_KEY` | Any secret string — must match the same key set in `docker-compose.analytics.yml` for `face_recognizer` |
 | `REDIS_URL` | `redis://redis:6379` |
 
 ### Analytics pipeline — set in `docker-compose.analytics.yml`
 
 | Container | Variable | Value |
 |-----------|----------|-------|
-| `frame_extractor_*` | `RTSP_STREAM` | see §6 Cameras |
+| `frame_extractor_*` | `RTSP_STREAM` | see §7 Cameras |
 | `frame_extractor_*` | `CAMERA_ID` | `AMS_A_01_entry` / `AMS_A_01_exit` |
 | `frame_extractor_*` | `QUEUE_NAME` | `frames_queue` |
+| `object_detector` | `USE_GPU` | `true` |
 | `face_recognizer` | `QDRANT_API_URL` | `http://access_hub-qdrant_api-1:8000/retrieval/single` |
 | `face_recognizer` | `QDRANT_API_URL_AMS` | `http://access_hub-qdrant_api-1:8000/retrieval/single_AMS` |
 | `face_recognizer` | `ACCESS_HUB_URL` | `http://fullstack-backend:5001` |
-| `face_recognizer` | `INTERNAL_SERVICE_KEY` | `secretkey` |
+| `face_recognizer` | `INTERNAL_SERVICE_KEY` | Must match the key set in `backend/.env` |
 
 ---
 
-## 11. Key Endpoints
+## 12. Key Endpoints
 
 | Endpoint | Method | Purpose | Auth |
 |----------|--------|---------|------|
@@ -308,11 +314,10 @@ Same flow through `/api/v1/visitors` and the VMS face enroll route. Embeddings g
 | `:8000/retrieval/single_AMS` | POST | Qdrant API: search AMS collection | Internal |
 | `:8000/embedding` | POST | Qdrant API: store VMS embedding | Internal |
 | `:8000/retrieval/single` | POST | Qdrant API: search VMS collection | Internal |
-| `:15672` | — | RabbitMQ management UI (guest/guest) | — |
 
 ---
 
-## 12. ArcFace Model
+## 13. ArcFace Model
 
 | Property | Value |
 |----------|-------|
@@ -325,7 +330,7 @@ Same flow through `/api/v1/visitors` and the VMS face enroll route. Embeddings g
 | VRAM at runtime | ~170 MB |
 | Execution provider | CUDAExecutionProvider → CPUExecutionProvider fallback |
 
-### Preprocessing — must be identical in both backend and face_recognizer
+### Preprocessing — must be identical in backend and face_recognizer
 
 ```python
 face_rgb = cv2.cvtColor(face_bgr, cv2.COLOR_BGR2RGB)
@@ -337,12 +342,13 @@ input_tensor = np.expand_dims(input_tensor, axis=0)
 
 ---
 
-## 13. Technical Decisions
+## 14. Technical Decisions
 
 | Decision | What & Why |
 |----------|-----------|
-| Face recognition runtime | ONNX Runtime instead of DeepFace + TensorFlow. TensorFlow caused a segfault (exit 139) on this server; ONNX Runtime runs the same InsightFace model reliably. |
-| face_recognizer base image | `nvidia/cuda:12.6.3-cudnn-runtime-ubuntu22.04`. The plain `python:3.10-slim` has no CUDA libraries, so CUDAExecutionProvider silently falls back to CPU. The CUDA base bundles cuDNN 9, which onnxruntime-gpu 1.20.x requires. |
+| Face recognition runtime | ONNX Runtime instead of DeepFace + TensorFlow. TensorFlow caused a segfault (exit 139) on this server. |
+| GPU containers base image | `nvidia/cuda:12.6.3-cudnn-runtime-ubuntu22.04` for both `object_detector` and `face_recognizer`. `python:3.10-slim` has no CUDA libraries so GPU falls back to CPU silently. |
+| object_detector on GPU | YOLOv8 processes every full frame from both cameras — it is the highest-throughput stage and benefits from GPU more than the face recognizer (which only sees small cropped faces). |
 | frame_extractor base image | `ubuntu:24.04` (GStreamer 1.24.x). GStreamer 1.20.3 (ubuntu:22.04) has a bug where RTSP Digest auth with Dahua cameras silently times out. |
 | GStreamer vs. OpenCV for capture | GStreamer retained. OpenCV VideoCapture (FFmpeg backend) adds 1–2 seconds of buffering latency vs GStreamer's low-latency pipeline. |
 | RTSP transport | Auto-negotiated (no `protocols=tcp` forced). Dahua cameras default to UDP for RTP. Forcing TCP caused the same timeout symptoms. |
@@ -351,51 +357,4 @@ input_tensor = np.expand_dims(input_tensor, axis=0)
 
 ---
 
-## 14. Troubleshooting
-
-### Frame extractor: "Timeout while waiting for server response"
-
-The frame extractor image must be built on `ubuntu:24.04`. Verify:
-```bash
-docker exec frame_extractor_entry gst-launch-1.0 --version
-# Must show 1.24.x or higher
-```
-
-### face_recognizer: libcublasLt.so.12 not found
-
-Wrong base image. Must be `nvidia/cuda:12.6.3-cudnn-runtime-ubuntu22.04`. Rebuild after fixing the Dockerfile.
-
-### face_recognizer: 'NoneType' object has no attribute 'get'
-
-Qdrant returned no results — the collection is empty. Enroll faces through the portal first. Not a code error.
-
-### Registered faces never match
-
-Check both `backend/app/utils/arcface.py` and `face-recognizer/services/arcface.py` apply identical preprocessing — specifically the `np.transpose(face_rgb, (2, 0, 1))` NCHW step. A missing transpose produces incompatible embeddings with no error.
-
-### Messages piling up, nothing consuming
-
-```bash
-docker exec rabbitmq rabbitmqctl list_queues name messages consumers
-# If consumers = 0, that container crashed
-docker logs <container> --tail 30
-```
-
-### Build disconnects over SSH
-
-```bash
-nohup docker compose -f docker-compose.analytics.yml build > /tmp/build.log 2>&1 &
-tail -f /tmp/build.log
-```
-
-### pip fails: "externally-managed-environment" on ubuntu:24.04
-
-Add `--break-system-packages` to the pip install line in the Dockerfile.
-
-### numpy build fails: "pkgutil.ImpImporter"
-
-`numpy==1.24.4` is incompatible with Python 3.12 (ubuntu:24.04). Use `numpy>=1.26.4` in `requirements.txt`.
-
----
-
-*This document covers the state of the system as fully configured and verified running. The end-to-end pipeline (cameras → recognition → AMS/VMS records) is operational once faces are enrolled via the portal.*
+*The end-to-end pipeline (cameras → recognition → AMS/VMS records) is operational once faces are enrolled via the portal at `http://202.53.72.149`.*
