@@ -5,6 +5,12 @@ Run:
   $env:FLASK_APP = "wsgi:app"
   python scripts/seed_admin.py
 """
+import sys
+import os
+
+# Add the parent directory to sys.path so the 'app' module can be found
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from app import create_app
 from app.extensions import db, bcrypt
 from app.models import UserDetails
