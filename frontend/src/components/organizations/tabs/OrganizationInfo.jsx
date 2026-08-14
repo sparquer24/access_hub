@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
   PieChart, Pie, Legend, RadarChart, Radar, AreaChart, Area, LineChart, Line,
@@ -6,17 +6,15 @@ import {
 } from 'recharts';
 import {
   TrendingUp, Users, Camera, MapPin, Layers, Clock, Shield, Database,
-  AlertCircle, CheckCircle2, Activity, Copy, Settings, Calendar, Briefcase, Download,
-  Mail, Phone, Globe, Loader2, Sparkles
+  AlertCircle, CheckCircle2, Activity, Copy, Settings, Calendar, Briefcase,
+  Globe, Sparkles
 } from 'lucide-react';
 import { organizationsService } from '../../../services/organizationsService';
 import Loader from '../../common/Loader';
 import { useToast } from '../../../contexts/ToastContext';
-import { useTheme } from '../../../contexts/ThemeContext';
 
 const OrganizationInfo = ({ organization, onUpdate }) => {
   const { error: showError } = useToast();
-  const { isDarkMode } = useTheme();
   const [copiedField, setCopiedField] = useState(null);
   
   // Single loading state for all data
@@ -78,44 +76,6 @@ const OrganizationInfo = ({ organization, onUpdate }) => {
     setTimeout(() => setCopiedField(null), 2000);
   };
 
-  const handleExport = () => {
-    try {
-      const reportRows = [
-        ['Organization Name', organization?.name || 'N/A'],
-        ['Organization ID', organization?.id || organization?.uuid || 'N/A'],
-        ['Type', organization?.type || 'N/A'],
-        ['Subscription', organization?.subscription_tier || 'N/A'],
-        ['Employees', organization?.employees_count ?? 0],
-        ['Departments', organization?.departments_count ?? 0],
-        ['Cameras', organization?.cameras_count ?? 0],
-        ['Locations', organization?.locations_count ?? 0],
-        ['Attendance Rate (%)', attendanceRate ?? 0],
-        ['Active Employees Today', activeToday ?? 0],
-        ['Visitors Today', totalVisitorsToday ?? 0],
-        ['Active Visitors', activeVisitors ?? 0],
-      ];
-
-      const csvContent = reportRows
-        .map(([label, value]) => `"${String(label).replace(/"/g, '""')}","${String(value).replace(/"/g, '""')}"`)
-        .join('\n');
-
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      const datePart = new Date().toISOString().split('T')[0];
-      link.href = url;
-      link.setAttribute('download', `organization_report_${datePart}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error exporting organization report:', error);
-      showError('Failed to export report');
-    }
-  };
-
-
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleString('en-IN', {
@@ -154,17 +114,6 @@ const OrganizationInfo = ({ organization, onUpdate }) => {
     { category: 'Departments', value: Math.min((organization.departments_count || 0) * 20, 100) },
     { category: 'Cameras', value: Math.min((organization.cameras_count || 0) / 1.5, 100) },
     { category: 'Locations', value: Math.min((organization.locations_count || 0) * 25, 100) },
-  ];
-
-  // Mock data for additional statistics
-  const visitorActivityData = [
-    { name: 'Mon', visitors: 120, trend: 'up' },
-    { name: 'Tue', visitors: 132, trend: 'up' },
-    { name: 'Wed', visitors: 101, trend: 'down' },
-    { name: 'Thu', visitors: 134, trend: 'up' },
-    { name: 'Fri', visitors: 190, trend: 'up' },
-    { name: 'Sat', visitors: 90, trend: 'down' },
-    { name: 'Sun', visitors: 85, trend: 'down' },
   ];
 
   const cameraHealthData = [

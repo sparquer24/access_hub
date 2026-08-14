@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-    BarChart, Bar, PieChart, Pie, AreaChart, Area, LineChart, Line,
-    XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, ScatterChart, Scatter
+    BarChart, Bar, PieChart, Pie, LineChart, Line,
+    XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell
 } from 'recharts';
 import moment from 'moment';
-import { attendanceService, employeesService, departmentsService } from '../../../services/organizationsService';
+import { employeesService, departmentsService } from '../../../services/organizationsService';
 import api from '../../../services/api';
-import { Users, CheckCircle, Clock, TrendingUp, Briefcase, AlertCircle, Calendar, BarChart3, Home, Award, Trophy, Star, Zap, Target } from 'lucide-react';
+import { Users, CheckCircle, Clock, TrendingUp, Briefcase, Calendar, BarChart3, Award, Trophy, Star, Zap, Target } from 'lucide-react';
 import Loader from '../../common/Loader';
 import { useToast } from '../../../contexts/ToastContext';
 
@@ -15,7 +15,6 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
     const [attendanceData, setAttendanceData] = useState([]);
     const [attendanceTrendData, setAttendanceTrendData] = useState([]);
     const [typeDistribution, setTypeDistribution] = useState([]);
-    const [departmentDistribution, setDepartmentDistribution] = useState([]);
     const [leaveDistribution, setLeaveDistribution] = useState([]);
     const [shiftData, setShiftData] = useState([]);
     const [topEmployees, setTopEmployees] = useState([]);
@@ -50,14 +49,7 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
     const [loading, setLoading] = useState(true);
     const [selectedMonth, setSelectedMonth] = useState(moment().format('YYYY-MM'));
 
-    useEffect(() => {
-        fetchAnalyticsData();
-        fetchEmployeeStats();
-        calculateTopEmployees();
-        generateShiftData();
-    }, [organizationId]);
-
-    const generateShiftData = async () => {
+    const generateShiftData = useCallback(async () => {
         try {
             // Fetch shifts for the organization
             const shiftsResp = await api.get('/api/v2/shifts', {
@@ -130,15 +122,14 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
             ];
             setShiftData(shifts);
         }
-    };
+    }, [organizationId, showError]);
 
-    const fetchAnalyticsData = async () => {
+    const fetchAnalyticsData = useCallback(async () => {
         setLoading(true);
         try {
             // Fetch 30-day trend data
             const endDate = moment().format('YYYY-MM-DD');
             const startDate = moment().subtract(29, 'days').format('YYYY-MM-DD');
-            const weekStart = moment().subtract(6, 'days').format('YYYY-MM-DD');
 
             const resp = await api.get('/api/analytics/attendance', {
                 params: {
@@ -199,9 +190,9 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [organizationId, showError]);
 
-    const fetchEmployeeStats = async () => {
+    const fetchEmployeeStats = useCallback(async () => {
         try {
             // Fetch all employees and departments in parallel
             const [empResponse, deptResponse] = await Promise.all([
@@ -312,16 +303,14 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                 approvedThisMonth: approvedLeaves,
             });
 
-            // Also update departmentDistribution for pie chart
-            setDepartmentDistribution(departmentList.length ? departmentList : [{ name: 'No Departments', value: 1, color: '#e5e7eb' }]);
         } catch (error) {
             console.error('Error fetching employee stats:', error);
             showError('Failed to fetch employee statistics');
             // Non-blocking error
         }
-    };
+    }, [organizationId, showError]);
 
-    const calculateTopEmployees = async () => {
+    const calculateTopEmployees = useCallback(async () => {
         try {
             // Fetch all employees with attendance data
             const response = await employeesService.list({
@@ -374,7 +363,6 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
                     const totalDays = logs.length;
                     const presentDays = logs.filter(log => log.status === 'present' || log.status === 'P').length;
                     const lateDays = logs.filter(log => log.status === 'late' || log.status === 'L').length;
-                    const absentDays = logs.filter(log => log.status === 'absent' || log.status === 'A').length;
 
                     // Metrics (0-1 scale)
                     const attendanceScore = totalDays > 0 ? (presentDays + (lateDays * 0.5)) / totalDays : 0.4;
@@ -413,72 +401,14 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
             console.error('Error calculating top employees:', error);
             showError('Failed to calculate top employees');
         }
-    };
+    }, [organizationId, showError]);
 
-    const processAttendanceData = (logs, startDate, endDate, totalEmployees) => {
-        // Init daily buckets
-        const dailyStats = {};
-        for (let i = 0; i <= 6; i++) {
-            const dateStr = startDate.clone().add(i, 'days').format('YYYY-MM-DD');
-            dailyStats[dateStr] = { date: dateStr, day: startDate.clone().add(i, 'days').format('ddd'), present: 0, late: 0, absent: 0 };
-        }
-
-        let totalPresent = 0;
-        let totalLate = 0;
-        let totalHours = 0;
-        let hoursCount = 0;
-
-        logs.forEach(log => {
-            const dateStr = moment(log.date).format('YYYY-MM-DD');
-            const checkIn = log.check_in_time ? moment(log.check_in_time) : null;
-            const checkOut = log.check_out_time ? moment(log.check_out_time) : null;
-
-            if (dailyStats[dateStr]) {
-                dailyStats[dateStr].present++;
-                totalPresent++;
-
-                // Check Late (after 9:15)
-                if (checkIn && (checkIn.hour() > 9 || (checkIn.hour() === 9 && checkIn.minute() > 15))) {
-                    dailyStats[dateStr].late++;
-                    totalLate++;
-                }
-
-                // Check Work Hours
-                if (checkIn && checkOut) {
-                    const duration = moment.duration(checkOut.diff(checkIn)).asHours();
-                    if (duration > 0 && duration < 24) { // consistency check
-                        totalHours += duration;
-                        hoursCount++;
-                    }
-                }
-            }
-        });
-
-        // Convert to array for chart
-        const chartData = Object.values(dailyStats).map(dayStat => {
-            // Absent = Total Active Employees - Present (Approximation)
-            // If totalEmployees is 0 (or unknown), assume absent = 0
-            const absent = Math.max(0, totalEmployees - dayStat.present);
-            return {
-                name: dayStat.day,
-                present: dayStat.present,
-                late: dayStat.late,
-                absent: absent
-            };
-        });
-        setAttendanceData(chartData);
-
-        // Stats
-        const avgAttendance = totalEmployees > 0 ? ((totalPresent / (totalEmployees * 7)) * 100).toFixed(1) : 0; // over 7 days
-        const onTimeRate = totalPresent > 0 ? (((totalPresent - totalLate) / totalPresent) * 100).toFixed(1) : 0;
-        const avgHours = hoursCount > 0 ? (totalHours / hoursCount).toFixed(1) : 0;
-
-        setStats({
-            attendanceRate: avgAttendance,
-            onTimeRate: onTimeRate,
-            avgWorkHours: avgHours
-        });
-    };
+    useEffect(() => {
+        fetchAnalyticsData();
+        fetchEmployeeStats();
+        calculateTopEmployees();
+        generateShiftData();
+    }, [fetchAnalyticsData, fetchEmployeeStats, calculateTopEmployees, generateShiftData]);
 
     if (loading) {
         return (
@@ -487,15 +417,6 @@ const EmployeeAnalytics = ({ employees = [], organizationId }) => {
             </div>
         );
     }
-
-    // Custom Teal color palette for consistency
-    const TEAL_COLORS = {
-        primary: '#0D9488',
-        light: '#CCFBF1',
-        lighter: '#F0FDFA',
-        accent: '#14B8A6',
-        dark: '#0F766E'
-    };
 
     return (
         <div className="space-y-3 p-2 animate-fadeIn overflow-y-auto max-h-[calc(100vh-310px)] pb-16">

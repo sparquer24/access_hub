@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Modal, Form, Input, Select, InputNumber, Switch } from 'antd';
 import {
   locationsService,
@@ -22,11 +22,7 @@ const OrganizationLocations = ({ organizationId, organization }) => {
   const [filterType, setFilterType] = useState('all');
   const [headerFilter, setHeaderFilter] = useState('all');
 
-  useEffect(() => {
-    fetchLocations();
-  }, [organizationId]);
-
-  const fetchLocations = async () => {
+  const fetchLocations = useCallback(async () => {
     try {
       setLoading(true);
       const response = await locationsService.list({
@@ -40,7 +36,11 @@ const OrganizationLocations = ({ organizationId, organization }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId, showError]);
+
+  useEffect(() => {
+    fetchLocations();
+  }, [fetchLocations]);
 
   const handleCreateLocation = () => {
     setEditingLocation(null);

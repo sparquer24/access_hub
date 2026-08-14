@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { visitorService } from '../../../services/visitorService';
 import { useToast } from '../../../contexts/ToastContext';
 import { Users, TrendingUp, MapPin, BarChart3 } from 'lucide-react';
@@ -17,7 +17,7 @@ import {
 import Loader from '../../common/Loader';
 
 const VisitorOverview = ({ organizationId, refreshTrigger }) => {
-  const { error: showError, success } = useToast();
+  const { error: showError } = useToast();
   const [overview, setOverview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [autoRefresh] = useState(true);
@@ -27,21 +27,7 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState('monthly');
 
-  useEffect(() => {
-    fetchOverviewStats();
-    fetchAnalytics(selectedPeriod);
-
-    // Auto-refresh every 30 seconds
-    if (autoRefresh) {
-      const interval = setInterval(() => {
-        fetchOverviewStats();
-        fetchAnalytics(selectedPeriod);
-      }, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [organizationId, refreshTrigger, autoRefresh, selectedPeriod]);
-
-  const fetchOverviewStats = async () => {
+  const fetchOverviewStats = useCallback(async () => {
     try {
       setLoading(true);
       console.log('📊 Fetching overview statistics for org:', organizationId);
@@ -63,9 +49,9 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId, showError]);
 
-  const fetchAnalytics = async (period = 'monthly') => {
+  const fetchAnalytics = useCallback(async (period = 'monthly') => {
     if (!organizationId) return;
     try {
       setAnalyticsLoading(true);
@@ -117,7 +103,21 @@ const VisitorOverview = ({ organizationId, refreshTrigger }) => {
     } finally {
       setAnalyticsLoading(false);
     }
-  };
+  }, [organizationId]);
+
+  useEffect(() => {
+    fetchOverviewStats();
+    fetchAnalytics(selectedPeriod);
+
+    // Auto-refresh every 30 seconds
+    if (autoRefresh) {
+      const interval = setInterval(() => {
+        fetchOverviewStats();
+        fetchAnalytics(selectedPeriod);
+      }, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [organizationId, refreshTrigger, autoRefresh, selectedPeriod, fetchOverviewStats, fetchAnalytics]);
 
   if (loading && !overview) {
     return (

@@ -10,7 +10,7 @@ import QuickActionButton from '../common/dashboard/QuickActionButton';
 import Loader from '../common/Loader';
 import { useToast } from '../../contexts/ToastContext';
 import { API_BASE } from '../../config';
-import { getThemeClasses, getRoleBasedTheme } from '../../utils/roleBasedTheme';
+import { getThemeClasses } from '../../utils/roleBasedTheme';
 
 const API_BASE_URL = API_BASE;
 
@@ -21,7 +21,6 @@ const OrgAdminDashboard = () => {
   const { error: showError } = useToast();
   
   // Role-based theming
-  const theme = getRoleBasedTheme(user, isDarkMode);
   const themeClasses = getThemeClasses(user, isDarkMode);
   
   const [stats, setStats] = useState({

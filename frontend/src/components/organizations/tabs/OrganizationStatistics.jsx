@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { statsAPI } from '../../../services/api';
 import Loader from '../../common/Loader';
 import { useToast } from '../../../contexts/ToastContext';
 import {
-  LineChart, Line, BarChart, Bar, PieChart, Pie, AreaChart, Area,
+  BarChart, Bar, PieChart, Pie, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell
 } from 'recharts';
 
@@ -15,7 +15,7 @@ const OrganizationStatistics = ({ organization, organizationId = null }) => {
   const [error, setError] = useState(null);
 
   // Fetch analytics data from API
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     if (!organizationId) return;
 
     try {
@@ -33,12 +33,12 @@ const OrganizationStatistics = ({ organization, organizationId = null }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId, showError]);
 
   // Initialize data fetch
   useEffect(() => {
     fetchAnalytics();
-  }, [organizationId]);
+  }, [fetchAnalytics]);
 
   // Get visitor data based on time range - uses API data when available
   const getVisitorData = () => {

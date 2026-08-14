@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import PropTypes from 'prop-types';
-import { LogOut, ChevronDown, Users, MapPin } from 'lucide-react';
+import { LogOut, Users, MapPin } from 'lucide-react';
 import { Select } from 'antd';
 import { visitorService } from '../../../services/visitorService';
 import { socketService } from '../../../services/socketService';
@@ -42,7 +41,7 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [organizationId, page, pageSize, fromDate, toDate, showAllData]);
+  }, [organizationId, page, pageSize, fromDate, toDate, showAllData, showError]);
 
   const fetchActiveVisitors = useCallback(async ({ silent = false } = {}) => {
     try {
@@ -57,7 +56,7 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [organizationId]);
+  }, [organizationId, showError]);
 
   const fetchLogs = useCallback(async ({ silent = false } = {}) => {
     try {
@@ -81,7 +80,7 @@ const VisitorLogsList = ({ organizationId, refreshTrigger, selectedTabKey = 'log
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [organizationId, page, pageSize, fromDate, toDate, showAllData]);
+  }, [organizationId, page, pageSize, fromDate, toDate, showAllData, showError]);
 
   useEffect(() => {
     if (selectedTab === 'active') fetchActiveVisitors();

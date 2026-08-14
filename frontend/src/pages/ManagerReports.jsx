@@ -1,30 +1,65 @@
-import { useState, useEffect } from 'react';
-import { 
+import { useState, useEffect, useCallback } from 'react';
+import {
   BarChart3,
   TrendingUp,
   Users,
   Calendar,
   Clock,
   Download,
-  Filter,
-  Eye,
   FileText
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/authService';
 
 function ManagerReports() {
-  const { user } = useAuth();
   const [reportType, setReportType] = useState('attendance');
   const [dateRange, setDateRange] = useState('this_month');
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState(null);
 
-  useEffect(() => {
-    generateReport();
-  }, [reportType, dateRange]);
+  const getMockData = useCallback((type) => {
+    // Return empty data structure instead of mock data
+    const emptyData = {
+      attendance: {
+        summary: {
+          totalEmployees: 0,
+          averageAttendance: 0,
+          totalWorkingDays: 0,
+          presentDays: 0,
+          absentDays: 0,
+          lateArrivals: 0
+        },
+        employeeStats: []
+      },
+      leaves: {
+        summary: {
+          totalRequests: 0,
+          approved: 0,
+          pending: 0,
+          rejected: 0,
+          totalDaysOff: 0
+        },
+        leaveBreakdown: [],
+        monthlyTrend: []
+      }
+    };
 
-  const generateReport = async () => {
+    return emptyData[type];
+  }, []);
+
+  const getMockPerformanceData = useCallback(() => {
+    return {
+      summary: {
+        totalTasks: 0,
+        completedTasks: 0,
+        overdueTasks: 0,
+        averageRating: 0,
+        topPerformer: 'N/A'
+      },
+      employeePerformance: []
+    };
+  }, []);
+
+  const generateReport = useCallback(async () => {
     setLoading(true);
     try {
       const token = authService.getAccessToken();
@@ -133,50 +168,11 @@ function ManagerReports() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [reportType, dateRange, getMockData, getMockPerformanceData]);
 
-  const getMockData = (type) => {
-    // Return empty data structure instead of mock data
-    const emptyData = {
-      attendance: {
-        summary: {
-          totalEmployees: 0,
-          averageAttendance: 0,
-          totalWorkingDays: 0,
-          presentDays: 0,
-          absentDays: 0,
-          lateArrivals: 0
-        },
-        employeeStats: []
-      },
-      leaves: {
-        summary: {
-          totalRequests: 0,
-          approved: 0,
-          pending: 0,
-          rejected: 0,
-          totalDaysOff: 0
-        },
-        leaveBreakdown: [],
-        monthlyTrend: []
-      }
-    };
-    
-    return emptyData[type];
-  };
-
-  const getMockPerformanceData = () => {
-    return {
-      summary: {
-        totalTasks: 0,
-        completedTasks: 0,
-        overdueTasks: 0,
-        averageRating: 0,
-        topPerformer: 'N/A'
-      },
-      employeePerformance: []
-    };
-  };
+  useEffect(() => {
+    generateReport();
+  }, [generateReport]);
 
   const downloadReport = async (format) => {
     try {

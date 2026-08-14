@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Table, Button, Tag, Card, Row, Col, Statistic, message, Modal, Tooltip, Input, Select } from 'antd';
-import { PlusOutlined, DeleteOutlined, EditOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
 import { leaveRequestsAPI } from '../services/employeeServices';
 import LeaveRequestForm from '../components/employee/LeaveRequestForm';
 import moment from 'moment';
@@ -21,12 +21,20 @@ const EmployeeLeaves = () => {
     search: ''
   });
 
-  const fetchLeaves = async (page = 1) => {
+  // Keep a ref to the latest pagination so fetchLeaves/effect below don't need to depend on the
+  // whole `pagination` object (which fetchLeaves itself updates on every call, and would
+  // otherwise re-trigger itself in a loop).
+  const paginationRef = useRef(pagination);
+  useEffect(() => {
+    paginationRef.current = pagination;
+  }, [pagination]);
+
+  const fetchLeaves = useCallback(async (page = 1) => {
     setLoading(true);
     try {
       const params = {
         page,
-        per_page: pagination.pageSize,
+        per_page: paginationRef.current.pageSize,
         ...filters
       };
       if (params.status === 'all') delete params.status;
@@ -41,11 +49,11 @@ const EmployeeLeaves = () => {
         if (response.data.leave_balance) {
           setSummary(response.data.leave_balance);
         }
-        setPagination({
-          ...pagination,
+        setPagination(prev => ({
+          ...prev,
           current: response.data.pagination.page,
           total: response.data.pagination.total_items
-        });
+        }));
       }
     } catch (error) {
       console.error('Fetch error:', error);
@@ -53,11 +61,11 @@ const EmployeeLeaves = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
   useEffect(() => {
-    fetchLeaves(pagination.current);
-  }, [filters]);
+    fetchLeaves(paginationRef.current.current);
+  }, [filters, fetchLeaves]);
 
   const handleDelete = async (id) => {
     try {

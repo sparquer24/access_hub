@@ -54,11 +54,6 @@ const extractAlerts = (responsePayload) => {
   return [];
 };
 
-const formatDate = (value) => {
-  if (!value) return 'N/A';
-  return new Date(value).toLocaleString('en-IN');
-};
-
 const OrganizationAlerts = ({ organizationId, activeTab = 'info', showActivityLog = true, onCloseSidebar }) => {
   const { success, error: showError } = useToast();
   const [alerts, setAlerts] = useState([]);
@@ -227,45 +222,6 @@ const OrganizationAlerts = ({ organizationId, activeTab = 'info', showActivityLo
             </div>
           </div>
         </div>
-      </div>
-    );
-  };
-
-  const renderActivityLogContent = () => {
-    if (loadingLogs) {
-      return (
-        <div className="p-8 flex justify-center">
-          <Loader size="medium" />
-        </div>
-      );
-    }
-
-    if (logs.length > 0) {
-      return (
-        <div className="divide-y divide-gray-100">
-          {logs.map((log) => (
-            <div key={log.id} className="p-4 hover:bg-teal-50 transition-colors">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-medium text-gray-900">{log.action}</p>
-                  <p className="text-sm text-gray-600 mt-1">{log.details || 'No details provided'}</p>
-                </div>
-                <div className="text-right">
-                  <span className="text-xs text-gray-500 block">{formatDate(log.created_at)}</span>
-                  {log.performed_by_username && (
-                    <span className="text-xs font-medium text-teal-600 block mt-1">{log.performed_by_username}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    return (
-      <div className="p-8 text-center text-gray-500">
-        <p>No activity logs found for this organization.</p>
       </div>
     );
   };

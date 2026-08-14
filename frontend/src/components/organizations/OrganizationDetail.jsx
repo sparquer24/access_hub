@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { message } from 'antd';
 import { organizationsService } from '../../services/organizationsService';
@@ -134,7 +134,7 @@ const OrganizationDetail = ({
     return `/${pathSegments.slice(0, orgIdIndex + 1).join('/')}`;
   }, [location.pathname, id]);
 
-  const tabSubTabConfig = {
+  const tabSubTabConfig = useMemo(() => ({
     employees: {
       valid: ['list', 'analytics', 'logs', 'records', 'calendar', 'departments', 'shifts'],
       default: 'list'
@@ -147,7 +147,7 @@ const OrganizationDetail = ({
       valid: ['overview', 'logs', 'manualEntry'],
       default: 'logs'
     }
-  };
+  }), []);
 
   const navigateToTab = useCallback((tabId, subTabId, options = {}) => {
     const basePath = getOrganizationBasePath();
@@ -160,7 +160,7 @@ const OrganizationDetail = ({
     }
 
     navigate(`${basePath}/${tabId}`, options);
-  }, [getOrganizationBasePath, navigate]);
+  }, [getOrganizationBasePath, navigate, tabSubTabConfig]);
 
   // Function to update tab in URL
   const setActiveTab = (tabId, subTabId) => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Modal, Form, Input, Switch } from 'antd';
 import { Edit, Trash2 } from 'lucide-react';
 import { departmentsService } from '../../../services/organizationsService';
@@ -13,11 +13,7 @@ const OrganizationDepartments = ({ organizationId, organization }) => {
   const [form] = Form.useForm();
   const { success, error: showError } = useToast();
 
-  useEffect(() => {
-    fetchDepartments();
-  }, [organizationId]);
-
-  const fetchDepartments = async () => {
+  const fetchDepartments = useCallback(async () => {
     try {
       setLoading(true);
       const resp = await departmentsService.list({ organization_id: organizationId, per_page: 200 });
@@ -28,7 +24,11 @@ const OrganizationDepartments = ({ organizationId, organization }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId, showError]);
+
+  useEffect(() => {
+    fetchDepartments();
+  }, [fetchDepartments]);
 
   const openCreate = () => {
     setEditing(null);

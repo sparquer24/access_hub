@@ -1,5 +1,5 @@
 // src/components/VisitorRegistration.jsx
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/VisitorRegistration.css";
 import { csrfAPI, visitorsAPI, API_BASE } from "../services/api";
@@ -128,6 +128,32 @@ const VisitorRegistration = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stream, showLive]);
 
+  // ---------------- Helpers ----------------
+
+  const fillFromVisitor = useCallback((payload) => {
+    const v = payload.visitor || {};
+    const imgs = payload.images || {};
+    setForm({
+      full_name: v.full_name || "",
+      gender: v.gender || "",
+      phone_number: v.phone_number || "",
+      location: v.location || "",
+      purpose_of_visit: v.purpose_of_visit || "",
+      host_to_visit: v.host_to_visit || "",
+      allowed_location_id: v.allowed_location_id || "",
+      duration_from: v.duration_from || new Date().toISOString().slice(0, 10),
+      duration_to: v.duration_to || new Date().toISOString().slice(0, 10),
+    });
+
+    // Location selection is already set via allowed_location_id in form state
+
+    // Show the previously saved straight still (if any)
+    setSavedUrl(imgs.straight || null);
+    if (preview.url) URL.revokeObjectURL(preview.url);
+    setPreview({ blob: null, url: null });
+    setShowLive(!imgs.straight); // if we have a saved still, don't show live
+  }, [preview.url]);
+
   // Suggest / autofill behavior for Aadhaar
   useEffect(() => {
     const t = setTimeout(async () => {
@@ -161,33 +187,7 @@ const VisitorRegistration = () => {
     }, 300);
 
     return () => clearTimeout(t);
-  }, [aadhaar]);
-
-  // ---------------- Helpers ----------------
-
-  const fillFromVisitor = (payload) => {
-    const v = payload.visitor || {};
-    const imgs = payload.images || {};
-    setForm({
-      full_name: v.full_name || "",
-      gender: v.gender || "",
-      phone_number: v.phone_number || "",
-      location: v.location || "",
-      purpose_of_visit: v.purpose_of_visit || "",
-      host_to_visit: v.host_to_visit || "",
-      allowed_location_id: v.allowed_location_id || "",
-      duration_from: v.duration_from || new Date().toISOString().slice(0, 10),
-      duration_to: v.duration_to || new Date().toISOString().slice(0, 10),
-    });
-
-    // Location selection is already set via allowed_location_id in form state
-
-    // Show the previously saved straight still (if any)
-    setSavedUrl(imgs.straight || null);
-    if (preview.url) URL.revokeObjectURL(preview.url);
-    setPreview({ blob: null, url: null });
-    setShowLive(!imgs.straight); // if we have a saved still, don't show live
-  };
+  }, [aadhaar, fillFromVisitor]);
 
   const pickSuggestion = async (s) => {
     setAadhaar(s.aadhaar_id);

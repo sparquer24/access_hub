@@ -1,6 +1,5 @@
 import React, { useContext, useState } from 'react';
 import './alerts.css';
-import { resolveImageUrl } from './alerts.api';
 import AlertCard from './AlertCard';
 import AlertModal from './AlertModal';
 import { AlertsContext } from './alerts.context';

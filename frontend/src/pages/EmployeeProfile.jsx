@@ -4,7 +4,6 @@ import {
   Mail,
   Phone,
   Building,
-  MapPin,
   Calendar,
   Briefcase,
   Edit,
@@ -12,11 +11,9 @@ import {
   X,
   Camera
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/authService';
 
 function EmployeeProfile() {
-  const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);

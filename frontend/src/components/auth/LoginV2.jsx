@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
@@ -33,17 +33,7 @@ const LoginV2 = () => {
   const { login, isAuthenticated, user } = useAuth();
   const { success, error: showError } = useToast();
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      const roleIdentifier = user.role?.id || user.role?.name || user.role;
-      console.log('User already authenticated, redirecting...', { roleIdentifier });
-      const from = location.state?.from?.pathname || getDefaultRoute(roleIdentifier);
-      navigate(from, { replace: true });
-    }
-  }, [isAuthenticated, user, navigate, location]);
-
-  const getDefaultRoute = (roleNameOrId) => {
+  const getDefaultRoute = useCallback((roleNameOrId) => {
     const roleToCheck = roleNameOrId || (user?.role?.id || user?.role?.name || '');
     switch (roleToCheck) {
       case 'super_admin':
@@ -60,7 +50,17 @@ const LoginV2 = () => {
       default:
         return '/';
     }
-  };
+  }, [user]);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const roleIdentifier = user.role?.id || user.role?.name || user.role;
+      console.log('User already authenticated, redirecting...', { roleIdentifier });
+      const from = location.state?.from?.pathname || getDefaultRoute(roleIdentifier);
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, user, navigate, location, getDefaultRoute]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

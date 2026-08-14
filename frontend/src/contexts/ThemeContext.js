@@ -54,7 +54,7 @@ export function ThemeProvider({ children }) {
       document.documentElement.classList.remove('dark');
       document.body.classList.remove('dark-mode');
     }
-  }, []);
+  }, [settings.appearance?.theme, settings.theme]);
 
   // Save and apply theme when settings change
   useEffect(() => {

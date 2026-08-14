@@ -1,16 +1,13 @@
-import { useState, useEffect } from 'react';
-import { 
+import { useState, useEffect, useCallback } from 'react';
+import {
   User,
   Mail,
   Phone,
   Building,
-  MapPin,
   Calendar,
-  Briefcase,
   Edit,
   Save,
   X,
-  Camera,
   Shield,
   ShieldCheck,
   Clock,
@@ -18,10 +15,8 @@ import {
   XCircle,
   Eye,
   Settings,
-  Database,
   UserCheck,
   Users,
-  FileText,
   BarChart3,
   DoorOpen,
   Activity,
@@ -34,7 +29,7 @@ import { profileAPI } from '../services/api';
 
 function Profile() {
   const { user } = useAuth();
-  const { settings, isDarkMode } = useTheme();
+  const { isDarkMode } = useTheme();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -84,24 +79,23 @@ function Profile() {
     return colorMap[module] || 'text-gray-600 bg-gray-100';
   };
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  // Auto-retry with exponential backoff on failures
-  useEffect(() => {
-    if (error && !profile && retryCount < 3 && !isRetrying) {
-      const retryDelay = Math.pow(2, retryCount) * 2000; // 2s, 4s, 8s
-      const timer = setTimeout(() => {
-        console.log(`Auto-retry attempt ${retryCount + 1}/3`);
-        handleRetry();
-      }, retryDelay);
-      
-      return () => clearTimeout(timer);
+  const tryFallbackData = useCallback(async () => {
+    if (user) {
+      console.log('Using fallback data from AuthContext:', user);
+      setProfile(user);
+      setFallbackActive(true);
+      setEditForm({
+        username: user.username || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        position: user.position || ''
+      });
+      return true;
     }
-  }, [error, profile, retryCount, isRetrying]);
+    return false;
+  }, [user]);
 
-  const fetchProfile = async (isRetry = false) => {
+  const fetchProfile = useCallback(async (isRetry = false) => {
     try {
       if (isRetry) {
         setIsRetrying(true);
@@ -145,29 +139,30 @@ function Profile() {
       setLoading(false);
       setIsRetrying(false);
     }
-  };
+  }, [tryFallbackData]);
 
-  const tryFallbackData = async () => {
-    if (user) {
-      console.log('Using fallback data from AuthContext:', user);
-      setProfile(user);
-      setFallbackActive(true);
-      setEditForm({
-        username: user.username || '',
-        email: user.email || '',
-        phone: user.phone || '',
-        position: user.position || ''
-      });
-      return true;
-    }
-    return false;
-  };
-
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     setLoading(true);
     setError(null);
     fetchProfile(true);
-  };
+  }, [fetchProfile]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  // Auto-retry with exponential backoff on failures
+  useEffect(() => {
+    if (error && !profile && retryCount < 3 && !isRetrying) {
+      const retryDelay = Math.pow(2, retryCount) * 2000; // 2s, 4s, 8s
+      const timer = setTimeout(() => {
+        console.log(`Auto-retry attempt ${retryCount + 1}/3`);
+        handleRetry();
+      }, retryDelay);
+
+      return () => clearTimeout(timer);
+    }
+  }, [error, profile, retryCount, isRetrying, handleRetry]);
 
   const handleEditToggle = () => {
     setIsEditing(!isEditing);

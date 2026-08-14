@@ -6,19 +6,16 @@ import {
   Bell,
   Moon,
   Sun,
-  Globe,
   Save,
   Lock,
   Eye,
   EyeOff
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { authAPI } from '../services/api';
 
 function Settings() {
-  const { user } = useAuth();
-  const { settings, updateSetting, updateSettings, isDarkMode } = useTheme();
+  const { settings, updateSetting, isDarkMode } = useTheme();
   
   // Ensure we have default values to prevent undefined errors
   const currentTheme = settings?.appearance?.theme || 'light';

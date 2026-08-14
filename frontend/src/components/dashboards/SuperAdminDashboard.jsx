@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -9,7 +9,7 @@ import '../../styles/Dashboard.css';
 import { getThemeClasses, getRoleBasedTheme } from '../../utils/roleBasedTheme';
 
 import {
-  LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
+  BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import {
@@ -19,13 +19,11 @@ import {
   TrendingUp,
   Smartphone,
   Lock,
-  TrendingDown,
   AlertTriangle,
   CheckCircle
 } from 'lucide-react';
 
 import DashboardHeader from '../common/dashboard/DashboardHeader';
-import StatCard from '../common/dashboard/StatCard';
 
 const SuperAdminDashboard = () => {
   const { user, logout } = useAuth();
@@ -166,7 +164,7 @@ const SuperAdminDashboard = () => {
   };
 
   // Fetch dashboard statistics
-  const fetchDashboardStats = async (showRefreshMessage = false) => {
+  const fetchDashboardStats = useCallback(async (showRefreshMessage = false) => {
     try {
       if (showRefreshMessage) {
         setRefreshing(true);
@@ -189,7 +187,7 @@ const SuperAdminDashboard = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [success, showError]);
 
   // Load data on component mount
   useEffect(() => {
@@ -201,15 +199,11 @@ const SuperAdminDashboard = () => {
     }, 30000);
 
     return () => clearInterval(refreshInterval);
-  }, []);
+  }, [fetchDashboardStats]);
 
   const handleLogout = async () => {
     await logout();
     navigate('/login');
-  };
-
-  const handleRefresh = () => {
-    fetchDashboardStats(true);
   };
 
   // Render loading state
@@ -243,22 +237,6 @@ const SuperAdminDashboard = () => {
     );
   }
 
-  // Extract data with fallbacks
-  const organizations = statsData?.organizations || { total: 0, active: 0 };
-  const employees = statsData?.employees || { total: 0, active: 0 };
-  const cameras = statsData?.cameras || { total: 0, online: 0 };
-  const presenceEvents = statsData?.presence_events || { total: 0, unknown_faces: 0, anomalies: 0, pending_reviews: 0 };
-  const faceEmbeddings = statsData?.face_embeddings || { total: 0, primary: 0, avg_quality: 0 };
-  const visitors = statsData?.visitors || { total: 0 };
-
-  // Calculate system health
-  const systemHealth = cameras.total > 0
-    ? Math.round((cameras.online / cameras.total) * 100)
-    : 100;
-  const healthStatus = systemHealth >= 80 ? 'Good' : systemHealth >= 50 ? 'Fair' : 'Poor';
-
-  // Imports for common components (Add to top of file if not present, but for now assuming we handle import in a separate block or here if possible. 
-  // Since I can't easily inject imports at the top without replacing the whole file, I will rewrite the return statement and rely on a separate edit for imports.)
 
   return (
     <div className={`${themeClasses.page} min-h-full h-screen overflow-y-auto`}>

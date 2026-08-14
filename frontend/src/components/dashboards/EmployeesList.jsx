@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { message } from 'antd';
 import { employeesService } from '../../services/organizationsService';
@@ -15,10 +15,6 @@ const EmployeesList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  
   // Overview stats
   const [overviewStats, setOverviewStats] = useState({
     totalEmployees: 0,
@@ -28,27 +24,9 @@ const EmployeesList = () => {
     employmentTypes: {},
     newThisMonth: 0,
   });
-  const [statsLoading, setStatsLoading] = useState(true);
+  const [, setStatsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchEmployees();
-    fetchOverviewStats();
-  }, [currentPage, filterStatus, filterDepartment, filterEmploymentType]);
-
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (currentPage === 1) {
-        fetchEmployees();
-        fetchOverviewStats();
-      } else {
-        setCurrentPage(1);
-      }
-    }, 300);
-    
-    return () => clearTimeout(timeoutId);
-  }, [searchTerm]);
-
-  const fetchOverviewStats = async () => {
+  const fetchOverviewStats = useCallback(async () => {
     try {
       setStatsLoading(true);
       
@@ -98,36 +76,36 @@ const EmployeesList = () => {
     } finally {
       setStatsLoading(false);
     }
-  };
+  }, []);
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const params = {
         page: currentPage,
         per_page: 20,
         is_active: filterStatus === 'all' ? undefined : filterStatus === 'active'
       };
-      
+
       if (searchTerm.trim()) {
         params.search = searchTerm.trim();
       }
-      
+
       const response = await employeesService.list(params);
-      
+
       if (response.success) {
         // Client-side additional filtering for department and employment type
         let filtered = response.data.items || [];
-        
+
         if (filterDepartment !== 'all') {
           filtered = filtered.filter(emp => emp.department?.name === filterDepartment);
         }
-        
+
         if (filterEmploymentType !== 'all') {
           filtered = filtered.filter(emp => emp.employment_type === filterEmploymentType);
         }
-        
+
         setEmployees(filtered);
         setTotalPages(response.data.pagination?.total_pages || 1);
         setTotalItems(response.data.pagination?.total_items || 0);
@@ -141,7 +119,25 @@ const EmployeesList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, filterStatus, filterDepartment, filterEmploymentType, searchTerm]);
+
+  useEffect(() => {
+    fetchEmployees();
+    fetchOverviewStats();
+  }, [currentPage, filterStatus, filterDepartment, filterEmploymentType, fetchEmployees, fetchOverviewStats]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (currentPage === 1) {
+        fetchEmployees();
+        fetchOverviewStats();
+      } else {
+        setCurrentPage(1);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, currentPage, fetchEmployees, fetchOverviewStats]);
 
   const filteredEmployees = employees; // No need to filter here since API handles filtering
 

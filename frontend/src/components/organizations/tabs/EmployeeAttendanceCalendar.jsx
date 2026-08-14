@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Select } from 'antd';
 import moment from 'moment';
-import { Brain, Sparkles } from 'lucide-react';
 import { attendanceService } from '../../../services/organizationsService';
 import Loader from '../../common/Loader';
 import { useToast } from '../../../contexts/ToastContext';
@@ -58,41 +57,7 @@ const EmployeeAttendanceCalendar = ({
         }
     }, [selectedEmployee, employees, currentEmployee]);
 
-    useEffect(() => {
-        if (selectedEmployee) {
-            fetchAttendanceData();
-        }
-    }, [selectedEmployee, selectedMonth]);
-
-    const fetchAttendanceData = async () => {
-        if (!selectedEmployee) return;
-
-        setLoading(true);
-        try {
-            const startDate = selectedMonth.clone().startOf('month').format('YYYY-MM-DD');
-            const endDate = selectedMonth.clone().endOf('month').format('YYYY-MM-DD');
-
-            const response = await attendanceService.list({
-                organization_id: organizationId,
-                employee_id: selectedEmployee,
-                start_date: startDate,
-                end_date: endDate,
-                per_page: 100
-            });
-
-            const records = response.data?.items || [];
-            setAttendanceData(records);
-            calculateStats(records);
-        } catch (error) {
-            console.error('Error fetching attendance data:', error);
-            showError('Failed to fetch attendance data');
-            setAttendanceData([]);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const calculateStats = (records) => {
+    const calculateStats = useCallback((records) => {
         let present = 0;
         let absent = 0;
         let leave = 0;
@@ -125,7 +90,41 @@ const EmployeeAttendanceCalendar = ({
             late,
             avgHours: hoursCount > 0 ? (totalHours / hoursCount).toFixed(1) : 0
         });
-    };
+    }, []);
+
+    const fetchAttendanceData = useCallback(async () => {
+        if (!selectedEmployee) return;
+
+        setLoading(true);
+        try {
+            const startDate = selectedMonth.clone().startOf('month').format('YYYY-MM-DD');
+            const endDate = selectedMonth.clone().endOf('month').format('YYYY-MM-DD');
+
+            const response = await attendanceService.list({
+                organization_id: organizationId,
+                employee_id: selectedEmployee,
+                start_date: startDate,
+                end_date: endDate,
+                per_page: 100
+            });
+
+            const records = response.data?.items || [];
+            setAttendanceData(records);
+            calculateStats(records);
+        } catch (error) {
+            console.error('Error fetching attendance data:', error);
+            showError('Failed to fetch attendance data');
+            setAttendanceData([]);
+        } finally {
+            setLoading(false);
+        }
+    }, [selectedEmployee, selectedMonth, organizationId, showError, calculateStats]);
+
+    useEffect(() => {
+        if (selectedEmployee) {
+            fetchAttendanceData();
+        }
+    }, [selectedEmployee, selectedMonth, fetchAttendanceData]);
 
     const getAttendanceForDate = (date) => {
         const dateStr = date.format('YYYY-MM-DD');

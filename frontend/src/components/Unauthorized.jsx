@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import '../styles/Unauthorized.css';
@@ -12,13 +12,13 @@ const Unauthorized = () => {
     navigate(-1);
   };
 
-  const handleGoHome = () => {
+  const handleGoHome = useCallback(() => {
     // Get role name from different possible structures - prioritize ID
     let roleName = '';
    if (user?.role?.name) {
       roleName = user.role.name;
     }
-    
+
     switch (roleName) {
       case 'super_admin':
         navigate('/super-admin/dashboard');
@@ -40,7 +40,7 @@ const Unauthorized = () => {
       default:
         navigate('/');
     }
-  };
+  }, [user, navigate]);
 
   // Auto-redirect after 5 seconds
   useEffect(() => {
@@ -63,7 +63,7 @@ const Unauthorized = () => {
       clearTimeout(timer);
       clearInterval(countdownTimer);
     };
-  }, [user]);
+  }, [handleGoHome]);
 
   const handleLogout = async () => {
     await logout();

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 /**
  * Full-bleed hero background — images stretch to cover 100% width x 100%

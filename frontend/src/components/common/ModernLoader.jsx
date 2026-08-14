@@ -1,5 +1,5 @@
 import React from 'react';
-import { Brain, Sparkles, Zap, Loader2 } from 'lucide-react';
+import { Brain, Sparkles } from 'lucide-react';
 
 const ModernLoader = ({
     type = 'spinner',
@@ -43,7 +43,6 @@ const ModernLoader = ({
     };
 
     if (type === 'ai' || type === 'ai-spinner') {
-        const isSpinner = type === 'ai-spinner';
         return (
             <div className={`flex flex-col items-center justify-center gap-4 ${className}`}>
                 <div className="relative flex items-center justify-center">

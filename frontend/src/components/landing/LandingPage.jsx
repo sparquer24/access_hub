@@ -2,11 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 
 import { ArrowRight, Check, Sparkles, Users, Lock, Zap } from '../icons/Icons';
 import { 
-  Video, BarChart3, Building2, Smartphone, Link, User, 
-  Shield, Camera, ShieldCheck, Home, Server, Key, 
-  Ticket, MessageSquare, Phone, Mail, Rocket, Bot, 
-  Cloud, Database, Heart, GraduationCap, Factory, 
-  UserCircle, Clock, Cpu, Search
+  Video, BarChart3, Building2, User,
+  Camera, Phone, Mail,
+  Heart, GraduationCap, Factory,
+  UserCircle, Clock
 } from 'lucide-react';
 import DemoSection from './DemoSection';
 import HeroIllustration from './HeroIllustration';
@@ -163,45 +162,6 @@ const LandingPage = () => {
     }
   ];
 
-  const integrations = [
-    {
-      category: 'Security Systems',
-      items: [
-        { name: 'HIKVISION', logo: <Shield className="w-5 h-5" />, description: 'Camera systems integration' },
-        { name: 'Axis Communications', logo: <Camera className="w-5 h-5" />, description: 'Video surveillance' },
-        { name: 'Bosch Security', logo: <ShieldCheck className="w-5 h-5" />, description: 'Access control systems' },
-        { name: 'Honeywell', logo: <Home className="w-5 h-5" />, description: 'Building automation' }
-      ]
-    },
-    {
-      category: 'Identity & Access',
-      items: [
-        { name: 'Active Directory', logo: <Server className="w-5 h-5" />, description: 'Employee directory sync' },
-        { name: 'LDAP', logo: <Key className="w-5 h-5" />, description: 'Authentication protocol' },
-        { name: 'SAML SSO', logo: <Ticket className="w-5 h-5" />, description: 'Single sign-on' },
-        { name: 'OAuth 2.0', logo: <Shield className="w-5 h-5" />, description: 'Secure authorization' }
-      ]
-    },
-    {
-      category: 'Communication',
-      items: [
-        { name: 'Slack', logo: <MessageSquare className="w-5 h-5" />, description: 'Team notifications' },
-        { name: 'Microsoft Teams', logo: <Users className="w-5 h-5" />, description: 'Collaboration platform' },
-        { name: 'Twilio', logo: <Phone className="w-5 h-5" />, description: 'SMS notifications' },
-        { name: 'SendGrid', logo: <Mail className="w-5 h-5" />, description: 'Email delivery' }
-      ]
-    },
-    {
-      category: 'AI & Cloud',
-      items: [
-        { name: 'Google Cloud AI', logo: <Rocket className="w-5 h-5" />, description: 'Advanced ML models' },
-        { name: 'OpenAI', logo: <Bot className="w-5 h-5" />, description: 'Intelligent automation' },
-        { name: 'AWS SageMaker', logo: <Cloud className="w-5 h-5" />, description: 'Predictive analytics' },
-        { name: 'Qdrant', logo: <Database className="w-5 h-5" />, description: 'Vector search for facial identification' }
-      ]
-    }
-  ];
-
   const useCases = [
     {
       industry: 'Corporate Offices',
@@ -294,7 +254,7 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-white h-screen overflow-y-auto">
       {/* Inline CSS for animations */}
-      <style jsx>{`
+      <style>{`
         @keyframes float {
           0%, 100% { transform: translateY(0px); }
           50% { transform: translateY(-6px); }

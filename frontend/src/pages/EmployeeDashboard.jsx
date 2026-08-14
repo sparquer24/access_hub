@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   User,
@@ -19,12 +19,11 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { employeeDashboardAPI } from '../services/employeeServices';
-import DashboardHeader from '../components/common/dashboard/DashboardHeader';
 import StatCard from '../components/common/dashboard/StatCard';
 import QuickActionButton from '../components/common/dashboard/QuickActionButton';
 
 function EmployeeDashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState({
     attendancePercentage: 0,
@@ -38,11 +37,12 @@ function EmployeeDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const isRefreshRef = useRef(false);
 
   const fetchEmployeeData = useCallback(async () => {
     try {
       setError(null);
-      const isRefresh = refreshing;
+      const isRefresh = isRefreshRef.current;
       if (!isRefresh) setLoading(true);
       
       // Fetch all employee data in parallel for better performance
@@ -91,24 +91,21 @@ function EmployeeDashboard() {
       console.error('Error fetching employee data:', error);
       setError('An unexpected error occurred while loading your dashboard');
     } finally {
+      isRefreshRef.current = false;
       setLoading(false);
       setRefreshing(false);
     }
-  }, [refreshing]);
+  }, []);
 
   useEffect(() => {
     fetchEmployeeData();
-  }, []);
+  }, [fetchEmployeeData]);
 
   const handleRefresh = useCallback(() => {
+    isRefreshRef.current = true;
     setRefreshing(true);
     fetchEmployeeData();
   }, [fetchEmployeeData]);
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
 
   if (loading) {
     return (

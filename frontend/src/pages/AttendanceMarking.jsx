@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Camera, RefreshCw, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 import { attendanceAPI } from '../services/apiServices';
@@ -15,9 +15,20 @@ function AttendanceMarking() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
+    const stopCamera = useCallback(() => {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            setStream(null);
+        }
+    }, [stream]);
+
     useEffect(() => {
         startCamera();
         return () => stopCamera();
+        // stopCamera depends on `stream`, which is set by startCamera itself; including it
+        // here would re-run this mount/unmount effect (and restart the camera) every time the
+        // stream changes. This effect is intentionally start-on-mount/stop-on-unmount only.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const startCamera = async () => {
@@ -32,13 +43,6 @@ function AttendanceMarking() {
         } catch (err) {
             console.error('Error accessing camera:', err);
             setError('Could not access camera. Please allow camera permissions.');
-        }
-    };
-
-    const stopCamera = () => {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-            setStream(null);
         }
     };
 

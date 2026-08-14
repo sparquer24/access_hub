@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Users,
   Search,
@@ -13,14 +13,12 @@ import {
   XCircle,
   AlertCircle
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/authService';
 import { API_BASE } from '../config';
 
 const API_BASE_URL = API_BASE;
 
 function ManagerTeam() {
-  const { user } = useAuth();
   const [teamMembers, setTeamMembers] = useState([]);
   const [filteredMembers, setFilteredMembers] = useState([]);
   const [cameras, setCameras] = useState([]);
@@ -31,16 +29,6 @@ function ManagerTeam() {
   const [loading, setLoading] = useState(true);
   const [selectedMember, setSelectedMember] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
-
-  useEffect(() => {
-    fetchTeamMembers();
-    fetchCameras();
-    fetchLocations();
-  }, []);
-
-  useEffect(() => {
-    filterTeamMembers();
-  }, [teamMembers, searchTerm, filterStatus]);
 
   const fetchTeamMembers = async () => {
     try {
@@ -149,7 +137,7 @@ function ManagerTeam() {
     }
   };
 
-  const filterTeamMembers = () => {
+  const filterTeamMembers = useCallback(() => {
     let filtered = teamMembers;
 
     // Filter by search term
@@ -167,7 +155,17 @@ function ManagerTeam() {
     }
 
     setFilteredMembers(filtered);
-  };
+  }, [teamMembers, searchTerm, filterStatus]);
+
+  useEffect(() => {
+    fetchTeamMembers();
+    fetchCameras();
+    fetchLocations();
+  }, []);
+
+  useEffect(() => {
+    filterTeamMembers();
+  }, [filterTeamMembers]);
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -319,11 +317,9 @@ function ManagerTeam() {
                   <div className="bg-green-50 p-4 rounded-lg">
                     <div className="text-2xl font-bold text-green-600">
                       {(() => {
-                        let present = 0, onLeave = 0, active = 0;
+                        let present = 0;
                         teamMembers.forEach(m => {
                           if (m.attendanceToday === 'present') present++;
-                          if (m.status === 'on_leave') onLeave++;
-                          if (m.status === 'active') active++;
                         });
                         return present;
                       })()}

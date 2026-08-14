@@ -5,19 +5,12 @@ import { faceService } from '../../../services/faceService';
 import { visitorsAPI } from '../../../services/apiServices';
 import WebcamCapture from '../../common/WebcamCapture.jsx';
 import Loader from '../../common/Loader';
-import { 
-  User, 
-  Building2, 
-  Calendar, 
-  ClipboardList, 
-  HardHat, 
-  Briefcase, 
-  Package, 
-  Wrench, 
-  Crown, 
-  UserCheck, 
-  Users,
-  Building,
+import {
+  User,
+  Building2,
+  Calendar,
+  ClipboardList,
+  UserCheck,
   Camera
 } from 'lucide-react';
 
@@ -54,8 +47,6 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
   const [showWebcam, setShowWebcam] = useState(false);
   const [activePhotoSlot, setActivePhotoSlot] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [showVisitorSlip, setShowVisitorSlip] = useState(false);
-  const [checkedInVisitor, setCheckedInVisitor] = useState(null);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastCheckedMobile, setLastCheckedMobile] = useState('');
@@ -500,26 +491,6 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
         // Non-blocking error - visitor check-in still successful
         console.warn('⚠️ Face enrollment failed (non-blocking):', enrollmentError);
       }
-
-      // Store visitor data for slip generation
-      setCheckedInVisitor({
-        id: visitor_id,
-        history_id: history_id,
-        name: formData.name,
-        phone: formData.phone,
-        email: formData.email,
-        gender: formData.gender,
-        visitor_type: formData.visitor_type,
-        purpose_of_visit: formData.purpose_of_visit,
-        allowed_location_id: formData.allowed_location_id,
-        host_name: formData.host_name,
-        organization_name: organization?.name || 'Organization',
-        check_in_time: check_in_time,
-        visitor_image: formData.image_base64
-      });
-
-      // Show visitor slip modal
-      setShowVisitorSlip(true);
 
       // Reset form
       setFormData(initialFormData);
@@ -1008,166 +979,6 @@ const VisitorEntryForm = ({ organizationId, organization, onSubmitSuccess }) => 
         </div>
       </div>
     </>
-  );
-};
-
-// Visitor Slip Modal Component
-const VisitorSlipModal = ({ visitor, onClose, onPrint }) => {
-  const formatDateTime = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-IN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const generateVisitorId = () => {
-    const date = new Date();
-    const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
-    const timeStr = date.getTime().toString().slice(-6);
-    return `V${dateStr}${timeStr}`;
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-teal-50/95 rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        {/* Modal Header */}
-        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-          <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            🎫 Visitor Pass Generated
-          </h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Visitor Slip Content */}
-        <div id="visitor-slip" className="p-6">
-          {/* Organization Header */}
-          <div className="text-center border-b-2 border-teal-200 pb-4 mb-4">
-            <h2 className="text-2xl font-bold text-teal-800">{visitor.organization_name}</h2>
-            <p className="text-teal-600 font-semibold">VISITOR PASS</p>
-            <p className="text-xs text-gray-600 mt-1">ID: {generateVisitorId()}</p>
-          </div>
-
-          {/* Visitor Photo */}
-          <div className="flex justify-center mb-4">
-            {visitor.visitor_image ? (
-              <img
-                src={visitor.visitor_image}
-                alt="Visitor"
-                className="w-24 h-24 rounded-lg object-cover border-2 border-gray-300"
-              />
-            ) : (
-              <div className="w-24 h-24 bg-gray-200 rounded-lg flex items-center justify-center">
-                <span className="text-gray-500 text-xs">No Photo</span>
-              </div>
-            )}
-          </div>
-
-          {/* Visitor Details */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="font-semibold text-gray-700">Name:</span>
-              <span className="text-gray-900 font-bold">{visitor.name}</span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="font-semibold text-gray-700">Mobile:</span>
-              <span className="text-gray-900">{visitor.phone}</span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="font-semibold text-gray-700">Purpose:</span>
-              <span className="text-gray-900">{visitor.purpose_of_visit}</span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="font-semibold text-gray-700">Allowed Floor:</span>
-              <span className="text-green-700 font-bold">{visitor.allowed_floor}</span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="font-semibold text-gray-700">Check-in Time:</span>
-              <span className="text-gray-900">{formatDateTime(visitor.check_in_time)}</span>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="font-semibold text-gray-700">Valid Until:</span>
-              <span className="text-red-600 font-bold">End of Day</span>
-            </div>
-          </div>
-
-          {/* Instructions */}
-          <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-            <p className="text-xs text-yellow-800 font-semibold mb-2">📋 INSTRUCTIONS:</p>
-            <ul className="text-xs text-yellow-700 space-y-1">
-              <li>• Keep this pass visible at all times</li>
-              <li>• Only access authorized floors</li>
-              <li>• Return pass when leaving</li>
-              <li>• Contact security for assistance</li>
-            </ul>
-          </div>
-
-          {/* Security Warning */}
-          <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3 text-center">
-            <p className="text-xs text-red-800 font-bold">
-              ⚠️ UNAUTHORIZED ACCESS PROHIBITED
-            </p>
-            <p className="text-xs text-red-600">
-              This pass must be surrendered upon exit
-            </p>
-          </div>
-        </div>
-
-        {/* Modal Actions */}
-        <div className="p-6 border-t border-gray-200 flex gap-3">
-          <button
-            onClick={onPrint}
-            className="flex-1 px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-            </svg>
-            🖨️ Print Visitor Pass
-          </button>
-          <button
-            onClick={onClose}
-            className="px-6 py-3 bg-teal-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
-          >
-            📋 Done
-          </button>
-        </div>
-      </div>
-
-      {/* Print Styles */}
-      <style jsx>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          #visitor-slip, #visitor-slip * {
-            visibility: visible;
-          }
-          #visitor-slip {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            max-width: 400px;
-            margin: 0;
-            padding: 20px;
-            background: white;
-          }
-          .fixed {
-            position: static !important;
-          }
-        }
-      `}</style>
-    </div>
   );
 };
 

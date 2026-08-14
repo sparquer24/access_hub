@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Select, InputNumber, TimePicker, Checkbox, Switch } from 'antd';
+import { Form, Select, InputNumber, TimePicker, Checkbox, Switch } from 'antd';
 import { organizationsService } from '../../../services/organizationsService';
 import { useToast } from '../../../contexts/ToastContext';
 import moment from 'moment';
 
 const { Option } = Select;
-const { TextArea } = Input;
 
 const OrganizationRules = ({ organizationId, organization, onUpdate }) => {
   const { success, error: showError } = useToast();

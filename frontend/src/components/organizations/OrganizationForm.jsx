@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { message } from 'antd';
 import { organizationsService, ORGANIZATION_TYPES } from '../../services/organizationsService';
@@ -14,7 +14,7 @@ const OrganizationForm = () => {
   const [initialLoading, setInitialLoading] = useState(isEditMode);
 
   // Helper function to determine navigation context
-  const getNavigationPaths = () => {
+  const getNavigationPaths = useCallback(() => {
     const isAdminPanel = location.pathname.includes('/admin-panel/');
 
     if (isAdminPanel) {
@@ -28,7 +28,7 @@ const OrganizationForm = () => {
         detailPath: (id) => `/super-admin/organizations/${id}`
       };
     }
-  };
+  }, [location.pathname]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -133,7 +133,7 @@ const OrganizationForm = () => {
 
       fetchOrganization();
     }
-  }, [isEditMode, orgId, navigate]);
+  }, [isEditMode, orgId, navigate, getNavigationPaths]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;

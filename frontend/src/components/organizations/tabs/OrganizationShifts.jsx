@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Modal, Form, Input, TimePicker, Switch } from 'antd';
 import moment from 'moment';
 import { Edit, Trash2 } from 'lucide-react';
@@ -14,11 +14,7 @@ const OrganizationShifts = ({ organizationId, organization }) => {
   const [form] = Form.useForm();
   const { success, error: showError } = useToast();
 
-  useEffect(() => {
-    fetchShifts();
-  }, [organizationId]);
-
-  const fetchShifts = async () => {
+  const fetchShifts = useCallback(async () => {
     try {
       setLoading(true);
       const resp = await shiftsService.list({ organization_id: organizationId, per_page: 200 });
@@ -29,7 +25,11 @@ const OrganizationShifts = ({ organizationId, organization }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId, showError]);
+
+  useEffect(() => {
+    fetchShifts();
+  }, [fetchShifts]);
 
   const openCreate = () => {
     setEditing(null);

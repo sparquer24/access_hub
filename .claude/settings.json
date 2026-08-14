@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Read(//tmp/**)",
+      "Bash(npx eslint *)",
+      "Bash(node -e \"require\\('@babel/core'\\).transformFileSync\\('src/components/organizations/tabs/OrganizationEmployees.jsx', {presets:['react-app']}\\); console.log\\('parsed OK'\\)\")",
+      "Bash(CI=true node_modules/.bin/eslint --no-eslintrc --config .eslintrc.json src/components/landing/DemoSection.jsx src/components/landing/HeroBackgroundSlides.jsx src/components/landing/LandingPage.jsx src/components/organizations/OrganizationDetail.jsx src/components/organizations/OrganizationForm.jsx src/components/organizations/tabs/EmployeeAnalytics.jsx src/components/organizations/tabs/EmployeeAttendanceCalendar.jsx src/components/organizations/tabs/OrganizationAlerts.jsx src/components/organizations/tabs/OrganizationCameras.jsx src/components/organizations/tabs/OrganizationDepartments.jsx)",
+      "Bash(CI=true node_modules/.bin/eslint --no-eslintrc --config .eslintrc.json src/components/organizations/tabs/OrganizationAlerts.jsx)",
+      "Bash(rm -rf node_modules/.cache)",
+      "Bash(node -e \"console.log\\(require\\('html2pdf.js/package.json'\\).main\\)\")"
+    ]
+  }
+}

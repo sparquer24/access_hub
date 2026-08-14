@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { lprService } from "../../../services/lprService";
 import LPRRegistrationForm from "./LPRRegistrationForm";
 import WebcamCapture from "../../common/WebcamCapture.jsx";
@@ -99,21 +99,18 @@ const OrganizationLPR = ({
     setInternalActiveSubTab(subTabId);
   };
 
-  // Fetch Data on Tab Change or Filter Change
-  useEffect(() => {
-    if (!organization?.id) return;
-    fetchData();
-    // Poll for stats if on overview
-    let interval;
-    if (selectedSubTab === "overview") {
-      interval = setInterval(() => {
-        fetchStats();
-      }, 30000); // 30 seconds
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await lprService.getStats(organization.id);
+      if (res.data.success) {
+        setStats(res.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch LPR stats", error);
     }
-    return () => clearInterval(interval);
-  }, [selectedSubTab, organization.id, page, searchFilters]);
+  }, [organization.id]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       if (selectedSubTab === "overview") {
@@ -144,18 +141,21 @@ const OrganizationLPR = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedSubTab, organization.id, page, searchFilters, fetchStats]);
 
-  const fetchStats = async () => {
-    try {
-      const res = await lprService.getStats(organization.id);
-      if (res.data.success) {
-        setStats(res.data.data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch LPR stats", error);
+  // Fetch Data on Tab Change or Filter Change
+  useEffect(() => {
+    if (!organization?.id) return;
+    fetchData();
+    // Poll for stats if on overview
+    let interval;
+    if (selectedSubTab === "overview") {
+      interval = setInterval(() => {
+        fetchStats();
+      }, 30000); // 30 seconds
     }
-  };
+    return () => clearInterval(interval);
+  }, [selectedSubTab, organization.id, page, searchFilters, fetchData, fetchStats]);
 
   // Handlers
   const handleAddHotlist = async (e) => {

@@ -1,6 +1,5 @@
 import api from './api';
 
-const VISITOR_API_BASE = '/api/v2/visitors';
 const ORG_VISITOR_API_BASE = '/api/v2/organizations';
 
 export const visitorService = {

@@ -3,7 +3,7 @@
  * Shows interactive preview of VMS features
  */
 import React, { useState } from 'react';
-import { Users, TrendingUp, Check, ArrowRight } from '../icons/Icons';
+import { ArrowRight } from '../icons/Icons';
 
 const DemoSection = () => {
   const [activeDemo, setActiveDemo] = useState('dashboard');

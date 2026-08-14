@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Modal, Form, Input, Select, InputNumber, Switch } from 'antd';
 import {
   camerasService,
@@ -11,7 +11,6 @@ import Loader from '../../common/Loader';
 import { useToast } from '../../../contexts/ToastContext';
 
 const { Option } = Select;
-const { TextArea } = Input;
 
 const MANAGEMENT_FLAG_PRESETS = {
   ATTENDANCE: {
@@ -58,12 +57,7 @@ const OrganizationCameras = ({ organizationId, organization }) => {
     return 'ATTENDANCE';
   };
 
-  useEffect(() => {
-    fetchCameras();
-    fetchLocations();
-  }, [organizationId]);
-
-  const fetchLocations = async () => {
+  const fetchLocations = useCallback(async () => {
     try {
       const response = await locationsService.list({
         organization_id: organizationId,
@@ -74,9 +68,9 @@ const OrganizationCameras = ({ organizationId, organization }) => {
     } catch (error) {
       console.error('Error fetching locations:', error);
     }
-  };
+  }, [organizationId]);
 
-  const fetchCameras = async () => {
+  const fetchCameras = useCallback(async () => {
     try {
       setLoading(true);
       const { data } = await camerasService.list({
@@ -90,7 +84,12 @@ const OrganizationCameras = ({ organizationId, organization }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId, showError]);
+
+  useEffect(() => {
+    fetchCameras();
+    fetchLocations();
+  }, [fetchCameras, fetchLocations]);
 
   const handleCreateCamera = () => {
     setEditingCamera(null);

@@ -14,19 +14,6 @@ const RegisterVisitorPopup = ({ visible, onClose }) => {
   //   onClose();
   // };
 
-  const validateFullName = (_, value) => {
-    if (!value) {
-      return Promise.reject(new Error('Please enter full name'));
-    }
-    if (!/^[A-Za-z\s]+$/.test(value)) {
-      return Promise.reject(new Error('Full name should contain only letters and spaces'));
-    }
-    if (value.trim().length < 2) {
-      return Promise.reject(new Error('Full name should be at least 2 characters long'));
-    }
-    return Promise.resolve();
-  };
-
   const validatePhoneNumber = (_, value) => {
     if (value && !/^\d{10}$/.test(value)) {
       return Promise.reject(new Error("Please enter a valid 10-digit phone number"));

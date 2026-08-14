@@ -1,74 +1,81 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import PublicRoute from '../components/auth/PublicRoute';
 import PrivateRoute from '../components/auth/PrivateRoute';
 import RoleBasedRoute from '../components/auth/RoleBasedRoute';
 
-// Auth Components
-import LoginV2 from '../components/auth/LoginV2';
-import ForgotPassword from '../components/auth/ForgotPassword';
-import Unauthorized from '../components/Unauthorized';
+// Eagerly loaded: first paint for most visitors
 import LandingPage from '../components/landing/LandingPage';
+import LoginV2 from '../components/auth/LoginV2';
+
+// Auth Components
+const ForgotPassword = lazy(() => import('../components/auth/ForgotPassword'));
+const Unauthorized = lazy(() => import('../components/Unauthorized'));
 
 // Dashboard Components
-import SuperAdminDashboard from '../components/dashboards/SuperAdminDashboard';
-import OrgAdminDashboard from '../components/dashboards/OrgAdminDashboard';
-import OrgAdminAnalytics from '../components/dashboards/OrgAdminAnalytics';
-import OrgAdminEmployees from '../components/dashboards/OrgAdminEmployees';
-import OrgAdminVisitors from '../components/dashboards/OrgAdminVisitors';
-import OrgAdminDepartments from '../components/dashboards/OrgAdminDepartments';
-import OrgAdminAttendance from '../components/dashboards/OrgAdminAttendance';
-import OrgAdminLeaves from '../components/dashboards/OrgAdminLeaves';
-import OrgAdminCameras from '../components/dashboards/OrgAdminCameras';
-import OrgAdminLocations from '../components/dashboards/OrgAdminLocations';
-import OrgAdminEmployeeForm from '../components/dashboards/OrgAdminEmployeeForm';
-import ManagerDashboard from '../pages/ManagerDashboard';
-import ManagerTeam from '../pages/ManagerTeam';
-import ManagerLeaves from '../pages/ManagerLeaves';
-import ManagerReports from '../pages/ManagerReports';
-import EmployeeDashboard from '../pages/EmployeeDashboard';
-import EmployeeAttendance from '../pages/EmployeeAttendance';
-import AttendanceMarking from '../pages/AttendanceMarking';
-import EmployeeLeaves from '../pages/EmployeeLeaves';
-import EmployeeProfile from '../pages/EmployeeProfile';
-import Profile from '../pages/Profile';
-import Settings from '../pages/Settings';
-import AdminPanelDashboard from '../components/admin/AdminPanelDashboard';
-
+const SuperAdminDashboard = lazy(() => import('../components/dashboards/SuperAdminDashboard'));
+const OrgAdminDashboard = lazy(() => import('../components/dashboards/OrgAdminDashboard'));
+const OrgAdminAnalytics = lazy(() => import('../components/dashboards/OrgAdminAnalytics'));
+const OrgAdminEmployees = lazy(() => import('../components/dashboards/OrgAdminEmployees'));
+const OrgAdminVisitors = lazy(() => import('../components/dashboards/OrgAdminVisitors'));
+const OrgAdminDepartments = lazy(() => import('../components/dashboards/OrgAdminDepartments'));
+const OrgAdminAttendance = lazy(() => import('../components/dashboards/OrgAdminAttendance'));
+const OrgAdminLeaves = lazy(() => import('../components/dashboards/OrgAdminLeaves'));
+const OrgAdminCameras = lazy(() => import('../components/dashboards/OrgAdminCameras'));
+const OrgAdminLocations = lazy(() => import('../components/dashboards/OrgAdminLocations'));
+const OrgAdminEmployeeForm = lazy(() => import('../components/dashboards/OrgAdminEmployeeForm'));
+const ManagerDashboard = lazy(() => import('../pages/ManagerDashboard'));
+const ManagerTeam = lazy(() => import('../pages/ManagerTeam'));
+const ManagerLeaves = lazy(() => import('../pages/ManagerLeaves'));
+const ManagerReports = lazy(() => import('../pages/ManagerReports'));
+const EmployeeDashboard = lazy(() => import('../pages/EmployeeDashboard'));
+const EmployeeAttendance = lazy(() => import('../pages/EmployeeAttendance'));
+const AttendanceMarking = lazy(() => import('../pages/AttendanceMarking'));
+const EmployeeLeaves = lazy(() => import('../pages/EmployeeLeaves'));
+const EmployeeProfile = lazy(() => import('../pages/EmployeeProfile'));
+const Profile = lazy(() => import('../pages/Profile'));
+const Settings = lazy(() => import('../pages/Settings'));
+const AdminPanelDashboard = lazy(() => import('../components/admin/AdminPanelDashboard'));
 
 // Organization Components
-import OrganizationList from '../components/organizations/OrganizationList';
-import OrganizationForm from '../components/organizations/OrganizationForm';
-import OrganizationDetail from '../components/organizations/OrganizationDetail';
-import OrganizationStatistics from '../components/organizations/tabs/OrganizationStatistics';
+const OrganizationList = lazy(() => import('../components/organizations/OrganizationList'));
+const OrganizationForm = lazy(() => import('../components/organizations/OrganizationForm'));
+const OrganizationDetail = lazy(() => import('../components/organizations/OrganizationDetail'));
 
 // Management Components
-import EmployeesList from '../components/dashboards/EmployeesList';
-import CamerasList from '../components/dashboards/CamerasList';
-import PresenceEventsList from '../components/dashboards/PresenceEventsList';
-import FaceEmbeddingsList from '../components/dashboards/FaceEmbeddingsList';
-import AnomaliesList from '../components/dashboards/AnomaliesList';
+const EmployeesList = lazy(() => import('../components/dashboards/EmployeesList'));
+const CamerasList = lazy(() => import('../components/dashboards/CamerasList'));
+const PresenceEventsList = lazy(() => import('../components/dashboards/PresenceEventsList'));
+const FaceEmbeddingsList = lazy(() => import('../components/dashboards/FaceEmbeddingsList'));
+const AnomaliesList = lazy(() => import('../components/dashboards/AnomaliesList'));
 
-import VisitorsList from '../components/dashboards/VisitorsList';
+const VisitorsList = lazy(() => import('../components/dashboards/VisitorsList'));
 
 // LPR Components
-import LPRDashboard from '../components/dashboards/lpr/LPRDashboard';
-import LPRSearch from '../components/dashboards/lpr/LPRSearch';
-import LPRAlerts from '../components/dashboards/lpr/LPRAlerts';
+const LPRDashboard = lazy(() => import('../components/dashboards/lpr/LPRDashboard'));
+const LPRSearch = lazy(() => import('../components/dashboards/lpr/LPRSearch'));
+const LPRAlerts = lazy(() => import('../components/dashboards/lpr/LPRAlerts'));
 
 // Legacy Components (for backward compatibility)
-import VisitorRegistration from '../components/VisitorRegistration';
-import UserDashboard from '../components/UserDashboard';
-import AdminDashboard from '../components/AdminDashboard';
-import ExistingUsersTable from '../components/common/ExistingUsersTable';
-import VisitorPreview from '../components/VisitorPreview';
+const VisitorRegistration = lazy(() => import('../components/VisitorRegistration'));
+const UserDashboard = lazy(() => import('../components/UserDashboard'));
+const AdminDashboard = lazy(() => import('../components/AdminDashboard'));
+const ExistingUsersTable = lazy(() => import('../components/common/ExistingUsersTable'));
+const VisitorPreview = lazy(() => import('../components/VisitorPreview'));
 
 // Test Components
-import WebcamTest from '../components/WebcamTest';
+const WebcamTest = lazy(() => import('../components/WebcamTest'));
+
+const RouteFallback = () => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+    Loading...
+  </div>
+);
 
 const RoutesV2 = () => {
   return (
-    <Routes>
+    <Suspense fallback={<RouteFallback />}>
+      <Routes>
       {/* Landing Page - Public route for homepage */}
       <Route path="/" element={<LandingPage />} />
 
@@ -107,7 +114,7 @@ const RoutesV2 = () => {
           </PrivateRoute>
         }
       />
-      
+
       <Route
         path="/settings"
         element={
@@ -495,7 +502,8 @@ const RoutesV2 = () => {
 
       {/* Catch all - redirect to login */}
       <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
+      </Routes>
+    </Suspense>
   );
 };
 

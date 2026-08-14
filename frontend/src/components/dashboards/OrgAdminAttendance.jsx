@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { employeesService } from '../../services/organizationsService';
 import EmployeeAttendanceCalendar from '../organizations/tabs/EmployeeAttendanceCalendar';
@@ -9,11 +9,7 @@ const OrgAdminAttendance = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchEmployees();
-  }, []);
-
-  const fetchEmployees = async () => {
+  const fetchEmployees = useCallback(async () => {
     try {
       setLoading(true);
       const response = await employeesService.list({
@@ -27,7 +23,11 @@ const OrgAdminAttendance = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    fetchEmployees();
+  }, [fetchEmployees]);
 
   return (
     <div className="min-h-screen bg-teal-50">

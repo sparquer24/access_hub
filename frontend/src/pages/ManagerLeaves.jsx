@@ -1,21 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Calendar,
-  Clock,
   CheckCircle,
   XCircle,
   AlertCircle,
   Eye,
   Search,
-  Filter,
-  Download
+  Filter
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/authService';
 import { API_BASE } from '../services/api';
 
 function ManagerLeaves() {
-  const { user } = useAuth();
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [filteredRequests, setFilteredRequests] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,14 +19,6 @@ function ManagerLeaves() {
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showModal, setShowModal] = useState(false);
-
-  useEffect(() => {
-    fetchLeaveRequests();
-  }, []);
-
-  useEffect(() => {
-    filterRequests();
-  }, [leaveRequests, searchTerm, statusFilter]);
 
   const fetchLeaveRequests = async () => {
     try {
@@ -82,7 +70,7 @@ function ManagerLeaves() {
     }
   };
 
-  const filterRequests = () => {
+  const filterRequests = useCallback(() => {
     let filtered = leaveRequests;
 
     if (searchTerm) {
@@ -98,7 +86,15 @@ function ManagerLeaves() {
     }
 
     setFilteredRequests(filtered);
-  };
+  }, [leaveRequests, searchTerm, statusFilter]);
+
+  useEffect(() => {
+    fetchLeaveRequests();
+  }, []);
+
+  useEffect(() => {
+    filterRequests();
+  }, [filterRequests]);
 
   const getStatusBadge = (status) => {
     switch (status) {

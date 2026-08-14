@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import PrivateRoute from './PrivateRoute';
 
 const RoleBasedRoute = ({ children, roles }) => {
-  const { user, hasRole } = useAuth();
+  const { hasRole } = useAuth();
 
   return (
     <PrivateRoute>

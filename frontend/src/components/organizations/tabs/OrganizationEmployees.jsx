@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Modal, Form, Input, Select, DatePicker, Switch, Pagination } from 'antd';
 import { employeesService, EMPLOYMENT_TYPES, GENDER_OPTIONS, departmentsService, shiftsService, organizationsService } from '../../../services/organizationsService';
 import { faceService } from '../../../services/faceService';
@@ -12,12 +12,30 @@ import EmployeeAttendanceLogs from './EmployeeAttendanceLogs';
 import EmployeeAttendanceCalendar from './EmployeeAttendanceCalendar';
 import OrganizationDepartments from './OrganizationDepartments';
 import OrganizationShifts from './OrganizationShifts';
-import { authService } from '../../../services/authService';
 import { Users, UserPlus, BarChart3, ClipboardList, Calendar as CalendarIcon, Building2, Clock, FileText, Download, MoreHorizontal, ChevronDown, CheckCircle2, XCircle, Search, ListFilter, Trash2 } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 
 const { Option } = Select;
 const { TextArea } = Input;
+
+const REQUIRED_CREATE_FIELDS = [
+  'full_name',
+  'phone_number',
+  'gender',
+  'date_of_birth',
+  'designation',
+  'employment_type',
+  'joining_date',
+  'department_id',
+  'shift_id',
+  'address',
+];
+
+const isValueFilled = (value) => {
+  if (moment.isMoment(value)) return true;
+  if (typeof value === 'string') return value.trim().length > 0;
+  return value !== undefined && value !== null && value !== '';
+};
 
 const OrganizationEmployees = ({
   organizationId,
@@ -50,7 +68,7 @@ const OrganizationEmployees = ({
   const [recordsDateRange, setRecordsDateRange] = useState([moment(), moment()]);
   const [recordsCurrentPage, setRecordsCurrentPage] = useState(1);
   const [recordsItemsPerPage, setRecordsItemsPerPage] = useState(10);
-  const [allAttendanceRecords, setAllAttendanceRecords] = useState([]);
+  const [, setAllAttendanceRecords] = useState([]);
   const [isTabDropdownOpen, setIsTabDropdownOpen] = useState(false);
   const tabDropdownRef = React.useRef(null);
   const calendarRef = React.useRef(null);
@@ -81,51 +99,18 @@ const OrganizationEmployees = ({
 
   const activeTabMeta = employeeTabs.find((tab) => tab.id === activeTab) || employeeTabs[0];
 
-  const requiredCreateFields = [
-    'full_name',
-    'phone_number',
-    'gender',
-    'date_of_birth',
-    'designation',
-    'employment_type',
-    'joining_date',
-    'department_id',
-    'shift_id',
-    'address',
-  ];
-
-  const isValueFilled = (value) => {
-    if (moment.isMoment(value)) return true;
-    if (typeof value === 'string') return value.trim().length > 0;
-    return value !== undefined && value !== null && value !== '';
-  };
-
-  const updateCreateFormCompleteness = (allValues = form.getFieldsValue(true), photoValue = employeePhoto) => {
+  const updateCreateFormCompleteness = useCallback((allValues = form.getFieldsValue(true), photoValue = employeePhoto) => {
     if (editingEmployee) {
       setIsCreateFormComplete(true);
       return;
     }
 
-    const hasAllRequiredFields = requiredCreateFields.every((field) => isValueFilled(allValues?.[field]));
+    const hasAllRequiredFields = REQUIRED_CREATE_FIELDS.every((field) => isValueFilled(allValues?.[field]));
     const hasPhoto = Boolean(photoValue);
     setIsCreateFormComplete(hasAllRequiredFields && hasPhoto);
-  };
+  }, [form, employeePhoto, editingEmployee]);
 
-  useEffect(() => {
-    fetchEmployees();
-  }, [organizationId]);
-
-  useEffect(() => {
-    fetchDepartmentsAndShifts();
-  }, [organizationId]);
-
-  useEffect(() => {
-    if (showModal) {
-      updateCreateFormCompleteness(form.getFieldsValue(true), employeePhoto);
-    }
-  }, [employeePhoto, showModal, editingEmployee]);
-
-  const fetchEmployees = async () => {
+  const fetchEmployees = useCallback(async () => {
     try {
       setLoading(true);
       const response = await employeesService.list({
@@ -139,9 +124,9 @@ const OrganizationEmployees = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId, showError]);
 
-  const fetchDepartmentsAndShifts = async () => {
+  const fetchDepartmentsAndShifts = useCallback(async () => {
     try {
       const [dResp, sResp] = await Promise.all([
         departmentsService.list({ organization_id: organizationId, per_page: 200, is_active: true }),
@@ -153,35 +138,35 @@ const OrganizationEmployees = ({
       console.error('Error fetching departments/shifts:', err);
       // non-blocking
     }
-  };
+  }, [organizationId]);
 
-  const fetchAttendanceRecords = async () => {
+  const fetchAttendanceRecords = useCallback(async () => {
     try {
       setLoadingAttendance(true);
       console.log('Fetching attendance records with filters...');
-      
+
       const params = {
         per_page: 500,
       };
-      
+
       // Add search parameter
       if (recordsSearchText && recordsSearchText.trim()) {
         params.search = recordsSearchText.trim();
       }
-      
+
       // Add department filter parameter
       if (recordsDepartmentFilter && recordsDepartmentFilter !== 'all') {
         params.department_id = recordsDepartmentFilter;
       }
-      
+
       // Add date range parameters
       if (recordsDateRange && recordsDateRange[0] && recordsDateRange[1]) {
         params.start_date = recordsDateRange[0].format('YYYY-MM-DD');
         params.end_date = recordsDateRange[1].format('YYYY-MM-DD');
       }
-      
+
       console.log('Filter params:', params);
-      
+
       const response = await organizationsService.getEmployeeAttendanceSummary(organizationId, params);
       const allRecords = response.data?.items || [];
       console.log('Fetched records:', allRecords);
@@ -193,23 +178,9 @@ const OrganizationEmployees = ({
     } finally {
       setLoadingAttendance(false);
     }
-  };
+  }, [organizationId, recordsSearchText, recordsDepartmentFilter, recordsDateRange, showError]);
 
-  // Apply filters when filter values change
-  useEffect(() => {
-    if (activeTab === 'records') {
-      fetchAttendanceRecords();
-    }
-  }, [recordsSearchText, recordsDepartmentFilter, recordsDateRange, activeTab]);
-
-  // Fetch logs when logs tab is active
-  useEffect(() => {
-    if (activeTab === 'logs') {
-      fetchAttendanceLogs();
-    }
-  }, [activeTab]);
-
-  const fetchAttendanceLogs = async () => {
+  const fetchAttendanceLogs = useCallback(async () => {
     try {
       setLoadingAttendance(true);
       const response = await api.get('/api/v2/attendance', {
@@ -235,23 +206,37 @@ const OrganizationEmployees = ({
     } finally {
       setLoadingAttendance(false);
     }
-  };
+  }, [organizationId]);
+
+  useEffect(() => {
+    fetchEmployees();
+  }, [organizationId, fetchEmployees]);
+
+  useEffect(() => {
+    fetchDepartmentsAndShifts();
+  }, [organizationId, fetchDepartmentsAndShifts]);
+
+  useEffect(() => {
+    if (showModal) {
+      updateCreateFormCompleteness(form.getFieldsValue(true), employeePhoto);
+    }
+  }, [employeePhoto, showModal, editingEmployee, form, updateCreateFormCompleteness]);
+
+  // Apply filters when filter values change
+  useEffect(() => {
+    if (activeTab === 'records') {
+      fetchAttendanceRecords();
+    }
+  }, [recordsSearchText, recordsDepartmentFilter, recordsDateRange, activeTab, fetchAttendanceRecords]);
+
+  // Fetch logs when logs tab is active
+  useEffect(() => {
+    if (activeTab === 'logs') {
+      fetchAttendanceLogs();
+    }
+  }, [activeTab, fetchAttendanceLogs]);
 
   const generatePDFContent = (title, data) => {
-    // Get user info from localStorage
-    let userName = 'Unknown User';
-    try {
-      const userDataStr = localStorage.getItem('accesshub_use_data');
-      if (userDataStr) {
-        const userData = JSON.parse(userDataStr);
-        userName = userData.full_name || userData.name || userData.username || 'Unknown User';
-      }
-    } catch (err) {
-      console.warn('Could not retrieve user data from localStorage');
-    }
-
-    const now = new Date();
-
     let html = `
       <html>
         <head>
@@ -288,20 +273,6 @@ const OrganizationEmployees = ({
       </html>
     `;
     return html;
-  };
-
-  const getUserInfo = () => {
-    let userName = 'Unknown User';
-    try {
-      const userDataStr = localStorage.getItem('accesshub_use_data');
-      if (userDataStr) {
-        const userData = JSON.parse(userDataStr);
-        userName = userData.full_name || userData.name || 'Unknown User';
-      }
-    } catch (err) {
-      console.warn('Could not retrieve user data from localStorage');
-    }
-    return userName;
   };
 
   const downloadPDF = (htmlContent, filename) => {
@@ -366,9 +337,6 @@ const OrganizationEmployees = ({
       }
 
       // Get user info
-      const userName = getUserInfo();
-      const now = new Date();
-
       // Create an HTML string with proper structure for PDF
       const headerHTML = `
         <h1 style="
@@ -607,10 +575,6 @@ const OrganizationEmployees = ({
         return;
       }
 
-      // Get user info
-      const userName = getUserInfo();
-      const now = new Date();
-
       // Create a clone of the calendar element
       const element = calendarRef.current.cloneNode(true);
       
@@ -760,7 +724,7 @@ const OrganizationEmployees = ({
           photo_base64: photoBase64Clean,
         };
         console.log('[EMPLOYEE UPDATE] payload:', payload, 'employeePhoto:', employeePhoto);
-        const updateResponse = await employeesService.update(editingEmployee.id, payload);
+        await employeesService.update(editingEmployee.id, payload);
         success('Successfully updated');
         if (employeePhoto) {
           try {
@@ -773,7 +737,7 @@ const OrganizationEmployees = ({
         const generateUUID = () => {
           return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
             const r = Math.random() * 16 | 0;
-            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            const v = c === 'x' ? r : ((r & 0x3) | 0x8);
             return v.toString(16);
           });
         };

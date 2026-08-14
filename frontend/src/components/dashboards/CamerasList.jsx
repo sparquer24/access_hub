@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { message } from 'antd';
 import { camerasService } from '../../services/organizationsService';
@@ -13,23 +13,7 @@ const CamerasList = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
 
-  useEffect(() => {
-    fetchCameras();
-  }, [currentPage, filterStatus]);
-
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (currentPage === 1) {
-        fetchCameras();
-      } else {
-        setCurrentPage(1);
-      }
-    }, 300);
-    
-    return () => clearTimeout(timeoutId);
-  }, [searchTerm]);
-
-  const fetchCameras = async () => {
+  const fetchCameras = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -59,7 +43,23 @@ const CamerasList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, filterStatus, searchTerm]);
+
+  useEffect(() => {
+    fetchCameras();
+  }, [currentPage, filterStatus, fetchCameras]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (currentPage === 1) {
+        fetchCameras();
+      } else {
+        setCurrentPage(1);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, currentPage, fetchCameras]);
 
   const filteredCameras = cameras; // No need to filter here since API handles filtering
 

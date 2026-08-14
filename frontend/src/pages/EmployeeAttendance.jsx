@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { attendanceAPI } from '../services/apiServices';
 import {
   Clock,
@@ -6,7 +6,6 @@ import {
   CheckCircle,
   XCircle,
   TrendingUp,
-  Filter,
   Download,
   ChevronLeft,
   ChevronRight,
@@ -34,11 +33,7 @@ function EmployeeAttendance() {
   });
   const [viewType, setViewType] = useState('list'); // 'list' | 'calendar'
 
-  useEffect(() => {
-    fetchAttendanceHistory();
-  }, [currentPage, dateFilter]);
-
-  const fetchAttendanceHistory = async () => {
+  const fetchAttendanceHistory = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -89,7 +84,11 @@ function EmployeeAttendance() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, dateFilter]);
+
+  useEffect(() => {
+    fetchAttendanceHistory();
+  }, [fetchAttendanceHistory]);
 
   const formatTime = (timeString) => {
     if (!timeString) return 'N/A';
