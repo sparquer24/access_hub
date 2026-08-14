@@ -125,7 +125,7 @@ function EmployeeDashboard() {
     <div className="min-h-screen bg-white pb-6">
       {/* Compact Header Section */}
       <div className="sticky top-0 z-40 bg-gradient-to-r from-teal-500 to-cyan-600 shadow-md border-b border-teal-400/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="py-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex-1">
@@ -156,7 +156,7 @@ function EmployeeDashboard() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
         
         {/* Error Alert */}
         {error && (

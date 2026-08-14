@@ -176,7 +176,7 @@ const CheckInCheckOut = ({ isOpen, onClose, onSuccess }) => {
                                 <span style={{
                                     marginLeft: 8,
                                     fontWeight: 'bold',
-                                    color: isCheckedOut ? '#52c41a' : isCheckedIn ? '#1890ff' : '#8c8c8c'
+                                    color: isCheckedOut ? '#52c41a' : isCheckedIn ? '#0d9488' : '#8c8c8c'
                                 }}>
                                     {isCheckedOut ? '✓ Checked Out' : isCheckedIn ? '○ Checked In' : '○ Not Checked In'}
                                 </span>
@@ -191,7 +191,7 @@ const CheckInCheckOut = ({ isOpen, onClose, onSuccess }) => {
                                 <Statistic
                                     title="Check In"
                                     value={todayAttendance?.check_in_time ? moment(todayAttendance.check_in_time).format('hh:mm A') : '-- : --'}
-                                    prefix={<ClockCircleOutlined style={{ color: isCheckedIn || isCheckedOut ? '#1890ff' : '#d9d9d9' }} />}
+                                    prefix={<ClockCircleOutlined style={{ color: isCheckedIn || isCheckedOut ? '#0d9488' : '#d9d9d9' }} />}
                                 />
                             </Card>
                         </Col>

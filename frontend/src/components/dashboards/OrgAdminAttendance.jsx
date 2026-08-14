@@ -33,7 +33,7 @@ const OrgAdminAttendance = () => {
     <div className="min-h-screen bg-teal-50">
       {/* Header */}
       <div className="bg-teal-50/95 shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
           <h1 className="text-3xl font-bold text-gray-900">
             Attendance Management
           </h1>
@@ -44,7 +44,7 @@ const OrgAdminAttendance = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
           <div className="flex justify-center py-12">
             <Spin size="large" />

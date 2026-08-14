@@ -300,7 +300,7 @@ const OrganizationInfo = ({ organization, onUpdate }) => {
   const aiInsights = getAIInsights();
 
   return (
-    <div className="space-y-3 animate-fadeIn bg-gradient-to-br from-white/80 via-cyan-50/80 to-teal-50/80 py-2 backdrop-blur-sm overflow-y-auto max-h-[calc(100vh-280px)]">
+    <div className="space-y-3 animate-fadeIn bg-gradient-to-br from-white/80 via-cyan-50/80 to-teal-50/80 py-2 backdrop-blur-sm overflow-y-auto max-h-[calc(100vh-180px)]">
       <div className="px-2 mb-3">
         <div className="bg-gradient-to-r from-teal-900 via-cyan-900 to-slate-900 rounded-2xl p-6 shadow-2xl relative overflow-hidden group border border-teal-500/30">
           <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-30 transition-opacity duration-1000 pointer-events-none">
@@ -518,6 +518,56 @@ const OrganizationInfo = ({ organization, onUpdate }) => {
           </div>
           <div className="text-2xl font-black text-gray-900">{organization.departments_count || 0}</div>
           <p className="text-xs text-gray-500 mt-1">Organizational units</p>
+        </div>
+      </div>
+
+      {/* Executive Summary KPI Section - Row 2 */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white rounded-xl p-4 border-l-4 border-cyan-600 shadow-lg hover:shadow-xl transition-all">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Subscription</span>
+            <Briefcase className="w-5 h-5 text-cyan-600" />
+          </div>
+          <div className="text-2xl font-black text-gray-900 capitalize">{organization.subscription_tier || 'Standard'}</div>
+          <p className="text-xs text-gray-500 mt-1">Current plan tier</p>
+        </div>
+
+        <div className="bg-white rounded-xl p-4 border-l-4 border-green-600 shadow-lg hover:shadow-xl transition-all">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Camera Uptime</span>
+            <Shield className="w-5 h-5 text-green-600" />
+          </div>
+          <div className="text-2xl font-black text-gray-900">{cameraUptime}%</div>
+          <p className="text-xs text-gray-500 mt-1">Infrastructure health</p>
+        </div>
+
+        {hasAttendanceFeature ? (
+          <div className="bg-white rounded-xl p-4 border-l-4 border-blue-600 shadow-lg hover:shadow-xl transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Attendance Rate</span>
+              <TrendingUp className="w-5 h-5 text-blue-600" />
+            </div>
+            <div className="text-2xl font-black text-gray-900">{attendanceRate}%</div>
+            <p className="text-xs text-gray-500 mt-1">{activeToday} active today</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl p-4 border-l-4 border-purple-600 shadow-lg hover:shadow-xl transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Visitors Today</span>
+              <Users className="w-5 h-5 text-purple-600" />
+            </div>
+            <div className="text-2xl font-black text-gray-900">{totalVisitorsToday}</div>
+            <p className="text-xs text-gray-500 mt-1">{activeVisitors} currently on-site</p>
+          </div>
+        )}
+
+        <div className="bg-white rounded-xl p-4 border-l-4 border-slate-600 shadow-lg hover:shadow-xl transition-all">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Days Active</span>
+            <Clock className="w-5 h-5 text-slate-600" />
+          </div>
+          <div className="text-2xl font-black text-gray-900">{getDaysActive()}</div>
+          <p className="text-xs text-gray-500 mt-1">Since {formatDate(organization.created_at).split(',')[0]}</p>
         </div>
       </div>
 

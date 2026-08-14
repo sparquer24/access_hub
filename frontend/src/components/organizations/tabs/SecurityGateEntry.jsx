@@ -74,7 +74,7 @@ const SecurityGateEntry = ({ organizationId, organization }) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="w-full space-y-6">
       <div className="bg-teal-50/95 rounded-xl shadow-md p-8">
         <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
           🚪 Security Gate Entry/Exit

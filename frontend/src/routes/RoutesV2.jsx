@@ -6,6 +6,7 @@ import RoleBasedRoute from '../components/auth/RoleBasedRoute';
 
 // Auth Components
 import LoginV2 from '../components/auth/LoginV2';
+import ForgotPassword from '../components/auth/ForgotPassword';
 import Unauthorized from '../components/Unauthorized';
 import LandingPage from '../components/landing/LandingPage';
 
@@ -56,7 +57,6 @@ import LPRSearch from '../components/dashboards/lpr/LPRSearch';
 import LPRAlerts from '../components/dashboards/lpr/LPRAlerts';
 
 // Legacy Components (for backward compatibility)
-import Login from '../components/Login';
 import VisitorRegistration from '../components/VisitorRegistration';
 import UserDashboard from '../components/UserDashboard';
 import AdminDashboard from '../components/AdminDashboard';
@@ -85,12 +85,12 @@ const RoutesV2 = () => {
         }
       />
 
-      {/* Legacy login route */}
+      {/* Forgot password (UI only) */}
       <Route
-        path="/login-old"
+        path="/forgot-password"
         element={
           <PublicRoute>
-            <Login />
+            <ForgotPassword />
           </PublicRoute>
         }
       />

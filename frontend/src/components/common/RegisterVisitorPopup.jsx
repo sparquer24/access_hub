@@ -1,7 +1,6 @@
 
 import React, { useState } from "react";
 import { Modal, Form, Input, Radio, Button, message, Row, Col } from "antd";
-import "../../styles/RegisterVisitorPopup.css";
 import csrfAPI from "../../services/api";
 import usersAPI from "../../services/api";
 
@@ -154,11 +153,11 @@ const RegisterVisitorPopup = ({ visible, onClose }) => {
             </Form.Item>
           </Col>
         </Row>
-        <div className="popup-footer">
+        <div className="flex justify-end gap-3 mt-2 pt-4 border-t border-slate-100">
           <Button onClick={onClose}>
             Cancel
           </Button>
-          <Button type="primary" htmlType="submit">
+          <Button type="primary" htmlType="submit" loading={submitting}>
             Create User
           </Button>
         </div>

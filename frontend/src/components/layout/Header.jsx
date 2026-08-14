@@ -1,14 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useTheme } from '../../contexts/ThemeContext';
 import { Building2, ChevronDown, User, Settings, LogOut, Menu, X, Download } from 'lucide-react';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { user, logout } = useAuth();
-  const { isDarkMode } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const userMenuRef = useRef(null);
@@ -84,47 +82,73 @@ const Header = () => {
   }
 
   return (
-    <header className={`${isDarkMode ? 'bg-slate-900/95 border-slate-700' : 'bg-teal-50/95 border-slate-200/60'} backdrop-blur-lg border-b sticky top-0 z-50 shadow-sm`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 border-b border-white/20 dark:border-slate-700/60 shadow-sm"
+      style={{
+        background: 'rgba(240, 253, 250, 0.92)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+      }}
+    >
+      {/* Dark mode override via a separate element so we don't fight Tailwind */}
+      <style>{`
+        .dark header.ah-header {
+          background: rgba(15, 23, 42, 0.92) !important;
+          border-color: rgba(51, 65, 85, 0.6) !important;
+        }
+      `}</style>
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
+          {/* Logo */}
           <div className="flex items-center gap-4">
             <Link to="/" className="flex items-center gap-3 group">
               <div className="flex items-center justify-center w-10 h-10 bg-gradient-teal rounded-xl group-hover:scale-105 transition-transform duration-300 shadow-teal">
                 <Building2 className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gradient-teal'}`}>AccessHub</h1>
-                <p className={`text-xs -mt-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>hub for access control</p>
+                <h1 className="text-xl font-bold text-gradient-teal dark:text-white">AccessHub</h1>
+                <p className="text-xs -mt-1 text-slate-500 dark:text-slate-400">hub for access control</p>
               </div>
             </Link>
           </div>
 
+          {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-1">
             {user && navigation.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${isActive(item.href)
-                  ? `${isDarkMode ? 'bg-slate-800 text-teal-400' : 'bg-teal-100 text-teal-700'} shadow-sm`
-                  : `${isDarkMode ? 'text-slate-400 hover:text-teal-400 hover:bg-slate-800' : 'text-slate-600 hover:text-teal-600 hover:bg-slate-50'}`}`}
+                className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  isActive(item.href)
+                    ? 'text-teal-700 dark:text-teal-400 bg-teal-100/80 dark:bg-teal-900/40 shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-teal-700 dark:hover:text-teal-400 hover:bg-teal-50/60 dark:hover:bg-slate-800/60'
+                }`}
               >
+                {isActive(item.href) && (
+                  <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-teal-500 dark:bg-teal-400" />
+                )}
                 {item.name}
               </Link>
             ))}
           </nav>
 
+          {/* Right side */}
           <div className="flex items-center gap-3">
             {user ? (
               <>
                 <div className="hidden sm:flex items-center gap-2">
-                  <button className={`p-2 ${isDarkMode ? 'text-slate-500 hover:text-teal-400 hover:bg-slate-800' : 'text-slate-400 hover:text-teal-600 hover:bg-teal-50'} rounded-lg transition-all duration-300`} aria-label="Downloads">
+                  <button
+                    className="p-2 text-slate-400 dark:text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50/60 dark:hover:bg-slate-800 rounded-lg transition-all duration-200"
+                    aria-label="Download reports"
+                    title="Download reports"
+                  >
                     <Download className="w-5 h-5" />
                   </button>
                 </div>
 
+                {/* User Menu */}
                 <div className="relative" ref={userMenuRef}>
                   <button
-                    className={`flex items-center gap-2 p-2 rounded-xl transition-all duration-300 min-w-0 ${isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-teal-50'}`}
+                    className="flex items-center gap-2 px-2 py-1.5 rounded-xl transition-all duration-200 min-w-0 hover:bg-teal-50/60 dark:hover:bg-slate-800 border border-transparent hover:border-teal-200/50 dark:hover:border-slate-700"
                     onClick={() => {
                       setIsUserMenuOpen((prev) => !prev);
                       setIsMenuOpen(false);
@@ -137,37 +161,41 @@ const Header = () => {
                       {user.first_name ? user.first_name.charAt(0).toUpperCase() : user.email?.charAt(0).toUpperCase() || 'U'}
                     </div>
                     <div className="hidden lg:block text-left min-w-0 max-w-[12rem]">
-                      <p className={`text-sm font-semibold truncate ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                      <p className="text-sm font-semibold truncate text-slate-900 dark:text-white">
                         {user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.email}
                       </p>
-                      <p className={`text-xs capitalize truncate ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>
+                      <p className="text-xs capitalize truncate text-slate-500 dark:text-slate-400">
                         {(typeof user.role === 'string'
                           ? user.role
                           : user.role?.name || user.role?.id || 'User').replace('_', ' ')}
                       </p>
                     </div>
-                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180 text-teal-400' : isDarkMode ? 'text-slate-500' : 'text-slate-400'}`} />
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 text-slate-400 dark:text-slate-500 ${isUserMenuOpen ? 'rotate-180 text-teal-500' : ''}`} />
                   </button>
 
-                  <div className={`absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-xs sm:w-64 rounded-xl shadow-lg border py-2 transition-all duration-200 z-50 ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-teal-50/95 border-slate-200'} ${isUserMenuOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-1 pointer-events-none'}`}>
-                    <div className={`px-4 py-2 border-b ${isDarkMode ? 'border-slate-700' : 'border-slate-100'}`}>
-                      <p className={`text-sm font-medium truncate ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                  {/* Dropdown */}
+                  <div className={`absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-xs sm:w-64 rounded-xl shadow-xl border py-2 transition-all duration-200 z-50
+                    bg-white/95 dark:bg-slate-800/95 border-slate-200/60 dark:border-slate-700
+                    backdrop-blur-lg
+                    ${isUserMenuOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2 pointer-events-none'}`}>
+                    <div className="px-4 py-2.5 border-b border-slate-100 dark:border-slate-700">
+                      <p className="text-sm font-semibold truncate text-slate-900 dark:text-white">
                         {user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.email}
                       </p>
-                      <p className={`text-xs truncate ${isDarkMode ? 'text-slate-500' : 'text-slate-500'}`}>{user.email}</p>
+                      <p className="text-xs truncate text-slate-500 dark:text-slate-400">{user.email}</p>
                     </div>
-                    <Link to="/profile" onClick={() => setIsUserMenuOpen(false)} className={`flex items-center gap-3 px-4 py-2 text-sm transition-colors ${isDarkMode ? 'text-slate-300 hover:bg-slate-700 hover:text-teal-400' : 'text-slate-700 hover:bg-teal-50 hover:text-teal-700'}`}>
+                    <Link to="/profile" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-slate-700 dark:text-slate-300 hover:bg-teal-50/70 dark:hover:bg-slate-700 hover:text-teal-700 dark:hover:text-teal-400">
                       <User className="w-4 h-4" />
                       Profile
                     </Link>
-                    <Link to="/settings" onClick={() => setIsUserMenuOpen(false)} className={`flex items-center gap-3 px-4 py-2 text-sm transition-colors ${isDarkMode ? 'text-slate-300 hover:bg-slate-700 hover:text-teal-400' : 'text-slate-700 hover:bg-teal-50 hover:text-teal-700'}`}>
+                    <Link to="/settings" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-slate-700 dark:text-slate-300 hover:bg-teal-50/70 dark:hover:bg-slate-700 hover:text-teal-700 dark:hover:text-teal-400">
                       <Settings className="w-4 h-4" />
                       Settings
                     </Link>
-                    <hr className={`my-2 ${isDarkMode ? 'border-slate-700' : 'border-slate-100'}`} />
+                    <hr className="my-2 border-slate-100 dark:border-slate-700" />
                     <button
                       onClick={handleLogout}
-                      className={`w-full flex items-center gap-3 px-4 py-2 text-sm ${isDarkMode ? 'text-red-400 hover:bg-slate-700' : 'text-red-600 hover:bg-red-50'}`}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50/70 dark:hover:bg-slate-700 transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
                       Logout
@@ -177,24 +205,25 @@ const Header = () => {
               </>
             ) : (
               <div className="flex items-center gap-3">
-                <Link to="/login" className={`px-4 py-2 text-sm font-medium transition-colors duration-300 ${isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}>
+                <Link to="/login" className="px-4 py-2 text-sm font-medium transition-colors duration-200 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
                   Sign In
                 </Link>
                 <Link
-                  to="/register"
-                  className="px-5 py-2 bg-gradient-teal text-white text-sm font-medium rounded-lg hover:shadow-teal-lg transition-all duration-300"
+                  to="/login"
+                  className="px-5 py-2 bg-gradient-teal text-white text-sm font-medium rounded-lg hover:shadow-teal-lg transition-all duration-200"
                 >
                   Get Started
                 </Link>
               </div>
             )}
 
+            {/* Mobile menu toggle */}
             <button
               onClick={() => {
                 setIsMenuOpen((prev) => !prev);
                 setIsUserMenuOpen(false);
               }}
-              className={`md:hidden p-2 rounded-lg transition-all duration-300 ${isDarkMode ? 'text-slate-500 hover:text-teal-400 hover:bg-slate-800' : 'text-slate-400 hover:text-teal-600 hover:bg-teal-50'}`}
+              className="md:hidden p-2 rounded-lg transition-all duration-200 text-slate-400 dark:text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50/60 dark:hover:bg-slate-800"
               aria-label="Toggle mobile menu"
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -202,16 +231,19 @@ const Header = () => {
           </div>
         </div>
 
+        {/* Mobile Nav Drawer */}
         {isMenuOpen && (
-          <div className={`md:hidden border-t py-4 ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`}>
-            <div className="space-y-2">
+          <div className="md:hidden border-t py-4 border-slate-200/60 dark:border-slate-700">
+            <div className="space-y-1">
               {user && navigation.map((item) => (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`block px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${isActive(item.href)
-                    ? `${isDarkMode ? 'bg-slate-800 text-teal-400' : 'bg-teal-100 text-teal-700'}`
-                    : `${isDarkMode ? 'text-slate-400 hover:text-teal-400 hover:bg-slate-800' : 'text-slate-600 hover:text-teal-600 hover:bg-teal-50'}`}`}
+                  className={`block px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    isActive(item.href)
+                      ? 'bg-teal-100/80 dark:bg-teal-900/40 text-teal-700 dark:text-teal-400 border-l-2 border-teal-500'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50/60 dark:hover:bg-slate-800'
+                  }`}
                 >
                   {item.name}
                 </Link>
@@ -219,16 +251,16 @@ const Header = () => {
 
               {user && (
                 <>
-                  <hr className={`my-2 ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`} />
-                  <Link to="/profile" className={`block px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${isDarkMode ? 'text-slate-400 hover:text-teal-400 hover:bg-slate-800' : 'text-slate-600 hover:text-teal-600 hover:bg-teal-50'}`}>
+                  <hr className="my-2 border-slate-200/60 dark:border-slate-700" />
+                  <Link to="/profile" className="block px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-slate-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50/60 dark:hover:bg-slate-800">
                     Profile
                   </Link>
-                  <Link to="/settings" className={`block px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${isDarkMode ? 'text-slate-400 hover:text-teal-400 hover:bg-slate-800' : 'text-slate-600 hover:text-teal-600 hover:bg-teal-50'}`}>
+                  <Link to="/settings" className="block px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-slate-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50/60 dark:hover:bg-slate-800">
                     Settings
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className={`w-full text-left px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 ${isDarkMode ? 'text-red-400 hover:bg-slate-800' : 'text-red-600 hover:bg-red-50'}`}
+                    className="w-full text-left px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 text-red-600 dark:text-red-400 hover:bg-red-50/70 dark:hover:bg-slate-800"
                   >
                     Logout
                   </button>

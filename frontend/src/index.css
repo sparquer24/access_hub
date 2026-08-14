@@ -5,13 +5,37 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Shared brand gradient — single source of truth, referenced by index.css and App.css */
+  --brand-gradient-teal: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 50%, #5eead4 100%);
+  --brand-gradient-teal-dark: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e293b 100%);
+}
+
+/* Compact UI density: every Tailwind spacing/typography utility is rem-based,
+   so shrinking the root font-size scales the whole app uniformly — text,
+   padding, gaps, radii — the same way a browser "zoom out" would. */
+html {
+  font-size: 87.5%; /* 14px base instead of 16px — keeps everything compact */
+}
+
+/* Page containers cap out at max-w-7xl (80rem/1280px) and center, which
+   leaves large empty gutters on wide screens or when the browser is zoomed
+   out. Widen the shared container classes so pages fill the viewport
+   instead of floating in the middle of it. Unlayered so it wins over the
+   generated Tailwind utility of the same name (same specificity, later in
+   source order). */
+.max-w-7xl { max-width: 1600px; }
+.max-w-6xl { max-width: 1440px; }
+.max-w-5xl { max-width: 1280px; }
+.max-w-4xl { max-width: 1120px; }
+
 /* Dark mode support */
 .dark {
   color-scheme: dark;
 }
 
 .dark body {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e293b 100%);
+  background: var(--brand-gradient-teal-dark);
   color: #f1f5f9;
 }
 
@@ -394,10 +418,11 @@
   background-color: #334155 !important;
 }
 
-/* Cards */
-.dark .rounded-xl,
-.dark .rounded-lg,
-.dark .rounded-2xl {
+/* Cards — use .card-surface on explicit card/panel wrappers in dark mode.
+   We deliberately avoid targeting .rounded-xl / .rounded-lg / .rounded-2xl
+   globally because those classes are also used on badges, pills, avatars,
+   and buttons — forcing them all grey washes out colour semantics. */
+.dark .card-surface {
   background-color: #1e293b !important;
   border-color: #475569 !important;
 }
@@ -737,7 +762,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     @apply text-gray-900;
-    background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 50%, #5eead4 100%);
+    background: var(--brand-gradient-teal);
     background-attachment: fixed;
   }
 
@@ -751,6 +776,7 @@
     scroll-behavior: smooth;
   }
 }
+
 
 @layer utilities {
 
@@ -867,4 +893,132 @@
   background-color: #0f766e !important;
   color: #ffffff !important;
   font-weight: 600 !important;
+}
+
+/* Profile page motion/utility classes — moved out of pages/Profile.jsx's
+   inline <style> tag so keyframes live in the shared stylesheet. */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in-delay {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(40px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes gradient-x {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; transform: scaleX(1); }
+  50% { opacity: 0.8; transform: scaleX(1.1); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(20, 184, 166, 0.3); }
+  50% { box-shadow: 0 0 30px rgba(20, 184, 166, 0.6); }
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-fade-in { animation: fade-in 0.8s ease-out forwards; }
+.animate-fade-in-delay { animation: fade-in-delay 1s ease-out 0.3s forwards; opacity: 0; }
+.animate-slide-up { animation: slide-up 0.6s ease-out forwards; }
+.animate-gradient-x { background-size: 200% 200%; animation: gradient-x 10s ease infinite; }
+.animate-pulse-slow { animation: pulse-slow 2s ease-in-out infinite; }
+.animate-float { animation: float 3s ease-in-out infinite; }
+.animate-glow { animation: glow 2s ease-in-out infinite; }
+.animate-heartbeat { animation: heartbeat 1.5s ease-in-out infinite; }
+
+.profile-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.profile-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.permission-card {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.permission-card:hover {
+  transform: scale(1.05) rotate(1deg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.button-bounce {
+  transition: transform 0.1s ease-in-out;
+}
+
+.button-bounce:active {
+  transform: scale(0.95);
+}
+
+.glassmorphism {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #0d9488, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.scale-on-hover {
+  transition: transform 0.2s ease-in-out;
+}
+
+.scale-on-hover:hover {
+  transform: scale(1.1);
+}
+
+.icon-spin-hover {
+  transition: transform 0.2s ease-in-out;
+}
+
+.icon-spin-hover:hover {
+  transform: rotate(360deg);
+}
+
+.form-input {
+  transition: all 0.3s ease;
+}
+
+.form-input:focus {
+  transform: scale(1.02);
+}
+
+.loading-shimmer {
+  background: linear-gradient(90deg,
+    rgba(203, 213, 225, 0.3) 0%,
+    rgba(203, 213, 225, 0.6) 50%,
+    rgba(203, 213, 225, 0.3) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
 }

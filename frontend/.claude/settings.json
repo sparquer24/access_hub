@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx react-scripts *)",
+      "Bash(cat /tmp/build_out.log | head -200)",
+      "Read(//tmp/**)",
+      "Bash(echo \"EXIT_CODE=$?\")",
+      "Bash(grep -n \"EXIT_CODE\\\\|Failed to compile\\\\|Compiled\" /tmp/build_revert.log 2>/dev/null || echo \"not ready\")"
+    ]
+  }
+}

@@ -33,135 +33,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { profileAPI } from '../services/api';
 
 function Profile() {
-  // Inline CSS styles to replace Profile.css
-  const inlineStyles = `
-    @keyframes fade-in {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    @keyframes fade-in-delay {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    @keyframes slide-up {
-      from { opacity: 0; transform: translateY(40px) scale(0.95); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    
-    @keyframes gradient-x {
-      0%, 100% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-    }
-    
-    @keyframes pulse-slow {
-      0%, 100% { opacity: 1; transform: scaleX(1); }
-      50% { opacity: 0.8; transform: scaleX(1.1); }
-    }
-    
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-6px); }
-    }
-    
-    @keyframes glow {
-      0%, 100% { box-shadow: 0 0 20px rgba(20, 184, 166, 0.3); }
-      50% { box-shadow: 0 0 30px rgba(20, 184, 166, 0.6); }
-    }
-    
-    @keyframes heartbeat {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
-    
-    .animate-fade-in { animation: fade-in 0.8s ease-out forwards; }
-    .animate-fade-in-delay { animation: fade-in-delay 1s ease-out 0.3s forwards; opacity: 0; }
-    .animate-slide-up { animation: slide-up 0.6s ease-out forwards; }
-    .animate-gradient-x { background-size: 200% 200%; animation: gradient-x 10s ease infinite; }
-    .animate-pulse-slow { animation: pulse-slow 2s ease-in-out infinite; }
-    .animate-float { animation: float 3s ease-in-out infinite; }
-    .animate-glow { animation: glow 2s ease-in-out infinite; }
-    .animate-heartbeat { animation: heartbeat 1.5s ease-in-out infinite; }
-    
-    .profile-card {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .profile-card:hover {
-      transform: translateY(-4px) scale(1.02);
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    }
-    
-    .permission-card {
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .permission-card:hover {
-      transform: scale(1.05) rotate(1deg);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-    
-    .button-bounce {
-      transition: transform 0.1s ease-in-out;
-    }
-    
-    .button-bounce:active {
-      transform: scale(0.95);
-    }
-    
-    .glassmorphism {
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    
-    .text-gradient {
-      background: linear-gradient(135deg, #0d9488, #06b6d4);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    
-    .scale-on-hover {
-      transition: transform 0.2s ease-in-out;
-    }
-    
-    .scale-on-hover:hover {
-      transform: scale(1.1);
-    }
-    
-    .icon-spin-hover {
-      transition: transform 0.2s ease-in-out;
-    }
-    
-    .icon-spin-hover:hover {
-      transform: rotate(360deg);
-    }
-    
-    .form-input {
-      transition: all 0.3s ease;
-    }
-    
-    .form-input:focus {
-      transform: scale(1.02);
-    }
-    
-    .loading-shimmer {
-      background: linear-gradient(90deg, 
-        rgba(203, 213, 225, 0.3) 0%, 
-        rgba(203, 213, 225, 0.6) 50%, 
-        rgba(203, 213, 225, 0.3) 100%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s ease-in-out infinite;
-    }
-    
-    @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-  `;
-
   const { user } = useAuth();
   const { settings, isDarkMode } = useTheme();
   const [profile, setProfile] = useState(null);
@@ -522,13 +393,10 @@ function Profile() {
 
   return (
     <div className={`min-h-screen overflow-y-auto animate-fade-in scrollbar-thin scrollbar-thumb-teal-400 scrollbar-track-slate-100 ${isDarkMode ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-slate-50 via-blue-50/30 to-teal-50/20'}`}>
-      {/* Inline CSS Styles */}
-      <style dangerouslySetInnerHTML={{ __html: inlineStyles }} />
-      
       {/* Fallback Data Warning */}
       {fallbackActive && (
         <div className={`p-3 border-b ${isDarkMode ? 'bg-gradient-to-r from-yellow-900/20 to-orange-900/20 border-yellow-700/50' : 'bg-gradient-to-r from-yellow-400/20 to-orange-400/20 border-yellow-300/50'}`}>
-          <div className="max-w-7xl mx-auto px-6">
+          <div className="w-full px-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-yellow-900/50' : 'bg-yellow-100'}`}>
@@ -553,7 +421,7 @@ function Profile() {
       )}
       {/* Header */}
       <div className={`border-b mb-8 animate-slide-up ${isDarkMode ? 'bg-slate-900/90 border-slate-700' : 'bg-teal-50/90 border-slate-200/60'}`}>
-        <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="w-full px-6 py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-6">
               <div className="relative group">
@@ -602,7 +470,7 @@ function Profile() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 space-y-8 mb-40">
+      <div className="w-full px-6 space-y-8 mb-40">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Personal Information Card */}

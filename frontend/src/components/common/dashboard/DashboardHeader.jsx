@@ -14,7 +14,7 @@ const DashboardHeader = ({
     
     return (
         <div className={`backdrop-blur-sm border-b sticky top-0 z-30 shadow-sm transition-all duration-300 ${isDarkMode ? 'bg-slate-900/90 border-slate-700' : 'bg-teal-50/90 border-slate-200/60'}`}>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5">
+            <div className="w-full px-4 sm:px-6 lg:px-8 py-1.5">
                 <div className="flex items-center justify-between gap-3">
 
                     {/* Title Section */}

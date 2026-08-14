@@ -39,7 +39,7 @@ const FaceEmbeddingsList = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 pt-24 pb-12">
       {/* Sticky Header */}
       <div className="sticky top-20 bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-xl z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-4xl font-bold mb-2">🎯 Face Embeddings</h1>
@@ -56,7 +56,7 @@ const FaceEmbeddingsList = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-12">
         {/* Filter */}
         <div className="bg-teal-50/95 rounded-2xl shadow-lg p-6 mb-8 border border-slate-200">
           <div className="flex gap-4 flex-wrap">

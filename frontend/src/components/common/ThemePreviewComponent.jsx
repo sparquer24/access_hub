@@ -21,7 +21,7 @@ const ThemePreviewComponent = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full">
         <h1 className="text-4xl font-bold text-gray-800 mb-8 text-center">
           AccessHub Role-Based Theming System
         </h1>
@@ -69,10 +69,10 @@ const ThemePreviewComponent = () => {
                   <div className={themeData.theme.cards + ' p-4 rounded-xl shadow-sm'}>
                     <h3 className="font-semibold text-gray-700 mb-3">Color Palette</h3>
                     <div className="flex gap-2">
-                      <div className={`w-8 h-8 rounded bg-${themeData.theme.accent.primary}-500`} title={`${themeData.theme.accent.primary}-500`}></div>
-                      <div className={`w-8 h-8 rounded bg-${themeData.theme.accent.primary}-600`} title={`${themeData.theme.accent.primary}-600`}></div>
-                      <div className={`w-8 h-8 rounded bg-${themeData.theme.accent.primary}-700`} title={`${themeData.theme.accent.primary}-700`}></div>
-                      <div className={`w-8 h-8 rounded bg-${themeData.theme.accent.secondary}-500`} title={`${themeData.theme.accent.secondary}-500`}></div>
+                      <div className="w-8 h-8 rounded" style={{ backgroundColor: themeData.theme.accent.colors[500] }} title={`${themeData.theme.accent.primary}-500`}></div>
+                      <div className="w-8 h-8 rounded" style={{ backgroundColor: themeData.theme.accent.colors[600] }} title={`${themeData.theme.accent.primary}-600`}></div>
+                      <div className="w-8 h-8 rounded" style={{ backgroundColor: themeData.theme.accent.colors[700] }} title={`${themeData.theme.accent.primary}-700`}></div>
+                      <div className="w-8 h-8 rounded" style={{ backgroundColor: themeData.theme.accent.colors[500] }} title={`${themeData.theme.accent.secondary}-500`}></div>
                     </div>
                   </div>
 

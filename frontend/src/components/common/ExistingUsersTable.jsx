@@ -1,8 +1,8 @@
 // components/common/ExistingUsersTable.jsx
 import React, { useEffect, useState } from "react";
 import { Table, Button, Modal, Form, Input, message } from "antd";
+import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import "../../styles/ExistingUsersTable.css";
 import { csrfAPI, usersAPI } from "../../services/api";  // ✅ import API helpers
 
 const ExistingUsersTable = () => {
@@ -112,7 +112,7 @@ const ExistingUsersTable = () => {
       width: "24%",
       align: "center",
       render: (_, record) => (
-        <Button className="change-password-btn" onClick={() => handleChangePassword(record)}>
+        <Button onClick={() => handleChangePassword(record)}>
           Change Password
         </Button>
       ),
@@ -120,22 +120,24 @@ const ExistingUsersTable = () => {
   ];
 
   return (
-    <div className="user-dashboard">
-      <div className="dashboard-container">
-        <div className="back-button-wrapper">
-          <button className="back-button-dashboard" onClick={handleBackToDashboard}>
-            ← Back to Dashboard
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-teal-50 py-10 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-6">
+          <button
+            onClick={handleBackToDashboard}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-teal-700 hover:text-teal-800"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to Dashboard
           </button>
         </div>
 
         {/* Table */}
-        <div className="existing-users-table-container">
+        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-lg overflow-hidden">
           <Table
             dataSource={users}
             columns={columns}
             pagination={false}
             rowKey="id"
-            className="existing-users-table"
           />
         </div>
 

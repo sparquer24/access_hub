@@ -322,10 +322,10 @@ const OrganizationDetail = ({
   }
 
   return (
-    <div className={`min-h-[90vh] h-auto ${isDarkMode ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-slate-100 via-cyan-50 to-teal-100'}`}>
+    <div className={`flex-1 flex flex-col ${isDarkMode ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-slate-100 via-cyan-50 to-teal-100'}`}>
       {/* Enhanced Page Header */}
       <div className={`sticky top-0 z-30 backdrop-blur-sm shadow-lg border-b ${isDarkMode ? 'bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 border-slate-600' : 'bg-gradient-to-r from-cyan-100/95 via-teal-100/95 to-slate-100/95 border-teal-200/50'}`}>
-        <div className="max-w-screen-2xl mx-auto px-2 sm:px-3 lg:px-4 py-1">
+        <div className="w-full px-2 sm:px-3 lg:px-4 py-1">
           {/* Top Row - Back Button and Organization Name */}
           <div className="flex items-center justify-between gap-2 flex-nowrap overflow-x-auto">
             <div className="flex items-center gap-2.5 min-w-0 flex-nowrap">
@@ -384,9 +384,9 @@ const OrganizationDetail = ({
 
           {/* Unified Second Row - Tabs + Alerts */}
           <div className="mt-1 pt-1">
-            <div className={`flex items-center gap-3 rounded-xl px-3 py-1.5 backdrop-blur-sm border shadow-md ${isDarkMode ? 'bg-slate-800/80 border-slate-600' : 'bg-gradient-to-r from-white/80 via-cyan-50/80 to-teal-50/80 border-white/40'}`}>
+            <div className={`flex items-center gap-3 rounded-xl px-3 py-1.5 backdrop-blur-sm border shadow-sm ${isDarkMode ? 'bg-slate-800/80 border-slate-600/50' : 'bg-white/70 border-teal-200/40'}`}>
               <div className="flex-1 overflow-x-auto">
-                <div className={`flex items-center gap-1.5 p-1 rounded-xl w-max min-w-full shadow-inner border ${isDarkMode ? 'bg-slate-700/80 border-slate-600' : 'bg-gradient-to-r from-slate-100/90 via-cyan-100/70 to-teal-100/70 border-slate-200/50'}`}>
+                <div className={`flex items-center gap-1 p-1 rounded-xl w-max min-w-full border ${isDarkMode ? 'bg-slate-700/60 border-slate-600/40' : 'bg-teal-50/60 border-teal-100/60'}`}>
                   {availableTabs.map((tab) => (
                     <button
                       key={tab.id}
@@ -433,12 +433,12 @@ const OrganizationDetail = ({
 
 
       {/* Tabs + Right Sidebar Alerts */}
-      <div className="max-w-screen-2xl mx-auto px-2 sm:px-3 lg:px-4 py-1">
-        <div className={`grid grid-cols-1 lg:grid-cols-12 gap-3 ${isAlertSidebarOpen ? 'h-[calc(100vh-90px)]' : ''}`}>
-          <div className={`${isAlertSidebarOpen ? 'lg:col-span-10 h-full overflow-hidden' : 'lg:col-span-12'} min-w-0 transition-all duration-300`}>
-            <div className={`rounded-lg shadow-md backdrop-blur-sm overflow-hidden ${isAlertSidebarOpen ? 'h-full flex flex-col' : ''} ${isDarkMode ? 'bg-slate-800/95 border border-slate-700' : 'bg-gradient-to-br from-white/95 via-cyan-50/90 to-teal-50/95 border border-white/50'}`}>
+      <div className="w-full px-2 sm:px-3 lg:px-4 py-1 flex-1 flex flex-col">
+        <div className={`grid grid-cols-1 lg:grid-cols-12 gap-3 transition-all duration-500 flex-1 ${isAlertSidebarOpen ? 'h-[calc(100vh-90px)]' : ''}`}>
+          <div className={`${isAlertSidebarOpen ? 'lg:col-span-10 h-full overflow-hidden' : 'lg:col-span-12 min-h-full'} min-w-0 transition-all duration-500 flex flex-col`}>
+            <div className={`rounded-lg shadow-md backdrop-blur-sm overflow-hidden ${isAlertSidebarOpen ? 'h-full' : 'min-h-full'} flex flex-col ${isDarkMode ? 'bg-slate-800/95 border border-slate-700' : 'bg-gradient-to-br from-white/95 via-cyan-50/90 to-teal-50/95 border border-white/50'}`}>
               {/* Tab Content */}
-              <div className="p-2">
+              <div className="p-4 flex-1 flex flex-col">
                 {activeTab === 'info' && (
                   <OrganizationInfo
                     organization={organization}

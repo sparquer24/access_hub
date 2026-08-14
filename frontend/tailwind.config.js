@@ -8,22 +8,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Deep Teal Theme (Option 2)
-        primary: '#0D9488',
-        'primary-light': '#14B8A6',
-        'primary-dark': '#0F766E',
-        'primary-50': '#F0FDFA',
-        'primary-100': '#CCFBF1',
-        'primary-200': '#99F6E4',
-        'primary-300': '#5EEAD4',
-        'primary-400': '#2DD4BF',
-        'primary-500': '#14B8A6',
-        'primary-600': '#0D9488',
-        'primary-700': '#0F766E',
-        'primary-800': '#115E59',
-        'primary-900': '#134E4A',
-
-        // Teal variations for gradients and accents
+        // Deep Teal Theme — single source of truth for the brand scale
         teal: {
           50: '#F0FDFA',
           100: '#CCFBF1',
@@ -52,22 +37,32 @@ export default {
       },
       animation: {
         'fadeIn': 'fadeIn 0.3s ease-in',
+        'fadeInUp': 'fadeInUp 0.6s ease-out both',
         'slideIn': 'slideIn 0.3s ease-out',
-        'spin': 'spin 1s linear infinite',
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'float': 'float 3s ease-in-out infinite',
+        'scan': 'scan 2.5s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
           '0%': { opacity: '0', transform: 'translateY(10px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
+        fadeInUp: {
+          '0%': { opacity: '0', transform: 'translateY(24px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
         slideIn: {
           '0%': { opacity: '0', transform: 'translateX(-10px)' },
           '100%': { opacity: '1', transform: 'translateX(0)' },
         },
-        spin: {
-          '0%': { transform: 'rotate(0deg)' },
-          '100%': { transform: 'rotate(360deg)' },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-8px)' },
+        },
+        scan: {
+          '0%, 100%': { transform: 'translateY(-45%)', opacity: '0.2' },
+          '50%': { transform: 'translateY(45%)', opacity: '0.9' },
         },
       },
       boxShadow: {

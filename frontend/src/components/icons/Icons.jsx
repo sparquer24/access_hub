@@ -2,76 +2,92 @@
  * Enhanced Icons Component
  * Provides colored, branded icon components for AccessHub
  */
+import { useId } from 'react';
 
-export const LockIcon = ({ className = "w-4 h-4", color = "currentColor", ...props }) => (
-  <svg className={className} {...props} viewBox="0 0 24 24" fill="none" stroke="url(#lockGradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <defs>
-      <linearGradient id="lockGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#0D9488" />
-        <stop offset="100%" stopColor="#22D3EE" />
-      </linearGradient>
-    </defs>
-    <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-  </svg>
-);
+export const LockIcon = ({ className = "w-4 h-4", color = "currentColor", ...props }) => {
+  const gradientId = `lockGradient-${useId()}`;
+  return (
+    <svg className={className} {...props} viewBox="0 0 24 24" fill="none" stroke={`url(#${gradientId})`} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <defs>
+        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#0D9488" />
+          <stop offset="100%" stopColor="#22D3EE" />
+        </linearGradient>
+      </defs>
+      <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  );
+};
 
-export const UsersIcon = ({ className = "w-4 h-4", ...props }) => (
-  <svg className={className} {...props} viewBox="0 0 24 24" fill="none" stroke="url(#usersGradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <defs>
-      <linearGradient id="usersGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#3B82F6" />
-        <stop offset="100%" stopColor="#06B6D4" />
-      </linearGradient>
-    </defs>
-    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-  </svg>
-);
+export const UsersIcon = ({ className = "w-4 h-4", ...props }) => {
+  const gradientId = `usersGradient-${useId()}`;
+  return (
+    <svg className={className} {...props} viewBox="0 0 24 24" fill="none" stroke={`url(#${gradientId})`} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <defs>
+        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#3B82F6" />
+          <stop offset="100%" stopColor="#06B6D4" />
+        </linearGradient>
+      </defs>
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+};
 
-export const ZapIcon = ({ className = "w-4 h-4", ...props }) => (
-  <svg className={className} {...props} viewBox="0 0 24 24" fill="none" stroke="url(#zapGradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <defs>
-      <linearGradient id="zapGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#F59E0B" />
-        <stop offset="100%" stopColor="#FB923C" />
-      </linearGradient>
-    </defs>
-    <polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2" />
-  </svg>
-);
+export const ZapIcon = ({ className = "w-4 h-4", ...props }) => {
+  const gradientId = `zapGradient-${useId()}`;
+  return (
+    <svg className={className} {...props} viewBox="0 0 24 24" fill="none" stroke={`url(#${gradientId})`} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <defs>
+        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#F59E0B" />
+          <stop offset="100%" stopColor="#FB923C" />
+        </linearGradient>
+      </defs>
+      <polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2" />
+    </svg>
+  );
+};
 
-export const SparklesIcon = ({ className = "w-4 h-4", ...props }) => (
-  <svg className={className} {...props} viewBox="0 0 24 24" fill="none" stroke="url(#sparkleGradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <defs>
-      <linearGradient id="sparkleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#8B5CF6" />
-        <stop offset="100%" stopColor="#EC4899" />
-      </linearGradient>
-    </defs>
-    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-    <path d="M5 3v4" />
-    <path d="M19 17v4" />
-    <path d="M3 5h4" />
-    <path d="M17 19h4" />
-  </svg>
-);
+export const SparklesIcon = ({ className = "w-4 h-4", ...props }) => {
+  const gradientId = `sparkleGradient-${useId()}`;
+  return (
+    <svg className={className} {...props} viewBox="0 0 24 24" fill="none" stroke={`url(#${gradientId})`} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <defs>
+        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#8B5CF6" />
+          <stop offset="100%" stopColor="#EC4899" />
+        </linearGradient>
+      </defs>
+      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+      <path d="M5 3v4" />
+      <path d="M19 17v4" />
+      <path d="M3 5h4" />
+      <path d="M17 19h4" />
+    </svg>
+  );
+};
 
-export const AIIcon = ({ className = "w-4 h-4", ...props }) => (
-  <svg className={className} {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="url(#aiGradient)" />
-    <circle cx="12" cy="12" r="4" stroke="url(#aiGradient)" fill="url(#aiGradient)" fillOpacity="0.1" />
-    <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="1" />
-    <defs>
-      <linearGradient id="aiGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#14B8A6" />
-        <stop offset="100%" stopColor="#06B6D4" />
-      </linearGradient>
-    </defs>
-  </svg>
-);
+export const AIIcon = ({ className = "w-4 h-4", ...props }) => {
+  const gradientId = `aiGradient-${useId()}`;
+  return (
+    <svg className={className} {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke={`url(#${gradientId})`} />
+      <circle cx="12" cy="12" r="4" stroke={`url(#${gradientId})`} fill={`url(#${gradientId})`} fillOpacity="0.1" />
+      <path d="M12 8v8M8 12h8" stroke="#fff" strokeWidth="1" />
+      <defs>
+        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#14B8A6" />
+          <stop offset="100%" stopColor="#06B6D4" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+};
 
 // Backward compatibility or alternative names
 export const Crown = ({ className = "w-4 h-4", ...props }) => (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import { ArrowRight, Check, Sparkles, Users, Lock, Zap } from '../icons/Icons';
 import { 
@@ -9,6 +9,8 @@ import {
   UserCircle, Clock, Cpu, Search
 } from 'lucide-react';
 import DemoSection from './DemoSection';
+import HeroIllustration from './HeroIllustration';
+import HeroBackgroundSlides from './HeroBackgroundSlides';
 import { statsAPI } from '../../services/api';
 
 const LandingPage = () => {
@@ -41,12 +43,64 @@ const LandingPage = () => {
     fetchStats();
   }, []);
 
-  // Dynamic stats based on real data
+  // Animated counter hook — counts from 0 to `target` over `duration` ms
+  const useCountUp = (target, duration = 1200) => {
+    const [value, setValue] = useState(0);
+    const raf = useRef(null);
+    useEffect(() => {
+      if (target === null || target === undefined) return;
+      const start = performance.now();
+      const tick = (now) => {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        // ease-out cubic
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setValue(Math.floor(eased * target));
+        if (progress < 1) raf.current = requestAnimationFrame(tick);
+      };
+      raf.current = requestAnimationFrame(tick);
+      return () => raf.current && cancelAnimationFrame(raf.current);
+    }, [target, duration]);
+    return value;
+  };
+
+  const statValues = {
+    users:   systemStats ? systemStats.employees?.total ?? 0 : null,
+    orgs:    systemStats ? systemStats.organizations?.total ?? 0 : null,
+    visitors:systemStats ? systemStats.visitors?.total ?? 0 : null,
+  };
+
+  const AnimatedStat = ({ value, label }) => {
+    const animated = useCountUp(value);
+    const isLoading = value === null;
+    return (
+      <div
+        className="text-center p-4 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 shadow-lg animate-fadeInUp"
+      >
+        {isLoading ? (
+          <div className="h-7 w-16 mx-auto mb-1 rounded-md bg-white/20 loading-shimmer" />
+        ) : (
+          <div className="text-2xl font-bold text-teal-300 mb-1 tabular-nums">
+            {animated.toLocaleString()}{value > 0 ? '+' : ''}
+          </div>
+        )}
+        <div className="text-sm text-slate-300">{label}</div>
+      </div>
+    );
+  };
+
+  // Static stats array kept only for the "24/7" entry
   const stats = [
-    { value: systemStats ? `${systemStats.employees?.total || 0}+` : '0+', label: 'Active Users' },
-    { value: systemStats ? `${systemStats.organizations?.total || 0}+` : '0+', label: 'Organizations' },
-    { value: systemStats ? `${systemStats.visitors?.total || 0}+` : '0+', label: 'Visitors Tracked' },
-    { value: '24/7', label: 'Support' }
+    { key: 'users',    label: 'Active Users' },
+    { key: 'orgs',     label: 'Organizations' },
+    { key: 'visitors', label: 'Visitors Tracked' },
+    { key: 'uptime',   label: 'Support', fixed: '24/7' },
+  ];
+
+  const trustPoints = [
+    { icon: <Check className="w-4 h-4" />, label: 'AI-verified entries' },
+    { icon: <Camera className="w-4 h-4" />, label: 'Real-time LPR alerts' },
+    { icon: <Lock className="w-4 h-4" />, label: 'Role-based access control' },
   ];
 
   const features = [
@@ -296,51 +350,84 @@ const LandingPage = () => {
         ::-webkit-scrollbar-thumb:hover { background: linear-gradient(135deg, #0e7490 0%, #0891b2 100%); }
       `}</style>
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-slate-50 via-white to-teal-50 pt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="pt-20 pb-16 text-center lg:pt-32">
-            <h1 className="mx-auto max-w-4xl font-display text-5xl font-medium tracking-tight text-slate-900 sm:text-6xl">
-              AI-Powered{' '}
-              <span className="relative whitespace-nowrap text-teal-600">
-                <span className="relative">Workplace Access</span>
-              </span>{' '}
-              Control
-            </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg tracking-tight text-slate-700">
-              Next-generation visitor management and security powered by advanced AI.
-              Secure your premises with intelligent facial recognition and predictive analytics.
-            </p>
-            <div className="mt-10 flex justify-center gap-x-6">
-              <button
-                onClick={() => window.location.href = '/login'}
-                className="group inline-flex items-center justify-center rounded-full py-3 px-6 text-sm font-semibold focus:outline-none text-white bg-teal-600 hover:bg-teal-700 transition-colors"
-              >
-                Get started
-              </button>
+      <section className="relative bg-slate-900 pt-16 overflow-hidden">
+        <HeroBackgroundSlides />
+        <div className="relative z-10 max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="pt-20 pb-16 lg:pt-28 lg:pb-24 grid grid-cols-1 lg:grid-cols-2 items-center gap-12">
+            <div className="text-center lg:text-left animate-fadeInUp z-10 relative">
+              <div className="inline-flex items-center gap-2 rounded-full bg-teal-400/20 border border-teal-400/30 px-4 py-1.5 text-xs font-semibold text-teal-300 mb-6 backdrop-blur-sm">
+                <Sparkles className="w-3.5 h-3.5" />
+                AI-Powered Access Control
+              </div>
+              <h1 className="font-display text-5xl font-medium tracking-tight text-white sm:text-6xl" style={{textShadow:'0 2px 16px rgba(0,0,0,0.5)'}}>
+                Workplace Access,{' '}
+                <span className="relative whitespace-nowrap text-teal-300">
+                  <span className="relative">Secured by AI</span>
+                </span>
+              </h1>
+              <p className="mt-6 max-w-xl mx-auto lg:mx-0 text-lg tracking-tight text-slate-200">
+                Next-generation visitor management and security powered by advanced AI.
+                Secure your premises with intelligent facial recognition and predictive analytics.
+              </p>
+              <div className="mt-10 flex flex-col sm:flex-row justify-center lg:justify-start items-center gap-4">
+                <button
+                  onClick={() => window.location.href = '/login'}
+                  className="group inline-flex items-center justify-center gap-2 rounded-full py-3 px-6 text-sm font-semibold focus:outline-none text-white bg-teal-600 hover:bg-teal-700 shadow-lg hover:shadow-teal-lg transition-all"
+                >
+                  Get started
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                </button>
+                <a
+                  href="#features"
+                  className="inline-flex items-center justify-center rounded-full py-3 px-6 text-sm font-semibold text-teal-300 border border-teal-400/40 hover:border-teal-400/70 hover:bg-teal-400/10 transition-colors backdrop-blur-sm"
+                >
+                  See how it works
+                </a>
+              </div>
+
+              {/* Trust row */}
+              <div className="mt-8 flex flex-wrap justify-center lg:justify-start gap-4">
+                {trustPoints.map((point, index) => (
+                  <div key={index} className="inline-flex items-center gap-2 text-sm text-slate-200">
+                    <span className="w-6 h-6 rounded-full bg-teal-400/20 border border-teal-400/30 flex items-center justify-center text-teal-300">
+                      {point.icon}
+                    </span>
+                    {point.label}
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* Stats */}
-            <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-2xl mx-auto">
-              {stats.map((stat, index) => (
-                <div 
-                  key={index} 
-                  className="text-center p-4 rounded-xl bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg animate-float"
-                  style={{ animationDelay: `${index * 0.2}s` }}
+            <HeroIllustration />
+          </div>
+
+          {/* Stats */}
+          <div className="pb-20 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto relative z-10">
+            {stats.map((stat, index) => (
+              stat.fixed ? (
+                <div
+                  key={index}
+                  className="text-center p-4 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 shadow-lg"
+                  style={{ animationDelay: `${index * 0.12}s` }}
                 >
-                  <div className="text-2xl font-bold text-teal-600 mb-1">
-                    {stat.value}
-                  </div>
-                  <div className="text-sm text-slate-600">{stat.label}</div>
+                  <div className="text-2xl font-bold text-teal-300 mb-1">{stat.fixed}</div>
+                  <div className="text-sm text-slate-300">{stat.label}</div>
                 </div>
-              ))}
-            </div>
+              ) : (
+                <AnimatedStat
+                  key={index}
+                  value={statValues[stat.key]}
+                  label={stat.label}
+                />
+              )
+            ))}
           </div>
         </div>
 
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-gradient-to-br from-slate-50 via-teal-50/30 to-slate-50">
+      <section id="features" className="py-20 bg-gradient-to-br from-slate-50 via-teal-50/30 to-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-slate-900 mb-4">

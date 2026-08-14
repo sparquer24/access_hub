@@ -15,7 +15,7 @@
     display: flex;
     flex-direction: column;
     @apply font-sans;
-    background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 50%, #5eead4 100%);
+    background: var(--brand-gradient-teal);
     background-attachment: fixed;
   }
 

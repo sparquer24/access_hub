@@ -78,7 +78,7 @@ const OrganizationList = ({ showCreateButton = true, basePath = '/super-admin/or
     <div className={`min-h-full h-screen overflow-y-auto ${isDarkMode ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-slate-50 via-teal-50 to-teal-50'}`}>
       {/* Page Header */}
       <div className={`backdrop-blur-sm border-b sticky top-0 z-30 shadow-sm ${isDarkMode ? 'bg-slate-900/90 border-slate-700' : 'bg-teal-50/90 border-slate-200/60'}`}>
-        <div className="max-w-7xl mx-auto lg:px-8 px-4 py-1.5">
+        <div className="w-full lg:px-8 px-4 py-1.5">
           <div className="flex items-center justify-between">
             <div>
               <h1 className={`text-xl font-bold bg-gradient-to-r bg-clip-text text-transparent leading-tight ${isDarkMode ? 'from-teal-400 to-cyan-400' : 'from-teal-600 to-teal-600'}`}>
@@ -103,7 +103,7 @@ const OrganizationList = ({ showCreateButton = true, basePath = '/super-admin/or
 
       {/* Quick Actions Bar */}
       {/* <div className="bg-teal-50/95 border-b border-gray-200 sticky top-20 z-20 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap gap-3 py-4 items-center justify-between">
             <p className="text-gray-600 font-medium">Total Organizations: {organizations.length}</p>
             <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -114,7 +114,7 @@ const OrganizationList = ({ showCreateButton = true, basePath = '/super-admin/or
       </div> */}
 
       {/* Filters Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
           {/* Search Box */}
           <div className="md:col-span-2 justify-end">

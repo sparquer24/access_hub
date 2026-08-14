@@ -8,7 +8,7 @@ const LPRRegistrationForm = ({
 	onCancel,
 }) => {
 	return (
-		<div className="max-w-6xl mx-auto px-2">
+		<div className="w-full px-2">
 			<div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 md:p-8">
 				<div className="mb-6 pb-4 border-b border-gray-200">
 					<h3 className="text-2xl font-bold text-gray-900">Manual Vehicle Entry / Inspection</h3>

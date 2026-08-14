@@ -153,7 +153,7 @@ const EmployeeLeaves = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto px-5 py-8">
+      <div className="w-full px-5 py-8">
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-2xl font-bold mb-1">My Leave Requests</h1>

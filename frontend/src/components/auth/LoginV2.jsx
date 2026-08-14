@@ -6,7 +6,10 @@ import {
   User,
   Eye,
   EyeOff,
-  AlertCircle
+  AlertCircle,
+  Shield,
+  Building2,
+  TrendingUp
 } from 'lucide-react';
 import {
   Lock,
@@ -41,17 +44,15 @@ const LoginV2 = () => {
   }, [isAuthenticated, user, navigate, location]);
 
   const getDefaultRoute = (roleNameOrId) => {
-    // Support both role.id and role.name for backward compatibility
     const roleToCheck = roleNameOrId || (user?.role?.id || user?.role?.name || '');
     switch (roleToCheck) {
       case 'super_admin':
         return '/super-admin/dashboard';
       case 'org_admin':
-        // Redirect org_admin to their organization detail page
         if (user && user.organization_id) {
           return `/admin-panel/organizations/${user.organization_id}`;
         }
-        return '/org-admin/dashboard'; // fallback if no organization_id
+        return '/org-admin/dashboard';
       case 'manager':
         return '/manager/dashboard';
       case 'employee':
@@ -90,7 +91,6 @@ const LoginV2 = () => {
 
       success('Login successful! Redirecting...');
 
-      // Navigate based on role (use role.id or role.name or just role if it's a string)
       const userRole = response.user?.role;
       const roleIdentifier = typeof userRole === 'string' ? userRole : (userRole?.id || userRole?.name);
       console.log('Login successful, redirecting...', { roleIdentifier, userRole });
@@ -98,14 +98,12 @@ const LoginV2 = () => {
       console.log('Target Route:', from);
       console.log('--------------------------');
 
-      // Small delay to let the toast be seen and smooth transition
       setTimeout(() => {
         navigate(from, { replace: true });
       }, 500);
 
     } catch (err) {
       showError(err.message || 'Login failed. Please check your credentials.');
-      // Keep error state for inline display if preferred, or remove it if toast is enough
       setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setIsLoading(false);
@@ -116,97 +114,144 @@ const LoginV2 = () => {
     navigate('/forgot-password');
   };
 
-  return (
-    <div className="flex min-h-screen bg-gradient-to-br from-teal-600 via-teal-500 to-cyan-600 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-teal-400/30 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-cyan-400/30 rounded-full blur-3xl animate-pulse delay-700"></div>
-      <div className="absolute top-1/2 left-1/3 w-80 h-80 bg-teal-500/20 rounded-full blur-3xl animate-float"></div>
+  const features = [
+    {
+      icon: <Lock className="w-5 h-5 text-teal-300" />,
+      title: 'Enterprise AI Security',
+      subtitle: 'SMART',
+      description: 'AI-enhanced JWT authentication for secure access',
+      accent: 'from-teal-500/20 to-cyan-500/20',
+      border: 'border-teal-400/20',
+    },
+    {
+      icon: <Users className="w-5 h-5 text-cyan-300" />,
+      title: 'Multi-Tenant Ready',
+      subtitle: 'SCALE',
+      description: 'Unlimited organizations with fully isolated data',
+      accent: 'from-cyan-500/20 to-blue-500/20',
+      border: 'border-cyan-400/20',
+    },
+    {
+      icon: <Zap className="w-5 h-5 text-emerald-300" />,
+      title: 'Lightning Performance',
+      subtitle: 'FAST',
+      description: 'Real-time updates with sub-100ms response',
+      accent: 'from-emerald-500/20 to-teal-500/20',
+      border: 'border-emerald-400/20',
+    },
+  ];
 
-      {/* Left Section - Brand & Features */}
-      <div className="hidden lg:flex flex-1 flex-col justify-center items-center px-8 py-8 text-white relative z-10">
-        <div className="text-center mb-8 animate-fadeInUp">
-          <div className="relative inline-block mb-4">
-            <img src={logoImage} alt="AccessHub Logo" className="w-24 h-24 mx-auto drop-shadow-2xl hover:scale-110 transition-transform duration-300" />
-            <div className="absolute -right-2 -top-2 bg-white/20 backdrop-blur-md p-1.5 rounded-lg border border-white/30 shadow-xl animate-float">
-              <AIIcon className="w-6 h-6" />
+  const quickStats = [
+    { icon: <Building2 className="w-4 h-4" />, value: 'Multi-org', label: 'Platform' },
+    { icon: <Shield className="w-4 h-4" />, value: 'AI-grade', label: 'Security' },
+    { icon: <TrendingUp className="w-4 h-4" />, value: '99.9%', label: 'Uptime' },
+  ];
+
+  return (
+    <div className="flex min-h-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0d9488 0%, #0891b2 50%, #0e7490 100%)' }}>
+      {/* Animated background blobs */}
+      <div className="absolute top-20 left-10 w-72 h-72 bg-teal-400/20 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-cyan-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '700ms' }} />
+      <div className="absolute top-1/2 left-1/3 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl animate-float" />
+
+      {/* ── LEFT PANEL ── */}
+      <div className="hidden lg:flex w-[45%] flex-col justify-between px-10 py-10 text-white relative z-10">
+        {/* Brand mark */}
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <img src={logoImage} alt="AccessHub Logo" className="w-10 h-10 drop-shadow-xl" />
+            <div className="absolute -right-1 -top-1 bg-white/20 backdrop-blur-md p-1 rounded-md border border-white/30 shadow-lg">
+              <AIIcon className="w-3 h-3" />
             </div>
           </div>
-          <h1 className="text-4xl font-black mb-3 drop-shadow-lg bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">
-            AccessHub
-          </h1>
-          <p className="text-lg font-bold text-white mb-1 flex items-center justify-center gap-2">
-            AI-Powered Security <span className="bg-white/20 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider">v2.0</span>
-          </p>
-          <p className="text-sm opacity-90 max-w-md mx-auto leading-relaxed text-gray-100">
-            Secure & Scalable Multi-Tenant Solution
-          </p>
+          <div>
+            <div className="text-lg font-black tracking-tight">AccessHub</div>
+            <div className="text-[10px] font-semibold text-teal-200 uppercase tracking-widest">AI-Powered Security</div>
+          </div>
         </div>
 
-        <div className="space-y-3 max-w-lg w-full">
-          {/* Feature 1 */}
-          <div className="bg-white/15 backdrop-blur-xl p-4 rounded-xl border border-white/30 hover:bg-white/25 hover:border-white/50 hover:translate-y-[-2px] hover:shadow-xl transition-all duration-300 group cursor-pointer shadow-lg">
-            <div className="flex items-center gap-3">
-              <div className="text-2xl group-hover:scale-110 transition-transform duration-300">
-                <Lock className="w-8 h-8" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-sm font-bold mb-1 flex items-center gap-2">
-                  Enterprise AI Security <span className="text-[10px] bg-teal-400/30 px-1.5 py-0.5 rounded uppercase">Smart</span>
-                </h3>
-                <p className="text-gray-100 text-xs leading-relaxed">AI-enhanced JWT authentication for secure access</p>
-              </div>
-            </div>
+        {/* Central headline */}
+        <div className="space-y-6 animate-fadeInUp">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-3 py-1 text-[11px] font-semibold text-teal-200 uppercase tracking-wider">
+            <Sparkles className="w-3 h-3" />
+            Platform v2.0
           </div>
 
-          {/* Feature 2 */}
-          <div className="bg-white/15 backdrop-blur-xl p-4 rounded-xl border border-white/30 hover:bg-white/25 hover:border-white/50 hover:translate-y-[-2px] hover:shadow-xl transition-all duration-300 group cursor-pointer shadow-lg">
-            <div className="flex items-center gap-3">
-              <div className="text-2xl group-hover:scale-110 transition-transform duration-300">
-                <Users className="w-8 h-8" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-sm font-bold mb-1">Multi-Tenant Ready</h3>
-                <p className="text-gray-100 text-xs leading-relaxed">Unlimited organizations with isolated data</p>
-              </div>
-            </div>
-          </div>
+          <h2 className="text-4xl font-black leading-tight" style={{ textShadow: '0 2px 16px rgba(0,0,0,0.3)' }}>
+            Secure Every<br />
+            <span className="text-teal-200">Entry Point</span><br />
+            with AI
+          </h2>
 
-          {/* Feature 3 */}
-          <div className="bg-white/15 backdrop-blur-xl p-4 rounded-xl border border-white/30 hover:bg-white/25 hover:border-white/50 hover:translate-y-[-2px] hover:shadow-xl transition-all duration-300 group cursor-pointer shadow-lg">
-            <div className="flex items-center gap-3">
-              <div className="text-2xl group-hover:scale-110 transition-transform duration-300">
-                <Zap className="w-8 h-8" />
+          <p className="text-sm text-teal-100/80 leading-relaxed max-w-xs">
+            Next-generation access control that learns, adapts, and protects your organization in real time.
+          </p>
+
+          {/* Feature cards — differentiated sizes/colours */}
+          <div className="space-y-3">
+            {features.map((f, i) => (
+              <div
+                key={i}
+                className={`flex items-start gap-3 p-3.5 rounded-xl border ${f.border} bg-gradient-to-r ${f.accent} backdrop-blur-lg hover:bg-white/10 hover:border-white/30 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-250 cursor-default group`}
+                style={{ animationDelay: `${i * 120}ms` }}
+              >
+                <div className="mt-0.5 flex-shrink-0 w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                  {f.icon}
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-sm font-bold">{f.title}</span>
+                    <span className="text-[9px] bg-white/15 px-1.5 py-0.5 rounded uppercase tracking-wider font-semibold">{f.subtitle}</span>
+                  </div>
+                  <p className="text-xs text-teal-100/70 leading-relaxed">{f.description}</p>
+                </div>
               </div>
-              <div className="flex-1">
-                <h3 className="text-sm font-bold mb-1">Lightning Performance</h3>
-                <p className="text-gray-100 text-xs leading-relaxed">Real-time updates with fast response</p>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom quick-stats row */}
+        <div className="flex items-center gap-6">
+          {quickStats.map((s, i) => (
+            <div key={i} className="flex items-center gap-2 text-white/60">
+              {s.icon}
+              <div>
+                <div className="text-xs font-bold text-white/90">{s.value}</div>
+                <div className="text-[10px] text-white/50">{s.label}</div>
               </div>
             </div>
-          </div>
+          ))}
         </div>
       </div>
 
-      {/* Right Section - Login Form */}
-      <div className="flex flex-1 items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-white to-teal-50/30 backdrop-blur-sm relative z-10">
+      {/* ── RIGHT PANEL — Login Form ── */}
+      <div className="flex flex-1 items-center justify-center p-6 sm:p-10 relative z-10"
+        style={{ background: 'linear-gradient(160deg, rgba(255,255,255,0.96) 0%, rgba(240,253,250,0.98) 100%)' }}>
         <div className="w-full max-w-sm">
-          <div className="mb-6 animate-fadeInUp">
-            <h2 className="text-3xl font-black text-gray-900 mb-2 flex items-center gap-3">
-              Welcome <Sparkles className="w-8 h-8 animate-pulse" />
+          {/* Mobile brand header */}
+          <div className="flex items-center justify-center gap-2 mb-8 lg:hidden">
+            <img src={logoImage} alt="AccessHub Logo" className="w-8 h-8" />
+            <span className="text-lg font-black text-slate-800">AccessHub</span>
+          </div>
+
+          <div className="mb-7 animate-fadeInUp">
+            <h2 className="text-3xl font-black text-gray-900 mb-1.5 flex items-center gap-3">
+              Welcome <Sparkles className="w-7 h-7 text-teal-500 animate-pulse" />
             </h2>
-            <p className="text-base text-gray-600">Sign in to your AI-protected workspace</p>
+            <p className="text-sm text-gray-500">Sign in to your AI-protected workspace</p>
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-300 rounded-lg p-4 mb-6 flex items-center gap-2 text-red-800 text-sm">
-              <AlertCircle className="w-5 h-5" />
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3.5 mb-5 flex items-center gap-2.5 text-red-700 text-sm shadow-sm">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {/* Username */}
             <div className="flex flex-col group">
-              <label htmlFor="username" className="text-sm font-bold text-gray-800 mb-2 group-focus-within:text-teal-600 transition-colors">
+              <label htmlFor="username" className="text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider group-focus-within:text-teal-600 transition-colors">
                 Username or Email
               </label>
               <div className="relative">
@@ -216,20 +261,21 @@ const LoginV2 = () => {
                   name="username"
                   value={formData.username}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-base bg-teal-50 transition-all duration-300 focus:outline-none focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-100 hover:border-gray-300 disabled:bg-teal-100 disabled:cursor-not-allowed disabled:opacity-60 shadow-sm hover:shadow-md"
+                  className="w-full px-4 py-3 pr-10 border-2 border-gray-200 rounded-xl text-sm bg-teal-50/50 transition-all duration-250 focus:outline-none focus:border-teal-500 focus:bg-white focus:ring-3 focus:ring-teal-100 hover:border-gray-300 disabled:opacity-60 shadow-sm"
                   placeholder="you@example.com"
                   required
                   disabled={isLoading}
                   autoComplete="username"
                 />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-lg">
-                  <User className="w-5 h-5 text-gray-400" />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <User className="w-4 h-4 text-gray-400" />
                 </div>
               </div>
             </div>
 
+            {/* Password */}
             <div className="flex flex-col group">
-              <label htmlFor="password" className="text-sm font-bold text-gray-800 mb-2 group-focus-within:text-teal-600 transition-colors">
+              <label htmlFor="password" className="text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider group-focus-within:text-teal-600 transition-colors">
                 Password
               </label>
               <div className="relative">
@@ -239,7 +285,7 @@ const LoginV2 = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 pr-14 border-2 border-gray-200 rounded-xl text-base bg-teal-50 transition-all duration-300 focus:outline-none focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-100 hover:border-gray-300 disabled:bg-teal-100 disabled:cursor-not-allowed disabled:opacity-60 shadow-sm hover:shadow-md"
+                  className="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl text-sm bg-teal-50/50 transition-all duration-250 focus:outline-none focus:border-teal-500 focus:bg-white focus:ring-3 focus:ring-teal-100 hover:border-gray-300 disabled:opacity-60 shadow-sm"
                   placeholder="••••••••"
                   required
                   disabled={isLoading}
@@ -247,33 +293,35 @@ const LoginV2 = () => {
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-lg opacity-70 hover:opacity-100 transition-opacity disabled:cursor-not-allowed"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100 transition-opacity disabled:cursor-not-allowed"
                   onClick={() => setShowPassword(!showPassword)}
                   tabIndex="-1"
                   disabled={isLoading}
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            <div className="flex justify-between items-center text-sm gap-4 pt-1">
-              <label className="flex items-center gap-2 cursor-pointer hover:text-teal-600 transition-colors group">
-                <input type="checkbox" className="w-4 h-4 rounded border-2 border-gray-300 accent-teal-600 cursor-pointer" />
-                <span className="text-gray-700 group-hover:text-teal-600 font-medium">Remember me</span>
+            {/* Remember / Forgot */}
+            <div className="flex justify-between items-center text-sm pt-0.5">
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <input type="checkbox" className="w-3.5 h-3.5 rounded border-2 border-gray-300 accent-teal-600 cursor-pointer" />
+                <span className="text-xs text-gray-600 group-hover:text-teal-600 transition-colors">Remember me</span>
               </label>
               <button
                 type="button"
-                className="bg-none border-none text-teal-600 font-semibold cursor-pointer hover:text-teal-700 hover:underline underline-offset-2 transition-colors"
+                className="text-xs text-teal-600 font-semibold hover:text-teal-700 hover:underline underline-offset-2 transition-colors"
                 onClick={handleForgotPassword}
               >
                 Forgot Password?
               </button>
             </div>
 
+            {/* Submit */}
             <button
               type="submit"
-              className="py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white border-none rounded-xl text-base font-bold cursor-pointer transition-all duration-300 flex items-center justify-center gap-3 mt-3 hover:enabled:shadow-xl hover:enabled:shadow-teal-500/50 hover:enabled:translate-y-[-2px] active:enabled:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:enabled:shadow-2xl"
+              className="mt-1 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl text-sm font-bold cursor-pointer transition-all duration-250 flex items-center justify-center gap-3 hover:enabled:shadow-xl hover:enabled:shadow-teal-500/40 hover:enabled:-translate-y-0.5 active:enabled:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
               disabled={isLoading || !formData.username || !formData.password}
             >
               {isLoading ? (
@@ -286,12 +334,17 @@ const LoginV2 = () => {
               )}
             </button>
           </form>
+
+          <p className="mt-6 text-center text-xs text-gray-400 leading-relaxed">
+            Don't have an account?{' '}
+            <span className="font-semibold text-gray-600">Contact your administrator</span> for access.
+          </p>
         </div>
 
         {/* AccessHub AI Signature */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 opacity-30 hover:opacity-60 transition-opacity cursor-default pointer-events-none select-none">
-          <AIIcon className="w-5 h-5" />
-          <span className="text-xs font-black tracking-[0.2em] uppercase text-teal-900">AccessHub AI</span>
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 opacity-25 hover:opacity-50 transition-opacity cursor-default pointer-events-none select-none">
+          <AIIcon className="w-4 h-4" />
+          <span className="text-[10px] font-black tracking-[0.2em] uppercase text-teal-900">AccessHub AI</span>
         </div>
       </div>
     </div>

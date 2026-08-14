@@ -219,7 +219,7 @@ const ManagerDashboard = () => {
     <div className={`min-h-screen ${themeClasses.page}`}>
       {/* Header */}
       <div className={`sticky top-0 z-40 ${themeClasses.header}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div>
             <h1 className="text-4xl sm:text-5xl font-black text-white mb-2 drop-shadow-lg">
               Manager Dashboard
@@ -243,7 +243,7 @@ const ManagerDashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-12">
         {/* Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {/* Team Members Card */}

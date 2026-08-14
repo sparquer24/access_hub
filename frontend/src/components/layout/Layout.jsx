@@ -9,7 +9,7 @@ const Layout = ({ children }) => {
   return (
     <div className={`min-h-screen flex flex-col ${isDarkMode ? 'bg-slate-900' : ''}`}>
       <Header />
-      <main className={`flex-1 relative ${isDarkMode ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : ''}`}>
+      <main className={`relative flex-1 flex flex-col ${isDarkMode ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : ''}`}>
         {children}
       </main>
       <Footer />
