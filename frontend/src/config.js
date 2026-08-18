@@ -3,7 +3,7 @@
  * Consolidates all environment variables and provides a single source of truth.
  */
 
-const DEFAULT_PROD_API = 'http://202.53.72.149:5001';
+const DEFAULT_PROD_API = 'https://202-53-72-149.sslip.io';
 
 // Prefer explicit env var. Fall back to local backend for dev and hosted API for production.
 let API_BASE_URL = process.env.REACT_APP_API_BASE_URL || DEFAULT_PROD_API;
