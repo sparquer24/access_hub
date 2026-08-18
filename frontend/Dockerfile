@@ -16,10 +16,14 @@ RUN npm run build
 # Stage 2: Serve with Nginx
 FROM nginx:alpine
 
+RUN apk add --no-cache openssl
+
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
 COPY --from=builder /app/build /usr/share/nginx/html
 
-EXPOSE 80
+EXPOSE 80 443
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/docker-entrypoint.sh"]
